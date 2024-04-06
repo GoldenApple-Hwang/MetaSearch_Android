@@ -1,5 +1,6 @@
 plugins {
     id("com.android.application")
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
@@ -31,10 +32,27 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 
 dependencies {
+
+    // Retrofit dependency
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    // Gson dependency
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    // OkHttp dependency
+    implementation("com.squareup.okhttp3:okhttp:4.9.2")
+
+    //neo4j dependency
+    implementation("org.neo4j.driver:neo4j-java-driver:4.4.0")
+    //fragment dependency
+    implementation("androidx.fragment:fragment-ktx:1.6.2")
+    //CircleImageView dependency
+    implementation("de.hdodenhof:circleimageview:3.1.0")
+    //PhotoView dependency
+    implementation("com.github.chrisbanes:PhotoView:2.3.0")
 
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.11.0")
