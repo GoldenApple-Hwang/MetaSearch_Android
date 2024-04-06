@@ -1,0 +1,18 @@
+# 프로젝트 폴더 구조
+- `/app/src/main/java/com/example/project` - 자바 소스 코드의 루트 디렉토리
+  - `/adapter` - 리사이클러뷰 어댑터 등 UI 컴포넌트를 위한 클래스
+  - `/manager` - 데이터 관리를 위한 클래스(재사용 가능한 함수들을 모아놓은 클래스)
+    - `GalleryImageManager`
+    - `Neo4jDatabaseManager`
+    - `Neo4jDriverManager`
+  - `/service` - 네트워크 통신을 위한 클래스
+    - `/gptChat`
+  - `/model` - 데이터 모델 클래스
+  - `/ui` - 액티비티와 프래그먼트 등 사용자 인터페이스를 위한 클래스
+    - `/fragment` - 앱의 프래그먼트
+      - `GraphFragment` - 지식 그래프가 출력되는 화면
+      - `HomeFragment` - 갤러리의 모든 사진이 출력되는 화면
+      - `SearchFragment` - 원하는 사진을 검색하기 위한 화면
+    - `/activity` - 앱의 액티비티
+      - `MainActivity`
+    - `/viewmodel` - 앱의 뷰모델
