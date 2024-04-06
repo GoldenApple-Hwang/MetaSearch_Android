@@ -10,9 +10,9 @@
   - `/model` - 데이터 모델 클래스
   - `/ui` - 액티비티와 프래그먼트 등 사용자 인터페이스를 위한 클래스
     - `/fragment` - 앱의 프래그먼트
-      - `GraphFragment` - 지식 그래프가 출력되는 화면
-      - `HomeFragment` - 갤러리의 모든 사진이 출력되는 화면
-      - `SearchFragment` - 원하는 사진을 검색하기 위한 화면
+      - `GraphFragment` - 지식 그래프 출력
+      - `HomeFragment` - 갤러리의 모든 사진 출력
+      - `SearchFragment` - 원하는 사진 검색
     - `/activity` - 앱의 액티비티
       - `MainActivity`
     - `/viewmodel` - 앱의 뷰모델
