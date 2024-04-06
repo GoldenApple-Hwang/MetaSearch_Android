@@ -4,19 +4,11 @@
     <string name="title_search">Search</string>
     <string name="title_graph">Graph</string>
 
-    <string name="user_input_kor">. 이 사진을 찾을 때 필요한 속성인 entity와 relationship을 추출할거야.
-        entity는 사람이나 사물의 구체적인 이름(예: 짱구, 사과)을 의미하고,
-        relationship은 인물, 색상, 동물, 가구, 과일, 음식, 음료, 디저트, 옷, 악세사리, 전자제품, 신발, 꽃, 길거리,
-        건물, 모자, 스포츠, 안경, 일물, 일출, 하늘, 장난감 중 하나로 entity가 속하는 카테고리를 의미해. 장소는 추출 하지마.
-        예를 들어, \'유리와 맹구가 바다에서 아이스크림을 먹는 사진\' 이라면 \'3 유리 인물 맹구 인물 아이스크림 디저트\'와 같이 한 줄로 리턴해.
-        즉, 추출된 속성이 여러 쌍이면 공백을 하나 포함해서 모두 이어서 리턴해. 리턴할 값에서 맨 앞의 숫자는 entity와 relationship을 한 쌍으로 봤을 때 총 개수를 의미.
-        만약, relationship에서 음식의 하위 카테고리가 있다면 하위 카테고리로 추출해줘. 추출된 속성 쌍의 개수가 0이면, \'0\'을 리턴.</string>
-
     <string name="user_input_eng">. 이 사진을 찾을 때 필요한 속성인 entity와 relationship을 추출할거야.
-        entity는 사람이나 사물의 이름(예: 맹구, 사과) 또는 감정(예: 행복한, 웃는), 인종(예: 흑인, 백인), 성별(예: 남자, 여자) 중 하나고,
+        entity는 사람이나 사물의 이름 또는 감정, 인종, 성별을 나타내는 단어이고,
         relationship은 entity가 속하는 카테고리로 \"person, color, animal, furniture, fruit, food, beverage, dessert, ice cream, clothing, jewelry, electronic_equipment, footwear, flower, street,
-        building, cap, sports, glasses, sunset, sunrise, sky, toy, cup, car, 감정, 인종, 성별\" 중에서 하나로 분류해. 장소는 추출 하지 말고, 아이스크림은 ice cream으로 분류.
-        예를 들어, \'아기가 바다에서 바나나와 아이스크림을 먹는 사진\' 이라면, \'3,baby,person,banana,fruit,ice cream,ice cream\'처럼 공백 없이 한 줄로 리턴.
-        리턴 값의 맨 앞의 숫자는 entity와 relationship을 한 쌍으로 봤을 때 총 개수를 의미.
+        building, cap, sports, glasses, sunset, sunrise, sky, toy, cup, car, 감정, 인종, 성별\" 중 하나야. 장소는 추출 하지 말고, 아이스크림은 ice cream으로 분류.
+        예를 들어, \'아기가 바다에서 바나나와 아이스크림을 먹는 사진\' 이라면, \'3,baby,person,banana,fruit,ice cream,ice cream\'처럼 공백 없이 총 한 줄로 리턴.
+        맨 앞의 숫자는 entity와 relationship을 한 쌍으로 봤을 때 총 개수를 의미. entity도 영어로 리턴. entity와 relationship을 한 쌍으로 봤을 ㄷ
         추출된 속성 쌍의 개수가 0이면, \'0\'을 리턴.</string>
 </resources>
