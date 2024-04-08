@@ -1,4 +1,4 @@
-package com.example.metasearch.adapter;
+package com.example.metasearch.ui.adapter;
 
 import android.annotation.SuppressLint;
 import android.content.Context;

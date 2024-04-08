@@ -1,4 +1,4 @@
-package com.example.metasearch.adapter;
+package com.example.metasearch.ui.adapter;
 
 import android.content.Context;
 import android.content.Intent;

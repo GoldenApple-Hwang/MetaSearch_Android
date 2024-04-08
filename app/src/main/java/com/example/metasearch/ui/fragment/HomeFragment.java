@@ -3,7 +3,7 @@ package com.example.metasearch.ui.fragment;
 import static com.example.metasearch.manager.GalleryImageManager.getAllGalleryImagesUri;
 
 import com.example.metasearch.model.Person;
-import com.example.metasearch.adapter.PersonAdapter;
+import com.example.metasearch.ui.adapter.PersonAdapter;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -17,7 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import com.example.metasearch.adapter.ImageAdapter;
+import com.example.metasearch.ui.adapter.ImageAdapter;
 import com.example.metasearch.ui.activity.ImageDisplayActivity;
 import com.example.metasearch.databinding.FragmentHomeBinding;
 import java.util.List;

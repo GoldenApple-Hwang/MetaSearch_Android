@@ -22,8 +22,8 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.example.metasearch.R;
-import com.example.metasearch.adapter.CustomArrayAdapter;
-import com.example.metasearch.adapter.ImageAdapter;
+import com.example.metasearch.ui.adapter.CustomArrayAdapter;
+import com.example.metasearch.ui.adapter.ImageAdapter;
 import com.example.metasearch.databinding.FragmentSearchBinding;
 import com.example.metasearch.service.gptChat.Choice;
 import com.example.metasearch.manager.Neo4jDatabaseManager;
