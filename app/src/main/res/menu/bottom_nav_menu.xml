@@ -16,4 +16,9 @@
         android:icon="@drawable/baseline_animation_24"
         android:title="@string/title_graph" />
 
+    <item
+        android:id="@+id/navigation_composite"
+        android:icon="@drawable/baseline_add_photo_alternate_24"
+        android:title="@string/title_composite" />
+
 </menu>
