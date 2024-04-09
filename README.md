@@ -13,6 +13,7 @@
       - `MainActivity` - 필요한 권한 요청
     - `/adapter` - 리사이클러뷰 어댑터 등 UI 컴포넌트를 위한 클래스를 포함하는 폴더
     - `/fragment` - 앱의 프래그먼트를 포함하는 폴더
+      - `CompositeFragment` - 합성된 이미지 출력
       - `GraphFragment` - 지식 그래프 출력
       - `HomeFragment` - 갤러리의 모든 사진 출력(상단에 분석된 인물 얼굴 출력)
       - `SearchFragment` - 원하는 사진 검색
