@@ -1,32 +1,20 @@
 package com.example.metasearch.service.gptChat;
 
 import com.example.metasearch.BuildConfig;
+import com.example.metasearch.helper.HttpHelper;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-import okhttp3.OkHttpClient;
 import retrofit2.Callback;
 import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class OpenAIServiceManager {
     private static final String BASE_URL = "https://api.openai.com/";
     private final Retrofit retrofit;
 
     public OpenAIServiceManager() {
-        OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
-                .writeTimeout(30, TimeUnit.SECONDS)
-                .build();
-
-        retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .client(okHttpClient)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
+        retrofit = HttpHelper.getInstance(BASE_URL).getRetrofit();
     }
 
     public void fetchOpenAIResponse(String userInput, Callback<OpenAIResponse> callback) {
