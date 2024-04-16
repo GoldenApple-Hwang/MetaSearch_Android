@@ -56,6 +56,41 @@ public class GalleryImageManager {
         }
         return images;
     }
+    public static ArrayList<String> getAllGalleryImagesUriToString(Context context) {
+        ArrayList<String> imagePaths = new ArrayList<>();
+        Uri uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        String[] projection = {MediaStore.Images.Media.DATA};
+        Cursor cursor = context.getContentResolver().query(uri, projection, null, null, null);
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                String imagePath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
+                imagePaths.add(imagePath);
+            }
+            cursor.close();
+        }
+        return imagePaths;
+    }
+
+    public static ArrayList<String> getGalleryImagesUriToStringByName(Context context, String fileName) {
+        ArrayList<String> imagePaths = new ArrayList<>();
+        Uri uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        String[] projection = {MediaStore.Images.Media.DATA};
+
+        // 검색 조건 설정: 파일 이름이 정확히 일치하는 경우
+        String selection = MediaStore.Images.Media.DISPLAY_NAME + "=?";
+        String[] selectionArgs = new String[]{fileName};
+
+        Cursor cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs, null);
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                String imagePath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
+                imagePaths.add(imagePath);
+            }
+            cursor.close();
+        }
+        return imagePaths;
+    }
+
 
     // 갤러리에서 모든 이미지의 이름을 확장자 없이 가져오는 메서드
     public static List<String> getAllImageNamesWithoutExtension(Context context) {
