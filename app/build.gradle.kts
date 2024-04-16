@@ -44,6 +44,7 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     // OkHttp dependency
     implementation("com.squareup.okhttp3:okhttp:4.9.2")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.0")
 
     //neo4j dependency
     implementation("org.neo4j.driver:neo4j-java-driver:4.4.0")
