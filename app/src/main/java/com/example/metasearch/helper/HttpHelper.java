@@ -25,7 +25,6 @@ public class HttpHelper {
                 .build();
 
     }
-
     //retrofit 반환
     public Retrofit getRetrofit(){
         return retrofit;
@@ -38,5 +37,4 @@ public class HttpHelper {
         }
         return httpHelperObject;
     }
-
 }

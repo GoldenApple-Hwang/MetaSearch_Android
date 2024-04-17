@@ -2,12 +2,16 @@ package com.example.metasearch.service.gptChat;
 
 import com.example.metasearch.BuildConfig;
 import com.example.metasearch.helper.HttpHelper;
+//import com.example.metasearch.helper.HttpHelper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import okhttp3.OkHttpClient;
 import retrofit2.Callback;
 import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class OpenAIServiceManager {
     private static final String BASE_URL = "https://api.openai.com/";
