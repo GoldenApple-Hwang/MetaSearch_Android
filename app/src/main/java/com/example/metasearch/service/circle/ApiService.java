@@ -1,8 +1,7 @@
-package com.example.metasearch.network;
+package com.example.metasearch.service.circle;
 
 import com.example.metasearch.model.CircleDetectionResponse;
 
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.POST;
 import okhttp3.MultipartBody;

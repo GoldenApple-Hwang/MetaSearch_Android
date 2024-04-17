@@ -13,7 +13,7 @@ import com.example.metasearch.helper.HttpHelper;
 import com.example.metasearch.manager.UriToFileConverter;
 import com.example.metasearch.model.Circle;
 import com.example.metasearch.model.CircleDetectionResponse;
-import com.example.metasearch.network.ApiService;
+import com.example.metasearch.service.circle.ApiService;
 import com.example.metasearch.ui.CustomImageView;
 import com.google.gson.Gson;
 
