@@ -1,5 +1,7 @@
 package com.example.metasearch.network;
 
+import com.example.metasearch.model.CircleDetectionResponse;
+
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.POST;
@@ -12,7 +14,7 @@ public interface ApiService {
 
     @Multipart
     @POST("upload")
-    Call<ResponseBody> uploadImageAndCircles(
+    Call<CircleDetectionResponse> uploadImageAndCircles(
             @Part MultipartBody.Part image,
             @Part("source")RequestBody source,
             @Part("circles") RequestBody circles
