@@ -12,6 +12,7 @@ import com.example.metasearch.R;
 import com.example.metasearch.helper.HttpHelper;
 import com.example.metasearch.manager.UriToFileConverter;
 import com.example.metasearch.model.Circle;
+import com.example.metasearch.model.CircleDetectionResponse;
 import com.example.metasearch.network.ApiService;
 import com.example.metasearch.ui.CustomImageView;
 import com.google.gson.Gson;
@@ -23,7 +24,6 @@ import java.util.List;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -36,10 +36,6 @@ public class ImageDisplayActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image_display);
-
-//        ImageView imageView = findViewById(R.id.imageViewFullScreen);
-//        String imageUri = getIntent().getStringExtra("imageUri");
-//        imageView.setImageURI(Uri.parse(imageUri));
 
         customImageView = findViewById(R.id.customImageView);
         String imgUri = getIntent().getStringExtra("imageUri");
@@ -82,32 +78,23 @@ public class ImageDisplayActivity extends AppCompatActivity {
 
         Retrofit retrofit = HttpHelper.getInstance("http://113.198.85.5").getRetrofit();
         ApiService service = retrofit.create(ApiService.class);
-        Call<ResponseBody> call = service.uploadImageAndCircles(body, sourceBody, circleData);
-        call.enqueue(new Callback<ResponseBody>() {
+        Call<CircleDetectionResponse> call = service.uploadImageAndCircles(body, sourceBody, circleData);
+        call.enqueue(new Callback<CircleDetectionResponse>() {
             @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+            public void onResponse(Call<CircleDetectionResponse> call, Response<CircleDetectionResponse> response) {
                 if (response.isSuccessful()) {
-                    try {
-                        // 응답 본문을 문자열로 변환
-                        String responseBodyString = response.body().string();
-                        Log.d("Upload", "Response body: " + responseBodyString);
-                    } catch (IOException e) {
-                        Log.e("Upload", "Error reading response body", e);
+                    CircleDetectionResponse uploadResponse = response.body();
+                    if (uploadResponse != null) {
+                        Log.d("Upload", "Message: " + uploadResponse.getMessage());
+                        List<String> detectedObjects = uploadResponse.getDetectedObjects();  // null-safe method 사용
+                        Log.d("Upload", "Detected Object: " + detectedObjects);
                     }
                 } else {
-                    // 에러 응답 처리
-                    Log.e("Upload", "Request failed with status: " + response.code());
-                    try {
-                        if (response.errorBody() != null) {
-                            Log.e("Upload", "Error body: " + response.errorBody().string());
-                        }
-                    } catch (IOException e) {
-                        Log.e("Upload", "Error reading error body", e);
-                    }
+                    Log.e("Upload", "Error: " + response.errorBody());
                 }
             }
             @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
+            public void onFailure(Call<CircleDetectionResponse> call, Throwable t) {
                 Log.e("Upload", "Failed to upload data and image", t);
             }
         });
