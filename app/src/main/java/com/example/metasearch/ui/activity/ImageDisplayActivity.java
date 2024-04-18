@@ -13,7 +13,7 @@ import com.example.metasearch.helper.HttpHelper;
 import com.example.metasearch.manager.UriToFileConverter;
 import com.example.metasearch.model.Circle;
 import com.example.metasearch.model.CircleDetectionResponse;
-import com.example.metasearch.service.circle.ApiService;
+import com.example.metasearch.service.ApiService;
 import com.example.metasearch.ui.CustomImageView;
 import com.google.gson.Gson;
 
@@ -24,10 +24,10 @@ import java.util.List;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
 
 public class ImageDisplayActivity extends AppCompatActivity {
     private CustomImageView customImageView;
@@ -76,8 +76,7 @@ public class ImageDisplayActivity extends AppCompatActivity {
         //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
         RequestBody sourceBody = RequestBody.create(MediaType.parse("text/plain"),source);
 
-        Retrofit retrofit = HttpHelper.getInstance("http://113.198.85.5").getRetrofit();
-        ApiService service = retrofit.create(ApiService.class);
+        ApiService service = HttpHelper.getInstance("http://113.198.85.5").getRetrofit().create(ApiService.class);
         Call<CircleDetectionResponse> call = service.uploadImageAndCircles(body, sourceBody, circleData);
         call.enqueue(new Callback<CircleDetectionResponse>() {
             @Override
@@ -87,6 +86,8 @@ public class ImageDisplayActivity extends AppCompatActivity {
                     if (uploadResponse != null) {
                         Log.d("Upload", "Message: " + uploadResponse.getMessage());
                         List<String> detectedObjects = uploadResponse.getDetectedObjects();  // null-safe method 사용
+                        // 다른 서버로 다시 보냄
+                        sendDetectedObjectsToAnotherServer(uploadResponse.getDetectedObjects());
                         Log.d("Upload", "Detected Object: " + detectedObjects);
                     }
                 } else {
@@ -96,6 +97,32 @@ public class ImageDisplayActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<CircleDetectionResponse> call, Throwable t) {
                 Log.e("Upload", "Failed to upload data and image", t);
+            }
+        });
+    }
+    private void sendDetectedObjectsToAnotherServer(List<String> detectedObjects) {
+        Gson gson = new Gson();
+        String jsonObject = gson.toJson(detectedObjects);
+        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonObject);
+        ApiService service = HttpHelper.getInstance("http://113.198.85.4/android/circleToSearch/youjeong").create(ApiService.class);
+        Call<ResponseBody> sendCall = service.sendDetectedObjects(requestBody);
+        Log.d("Upload", "Sending JSON: " + jsonObject);  // JSON 데이터 로깅
+        sendCall.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    Log.d("Upload", "Detected objects sent successfully");
+                } else {
+                    try {
+                        Log.e("Upload", "Failed to send detected objects: " + response.errorBody().string());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.e("Upload", "Error sending detected objects", t);
             }
         });
     }
