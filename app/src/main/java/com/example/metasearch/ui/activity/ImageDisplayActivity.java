@@ -19,7 +19,9 @@ import com.google.gson.Gson;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -87,7 +89,8 @@ public class ImageDisplayActivity extends AppCompatActivity {
                         Log.d("Upload", "Message: " + uploadResponse.getMessage());
                         List<String> detectedObjects = uploadResponse.getDetectedObjects();  // null-safe method 사용
                         // 다른 서버로 다시 보냄
-                        sendDetectedObjectsToAnotherServer(uploadResponse.getDetectedObjects());
+                        // db 이름은 변경 가능
+                        sendDetectedObjectsToAnotherServer(uploadResponse.getDetectedObjects(), "youjeong");
                         Log.d("Upload", "Detected Object: " + detectedObjects);
                     }
                 } else {
@@ -100,13 +103,28 @@ public class ImageDisplayActivity extends AppCompatActivity {
             }
         });
     }
-    private void sendDetectedObjectsToAnotherServer(List<String> detectedObjects) {
+    private void sendDetectedObjectsToAnotherServer(List<String> detectedObjects, String dbName) {
+        // Gson 인스턴스 생성
         Gson gson = new Gson();
-        String jsonObject = gson.toJson(detectedObjects);
+
+        // detectedObjects와 dbName을 포함하는 Map 객체 생성
+        Map<String, Object> jsonMap = new HashMap<>();
+        jsonMap.put("dbName", dbName);
+        jsonMap.put("properties", detectedObjects);
+
+        // Map 객체를 JSON 문자열로 변환
+        String jsonObject = gson.toJson(jsonMap);
+
+        // JSON 문자열을 바디로 사용하여 RequestBody 객체 생성
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonObject);
-        ApiService service = HttpHelper.getInstance("http://113.198.85.4/android/circleToSearch/youjeong").create(ApiService.class);
+
+        Log.d("e",jsonObject);
+
+        // HttpHelper를 사용하여 ApiService 인스턴스 생성
+        ApiService service = HttpHelper.getInstance("http://113.198.85.4/android/circleToSearch").create(ApiService.class);
+
+        // POST 요청 보내기
         Call<ResponseBody> sendCall = service.sendDetectedObjects(requestBody);
-        Log.d("Upload", "Sending JSON: " + jsonObject);  // JSON 데이터 로깅
         sendCall.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -126,4 +144,5 @@ public class ImageDisplayActivity extends AppCompatActivity {
             }
         });
     }
+
 }
