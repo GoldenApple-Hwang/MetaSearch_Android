@@ -19,6 +19,6 @@ public interface ApiService {
             @Part("source")RequestBody source,
             @Part("circles") RequestBody circles
     );
-    @POST("/android/circleToSearch/youjeong")
+    @POST("/android/circleToSearch")
     Call<ResponseBody> sendDetectedObjects(@Body RequestBody detectedObjects);
 }
