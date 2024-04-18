@@ -1,5 +1,7 @@
 package com.example.metasearch.helper;
 
+import com.example.metasearch.service.ApiService;
+
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
@@ -36,5 +38,9 @@ public class HttpHelper {
             httpHelperObject = new HttpHelper(BASE_URL);
         }
         return httpHelperObject;
+    }
+
+    public ApiService create(Class<ApiService> apiServiceClass) {
+        return retrofit.create(ApiService.class);
     }
 }
