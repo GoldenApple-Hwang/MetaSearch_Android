@@ -13,6 +13,7 @@ import com.example.metasearch.helper.HttpHelper;
 import com.example.metasearch.manager.UriToFileConverter;
 import com.example.metasearch.model.Circle;
 import com.example.metasearch.model.CircleDetectionResponse;
+import com.example.metasearch.model.PhotoResponse;
 import com.example.metasearch.service.ApiService;
 import com.example.metasearch.ui.CustomImageView;
 import com.google.gson.Gson;
@@ -28,7 +29,6 @@ import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -142,12 +142,15 @@ public class ImageDisplayActivity extends AppCompatActivity {
         ApiService service = retrofit.create(ApiService.class);
 
         // POST 요청 보내기
-        Call<ResponseBody> sendCall = service.sendDetectedObjects(requestBody);
-        sendCall.enqueue(new Callback<ResponseBody>() {
+        Call<PhotoResponse> sendCall = service.sendDetectedObjects(requestBody);
+        sendCall.enqueue(new Callback<PhotoResponse>() {
             @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+            public void onResponse(Call<PhotoResponse> call, Response<PhotoResponse> response) {
                 if (response.isSuccessful()) {
                     Log.d("Upload", "Detected objects sent successfully");
+                    PhotoResponse photoResponse = response.body();
+                    Log.d("Upload", "Common Photos: " + photoResponse.getPhotos().getCommonPhotos());
+                    Log.d("Upload", "Individual Photos: " + photoResponse.getPhotos().getIndividualPhotos());
                 } else {
                     try {
                         Log.e("Upload", "Failed to send detected objects: " + response.errorBody().string());
@@ -157,7 +160,7 @@ public class ImageDisplayActivity extends AppCompatActivity {
                 }
             }
             @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
+            public void onFailure(Call<PhotoResponse> call, Throwable t) {
                 Log.e("Upload", "Error sending detected objects", t);
             }
         });
