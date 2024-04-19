@@ -103,6 +103,7 @@ public class ImageDisplayActivity extends AppCompatActivity {
                         } else {
                             // detectedObjects가 널이 아니고 비어있지 않으면 다른 서버로 데이터 전송
                             sendDetectedObjectsToAnotherServer(detectedObjects, "youjeong");
+                            runOnUiThread(() -> Toast.makeText(ImageDisplayActivity.this, detectedObjects.toString(), Toast.LENGTH_LONG).show());
                             Log.d("Upload", "Detected Object: " + detectedObjects);
                         }
                     } else {
