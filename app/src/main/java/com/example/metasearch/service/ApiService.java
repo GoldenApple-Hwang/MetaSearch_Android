@@ -1,6 +1,7 @@
 package com.example.metasearch.service;
 
 import com.example.metasearch.model.CircleDetectionResponse;
+import com.example.metasearch.model.PhotoResponse;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -19,6 +20,6 @@ public interface ApiService {
             @Part("source")RequestBody source,
             @Part("circles") RequestBody circles
     );
-    @POST("/android/circleToSearch")
-    Call<ResponseBody> sendDetectedObjects(@Body RequestBody detectedObjects);
+    @POST("android/circleToSearch")
+    Call<PhotoResponse> sendDetectedObjects(@Body RequestBody detectedObjects);
 }
