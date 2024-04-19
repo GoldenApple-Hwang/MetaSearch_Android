@@ -22,14 +22,18 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ImageDisplayActivity extends AppCompatActivity {
     private CustomImageView customImageView;
@@ -46,6 +50,7 @@ public class ImageDisplayActivity extends AppCompatActivity {
         imageUri = Uri.parse(imgUri);
 
         Button btnSend = findViewById(R.id.btnSend);
+        Button btnReset = findViewById(R.id.btnReset);
         btnSend.setOnClickListener(v -> {
             try {
                 sendCirclesAndImage();
@@ -53,6 +58,7 @@ public class ImageDisplayActivity extends AppCompatActivity {
                 throw new RuntimeException(e);
             }
         });
+        btnReset.setOnClickListener(v -> customImageView.clearCircles());
     }
     private void sendCirclesAndImage() throws IOException {
         List<Circle> circles = customImageView.getCircles();
@@ -120,8 +126,20 @@ public class ImageDisplayActivity extends AppCompatActivity {
 
         Log.d("e",jsonObject);
 
+        OkHttpClient okHttpClient = new OkHttpClient.Builder() //응답을 1분으로 지정
+                .connectTimeout(60, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
+                .writeTimeout(60, TimeUnit.SECONDS)
+                .build();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://113.198.85.4")
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(okHttpClient) // 위에서 설정한 OkHttpClient 인스턴스 사용
+                .build();
+
         // HttpHelper를 사용하여 ApiService 인스턴스 생성
-        ApiService service = HttpHelper.getInstance("http://113.198.85.4/android/circleToSearch").create(ApiService.class);
+        ApiService service = retrofit.create(ApiService.class);
 
         // POST 요청 보내기
         Call<ResponseBody> sendCall = service.sendDetectedObjects(requestBody);
