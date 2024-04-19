@@ -1,5 +1,6 @@
 package com.example.metasearch.ui.activity;
 
+import android.app.AutomaticZenRule;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -37,6 +38,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ImageDisplayActivity extends AppCompatActivity {
     private CustomImageView customImageView;
+    private Button btnSend;
     private Uri imageUri;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,8 +51,8 @@ public class ImageDisplayActivity extends AppCompatActivity {
 
         imageUri = Uri.parse(imgUri);
 
-        Button btnSend = findViewById(R.id.btnSend);
-        Button btnReset = findViewById(R.id.btnReset);
+        btnSend = findViewById(R.id.btnSend); // 검색 버튼
+        Button btnReset = findViewById(R.id.btnReset); // 그린 원 초기화 버튼
         btnSend.setOnClickListener(v -> {
             try {
                 sendCirclesAndImage();
@@ -63,6 +65,7 @@ public class ImageDisplayActivity extends AppCompatActivity {
     private void sendCirclesAndImage() throws IOException {
         List<Circle> circles = customImageView.getCircles();
         if (imageUri != null && !circles.isEmpty()) {
+            btnSend.setEnabled(false); // 버튼 비활성화
             uploadData(imageUri, circles, "source");
         } else {
             Toast.makeText(this, "이미지 또는 원 정보가 없습니다.", Toast.LENGTH_SHORT).show();
@@ -96,6 +99,7 @@ public class ImageDisplayActivity extends AppCompatActivity {
                         if (detectedObjects == null || detectedObjects.isEmpty()) {
                             // detectedObjects가 널이거나 비어있으면 토스트 메시지를 띄움
                             runOnUiThread(() -> Toast.makeText(ImageDisplayActivity.this, "탐지된 객체가 없습니다.", Toast.LENGTH_LONG).show());
+                            btnSend.setEnabled(true); // 버튼 활성화
                         } else {
                             // detectedObjects가 널이 아니고 비어있지 않으면 다른 서버로 데이터 전송
                             sendDetectedObjectsToAnotherServer(detectedObjects, "youjeong");
@@ -164,10 +168,12 @@ public class ImageDisplayActivity extends AppCompatActivity {
                         throw new RuntimeException(e);
                     }
                 }
+                btnSend.setEnabled(true); // 버튼 활성화
             }
             @Override
             public void onFailure(Call<PhotoResponse> call, Throwable t) {
                 Log.e("Upload", "Error sending detected objects", t);
+                btnSend.setEnabled(true); // 버튼 활성화
             }
         });
     }
