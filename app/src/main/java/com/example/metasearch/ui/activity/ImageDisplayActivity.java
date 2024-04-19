@@ -13,21 +13,27 @@ import com.example.metasearch.helper.HttpHelper;
 import com.example.metasearch.manager.UriToFileConverter;
 import com.example.metasearch.model.Circle;
 import com.example.metasearch.model.CircleDetectionResponse;
-import com.example.metasearch.network.ApiService;
+import com.example.metasearch.model.PhotoResponse;
+import com.example.metasearch.service.ApiService;
 import com.example.metasearch.ui.CustomImageView;
 import com.google.gson.Gson;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ImageDisplayActivity extends AppCompatActivity {
     private CustomImageView customImageView;
@@ -44,6 +50,7 @@ public class ImageDisplayActivity extends AppCompatActivity {
         imageUri = Uri.parse(imgUri);
 
         Button btnSend = findViewById(R.id.btnSend);
+        Button btnReset = findViewById(R.id.btnReset);
         btnSend.setOnClickListener(v -> {
             try {
                 sendCirclesAndImage();
@@ -51,6 +58,7 @@ public class ImageDisplayActivity extends AppCompatActivity {
                 throw new RuntimeException(e);
             }
         });
+        btnReset.setOnClickListener(v -> customImageView.clearCircles());
     }
     private void sendCirclesAndImage() throws IOException {
         List<Circle> circles = customImageView.getCircles();
@@ -76,8 +84,7 @@ public class ImageDisplayActivity extends AppCompatActivity {
         //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
         RequestBody sourceBody = RequestBody.create(MediaType.parse("text/plain"),source);
 
-        Retrofit retrofit = HttpHelper.getInstance("http://113.198.85.5").getRetrofit();
-        ApiService service = retrofit.create(ApiService.class);
+        ApiService service = HttpHelper.getInstance("http://113.198.85.5").getRetrofit().create(ApiService.class);
         Call<CircleDetectionResponse> call = service.uploadImageAndCircles(body, sourceBody, circleData);
         call.enqueue(new Callback<CircleDetectionResponse>() {
             @Override
@@ -87,6 +94,9 @@ public class ImageDisplayActivity extends AppCompatActivity {
                     if (uploadResponse != null) {
                         Log.d("Upload", "Message: " + uploadResponse.getMessage());
                         List<String> detectedObjects = uploadResponse.getDetectedObjects();  // null-safe method 사용
+                        // 다른 서버로 다시 보냄
+                        // db 이름은 변경 가능
+                        sendDetectedObjectsToAnotherServer(uploadResponse.getDetectedObjects(), "youjeong");
                         Log.d("Upload", "Detected Object: " + detectedObjects);
                     }
                 } else {
@@ -99,4 +109,61 @@ public class ImageDisplayActivity extends AppCompatActivity {
             }
         });
     }
+    private void sendDetectedObjectsToAnotherServer(List<String> detectedObjects, String dbName) {
+        // Gson 인스턴스 생성
+        Gson gson = new Gson();
+
+        // detectedObjects와 dbName을 포함하는 Map 객체 생성
+        Map<String, Object> jsonMap = new HashMap<>();
+        jsonMap.put("dbName", dbName);
+        jsonMap.put("properties", detectedObjects);
+
+        // Map 객체를 JSON 문자열로 변환
+        String jsonObject = gson.toJson(jsonMap);
+
+        // JSON 문자열을 바디로 사용하여 RequestBody 객체 생성
+        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonObject);
+
+        Log.d("e",jsonObject);
+
+        OkHttpClient okHttpClient = new OkHttpClient.Builder() //응답을 1분으로 지정
+                .connectTimeout(60, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
+                .writeTimeout(60, TimeUnit.SECONDS)
+                .build();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://113.198.85.4")
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(okHttpClient) // 위에서 설정한 OkHttpClient 인스턴스 사용
+                .build();
+
+        // HttpHelper를 사용하여 ApiService 인스턴스 생성
+        ApiService service = retrofit.create(ApiService.class);
+
+        // POST 요청 보내기
+        Call<PhotoResponse> sendCall = service.sendDetectedObjects(requestBody);
+        sendCall.enqueue(new Callback<PhotoResponse>() {
+            @Override
+            public void onResponse(Call<PhotoResponse> call, Response<PhotoResponse> response) {
+                if (response.isSuccessful()) {
+                    Log.d("Upload", "Detected objects sent successfully");
+                    PhotoResponse photoResponse = response.body();
+                    Log.d("Upload", "Common Photos: " + photoResponse.getPhotos().getCommonPhotos());
+                    Log.d("Upload", "Individual Photos: " + photoResponse.getPhotos().getIndividualPhotos());
+                } else {
+                    try {
+                        Log.e("Upload", "Failed to send detected objects: " + response.errorBody().string());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+            @Override
+            public void onFailure(Call<PhotoResponse> call, Throwable t) {
+                Log.e("Upload", "Error sending detected objects", t);
+            }
+        });
+    }
+
 }

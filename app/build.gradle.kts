@@ -9,7 +9,8 @@ android {
 
     defaultConfig {
         applicationId = "com.example.metasearch"
-        minSdk = 33
+//        minSdk = 33
+        minSdk = 31
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -54,6 +55,8 @@ dependencies {
     implementation("de.hdodenhof:circleimageview:3.1.0")
     //PhotoView dependency
     implementation("com.github.chrisbanes:PhotoView:2.3.0")
+    //SplashScreen dependency
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.11.0")

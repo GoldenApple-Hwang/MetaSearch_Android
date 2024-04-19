@@ -2,7 +2,6 @@ package com.example.metasearch.ui.activity;
 
 import static android.content.ContentValues.TAG;
 
-import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -13,7 +12,6 @@ import com.example.metasearch.R;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -46,7 +44,6 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
 
-//        checkPermissions();
         requestStoragePermission(); // 권한 요청
     }
 
@@ -66,7 +63,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
     // 권한 요청 메서드
     private void requestStoragePermission() {
         Log.d(TAG,"저장소 권한 들어감");
@@ -82,15 +78,4 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
-
-    // 권한 요청 메서드
-    // 필요한 권한 있으면 추가 가능
-    private void checkPermissions() {
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_MEDIA_IMAGES}, PERMISSIONS_REQUEST_READ_PHOTOS);
-        } else {
-            // Perform necessary operations if permission is already granted
-        }
-    }
-
 }
