@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.widget.Toast;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -54,6 +55,10 @@ public class CustomImageView extends androidx.appcompat.widget.AppCompatImageVie
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
+                if (circles.size() >= 10) {
+                    Toast.makeText(getContext(), "최대 10개의 원만 그릴 수 있습니다.", Toast.LENGTH_SHORT).show();
+                    return false;  // 더 이상 그리지 않음
+                }
                 startX = event.getX();
                 startY = event.getY();
                 isDrawing = true;
@@ -92,5 +97,9 @@ public class CustomImageView extends androidx.appcompat.widget.AppCompatImageVie
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+    }
+    public void clearCircles() {
+        circles.clear();
+        invalidate(); // 화면을 다시 그림
     }
 }
