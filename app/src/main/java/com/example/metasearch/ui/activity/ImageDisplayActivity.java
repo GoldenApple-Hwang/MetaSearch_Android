@@ -92,12 +92,17 @@ public class ImageDisplayActivity extends AppCompatActivity {
                 if (response.isSuccessful()) {
                     CircleDetectionResponse uploadResponse = response.body();
                     if (uploadResponse != null) {
-                        Log.d("Upload", "Message: " + uploadResponse.getMessage());
                         List<String> detectedObjects = uploadResponse.getDetectedObjects();  // null-safe method 사용
-                        // 다른 서버로 다시 보냄
-                        // db 이름은 변경 가능
-                        sendDetectedObjectsToAnotherServer(uploadResponse.getDetectedObjects(), "youjeong");
-                        Log.d("Upload", "Detected Object: " + detectedObjects);
+                        if (detectedObjects == null || detectedObjects.isEmpty()) {
+                            // detectedObjects가 널이거나 비어있으면 토스트 메시지를 띄움
+                            runOnUiThread(() -> Toast.makeText(ImageDisplayActivity.this, "탐지된 객체가 없습니다.", Toast.LENGTH_LONG).show());
+                        } else {
+                            // detectedObjects가 널이 아니고 비어있지 않으면 다른 서버로 데이터 전송
+                            sendDetectedObjectsToAnotherServer(detectedObjects, "youjeong");
+                            Log.d("Upload", "Detected Object: " + detectedObjects);
+                        }
+                    } else {
+                        Log.e("Upload", "Response body is null");
                     }
                 } else {
                     Log.e("Upload", "Error: " + response.errorBody());
@@ -107,6 +112,7 @@ public class ImageDisplayActivity extends AppCompatActivity {
             public void onFailure(Call<CircleDetectionResponse> call, Throwable t) {
                 Log.e("Upload", "Failed to upload data and image", t);
             }
+
         });
     }
     private void sendDetectedObjectsToAnotherServer(List<String> detectedObjects, String dbName) {
