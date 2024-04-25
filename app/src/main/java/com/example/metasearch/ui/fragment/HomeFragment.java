@@ -18,7 +18,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.metasearch.ui.adapter.ImageAdapter;
-import com.example.metasearch.ui.activity.ImageDisplayActivity;
+import com.example.metasearch.ui.activity.CircleToSearchActivity;
 import com.example.metasearch.databinding.FragmentHomeBinding;
 import java.util.List;
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ public class HomeFragment extends Fragment implements ImageAdapter.OnImageClickL
         // 갤러리의 모든 사진을 출력하는 세로 방향 RecyclerView 세팅
         ImageAdapter adapter = new ImageAdapter(getAllGalleryImagesUri(requireContext()), requireContext(), this);
         GridLayoutManager layoutManager = new GridLayoutManager(requireContext(), 3);
-        binding.galleryRecyclerView.setAdapter(adapter);
+        binding.galleryRecyclerView.setAdapter(adapter) ;
         binding.galleryRecyclerView.setLayoutManager(layoutManager);
 
         return root;
@@ -62,7 +62,7 @@ public class HomeFragment extends Fragment implements ImageAdapter.OnImageClickL
 
     @Override
     public void onImageClick(Uri uri) {
-        Intent intent = new Intent(requireContext(), ImageDisplayActivity.class);
+        Intent intent = new Intent(requireContext(), CircleToSearchActivity.class);
         intent.putExtra("imageUri", uri.toString());
         startActivity(intent);
     }
