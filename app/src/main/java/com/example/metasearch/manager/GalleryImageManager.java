@@ -84,4 +84,16 @@ public class GalleryImageManager {
         }
         return matchedUris;
     }
+
+    // Neo4j 서버에서 받은 이름과 갤러리의 이름을 비교하여 일치하는 URI만 리스트로 반환하는 메서드
+    public static Uri findMatchedUri(String photoNameFromServer, Context context) {
+        Map<String, Uri> allGalleryUrisWithName = getAllGalleryImagesUriWithName(context);
+
+        // photoNameFromServer가 Map의 키로 존재하는지 확인하고 해당 URI 반환
+        if (allGalleryUrisWithName.containsKey(photoNameFromServer)) {
+            return allGalleryUrisWithName.get(photoNameFromServer);
+        }
+        // 일치하는 사진이 없을 경우 null 반환
+        return null;
+    }
 }
