@@ -36,62 +36,21 @@ public class GalleryImageManager {
         }
         return imageUris;
     }
-
     // 갤러리에서 모든 이미지의 URI와 파일 이름을 매핑하여 가져오는 메서드
     public static Map<String, Uri> getAllGalleryImagesUriWithName(Context context) {
         Map<String, Uri> images = new HashMap<>();
         Uri uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
         String[] projection = {MediaStore.Images.Media._ID, MediaStore.Images.Media.DISPLAY_NAME};
         try (Cursor cursor = context.getContentResolver().query(uri, projection, null, null, null)) {
-            while (true) {
-                assert cursor != null;
-                if (!cursor.moveToNext()) break;
+            while (cursor.moveToNext()) {
                 @SuppressLint("Range") long id = cursor.getLong(cursor.getColumnIndex(MediaStore.Images.Media._ID));
                 @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME));
                 Uri contentUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
                 images.put(name, contentUri);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return images;
     }
-    public static ArrayList<String> getAllGalleryImagesUriToString(Context context) {
-        ArrayList<String> imagePaths = new ArrayList<>();
-        Uri uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        String[] projection = {MediaStore.Images.Media.DATA};
-        Cursor cursor = context.getContentResolver().query(uri, projection, null, null, null);
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                String imagePath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
-                imagePaths.add(imagePath);
-            }
-            cursor.close();
-        }
-        return imagePaths;
-    }
-
-    public static ArrayList<String> getGalleryImagesUriToStringByName(Context context, String fileName) {
-        ArrayList<String> imagePaths = new ArrayList<>();
-        Uri uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        String[] projection = {MediaStore.Images.Media.DATA};
-
-        // 검색 조건 설정: 파일 이름이 정확히 일치하는 경우
-        String selection = MediaStore.Images.Media.DISPLAY_NAME + "=?";
-        String[] selectionArgs = new String[]{fileName};
-
-        Cursor cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs, null);
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                String imagePath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
-                imagePaths.add(imagePath);
-            }
-            cursor.close();
-        }
-        return imagePaths;
-    }
-
-
     // 갤러리에서 모든 이미지의 이름을 확장자 없이 가져오는 메서드
     public static List<String> getAllImageNamesWithoutExtension(Context context) {
         List<String> imageNamesWithoutExtension = new ArrayList<>();
@@ -110,20 +69,14 @@ public class GalleryImageManager {
         }
         return imageNamesWithoutExtension;
     }
-
     // Neo4j 서버에서 받은 이름과 갤러리의 이름을 비교하여 일치하는 URI만 리스트로 반환하는 메서드
-    public static List<Uri> findMatchedUris(List<String> photoNamesFromNeo4j, List<String> allGalleryImageNames, Context context) {
+    public static List<Uri> findMatchedUris(List<String> photoNamesFromServer, Context context) {
         List<Uri> matchedUris = new ArrayList<>();
         Map<String, Uri> allGalleryUrisWithName = getAllGalleryImagesUriWithName(context);
 
-        for (String imageName : allGalleryImageNames) {
-            System.out.println("photoName from gallery : " + imageName);
-            // 확장자 없는 이미지 이름으로 비교
-            if (photoNamesFromNeo4j.contains(imageName)) {
-                // 확장자 상관 없도록 코드 수정 필요
-                // jpg, png, jpeg, ...
-                Uri matchedUri = allGalleryUrisWithName.get(imageName + ".jpeg");
-
+        for (String photoName : photoNamesFromServer) {
+            if (allGalleryUrisWithName.containsKey(photoName)) {
+                Uri matchedUri = allGalleryUrisWithName.get(photoName);
                 if (matchedUri != null) {
                     matchedUris.add(matchedUri);
                 }
