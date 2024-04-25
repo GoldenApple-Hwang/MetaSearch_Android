@@ -16,15 +16,19 @@
     - `ApiService` - 이미지와 원 데이터를 서버에 업로드하고, 감지된 객체를 다른 서버로 전송하는 HTTP 요청을 처리하기 위한 Retrofit HTTP 메소드 선언을 포함
   - `/ui` - 액티비티와 프래그먼트 등 사용자 인터페이스를 위한 클래스를 포함하는 폴더
     - `/activity` - 앱의 액티비티를 포함하는 폴더
-      - `CircleToSearchActivity` - circle to search 이미지 검색
-      - `ImageDisplayActivity` - 이미지 줌 인, 아웃
+      - `CircleToSearchActivity` - circle to search 이미지 검색
+      - `ImageDisplayActivity` - 이미지 줌 인, 아웃
       - `MainActivity` - 필요한 권한 요청
       - `PersonPhotosActivity` - 인물 얼굴 출력 
     - `/adapter` - 리사이클러뷰 어댑터 등 UI 컴포넌트를 위한 클래스를 포함하는 폴더
+      - `CustomArrayAdapter` 
+      - `ImageAdapter` 
+      - `PersonAdapter` 
     - `/fragment` - 앱의 프래그먼트를 포함하는 폴더
       - `CompositeFragment` - 합성된 이미지 출력
       - `GraphFragment` - 지식 그래프 출력
       - `HomeFragment` - 갤러리의 모든 사진 출력(상단에 분석된 인물 얼굴 출력)
       - `SearchFragment` - 자연어로 이미지 검색
     - `/viewmodel` - 앱의 뷰모델을 포함하는 폴더
+      - `ImageViewModel`
     - `CustomImageView` - 사진 위에 원을 그릴 수 있는 커스텀 뷰
