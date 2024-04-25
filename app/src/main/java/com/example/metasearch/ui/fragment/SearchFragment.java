@@ -217,7 +217,8 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
             List<String> allGalleryImageNames = getAllImageNamesWithoutExtension(requireContext());
 //            List<String> allGalleryImageNames = getAllImageNames(requireContext());
             // 같은 이름을 가지는 사진 탐색
-            List<Uri> matchedUris = findMatchedUris(photoNamesFromNeo4j, allGalleryImageNames, requireContext());
+            List<Uri> matchedUris = findMatchedUris(photoNamesFromNeo4j, requireContext());
+//            List<Uri> matchedUris = findMatchedUris(photoNamesFromNeo4j, allGalleryImageNames, requireContext());
             // 리사이클러뷰 업데이트
             updateUIWithMatchedUris(matchedUris);
         } catch (Exception e) {
