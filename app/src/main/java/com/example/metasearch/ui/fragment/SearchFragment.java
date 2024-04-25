@@ -30,7 +30,7 @@ import com.example.metasearch.manager.Neo4jDatabaseManager;
 import com.example.metasearch.manager.Neo4jDriverManager;
 import com.example.metasearch.service.gptChat.OpenAIResponse;
 import com.example.metasearch.service.gptChat.OpenAIServiceManager;
-import com.example.metasearch.ui.activity.ImageDisplayActivity;
+import com.example.metasearch.ui.activity.CircleToSearchActivity;
 import com.example.metasearch.ui.viewmodel.ImageViewModel;
 
 import java.util.ArrayList;
@@ -217,7 +217,8 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
             List<String> allGalleryImageNames = getAllImageNamesWithoutExtension(requireContext());
 //            List<String> allGalleryImageNames = getAllImageNames(requireContext());
             // 같은 이름을 가지는 사진 탐색
-            List<Uri> matchedUris = findMatchedUris(photoNamesFromNeo4j, allGalleryImageNames, requireContext());
+            List<Uri> matchedUris = findMatchedUris(photoNamesFromNeo4j, requireContext());
+//            List<Uri> matchedUris = findMatchedUris(photoNamesFromNeo4j, allGalleryImageNames, requireContext());
             // 리사이클러뷰 업데이트
             updateUIWithMatchedUris(matchedUris);
         } catch (Exception e) {
@@ -250,7 +251,7 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
 
     @Override
     public void onImageClick(Uri uri) {
-        Intent intent = new Intent(requireContext(), ImageDisplayActivity.class);
+        Intent intent = new Intent(requireContext(), CircleToSearchActivity.class);
         intent.putExtra("imageUri", uri.toString());
         startActivity(intent);
     }

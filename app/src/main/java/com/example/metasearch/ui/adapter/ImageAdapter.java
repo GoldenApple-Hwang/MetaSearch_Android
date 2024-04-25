@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.metasearch.R;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHolder> {
@@ -20,9 +21,15 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     private OnImageClickListener listener;
 
     public ImageAdapter(List<Uri> imageUris, Context context, OnImageClickListener listener) {
-        this.imageUris = imageUris;
+        this.imageUris = (imageUris != null) ? imageUris : new ArrayList<>(); // null 체크 추가
         this.context = context;
         this.listener = listener;
+    }
+
+    // 데이터 업데이트 메소드
+    public void updateData(List<Uri> uris) {
+        this.imageUris = uris; // 새로운 URI 리스트로 업데이트
+        notifyDataSetChanged(); // RecyclerView를 갱신
     }
 
     // 이미지 클릭 리스너 인터페이스 정의
@@ -43,12 +50,9 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         holder.imageView.setImageURI(imageUri);
 
         // 클릭 이벤트 설정
-        holder.imageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (imageUri != null) {
-                    listener.onImageClick(imageUri);
-                }
+        holder.imageView.setOnClickListener(v -> {
+            if (imageUri != null) {
+                listener.onImageClick(imageUri);
             }
         });
 
@@ -76,4 +80,3 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         }
     }
 }
-

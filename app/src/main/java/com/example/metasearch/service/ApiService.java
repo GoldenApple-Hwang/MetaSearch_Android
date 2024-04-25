@@ -3,7 +3,6 @@ package com.example.metasearch.service;
 import com.example.metasearch.model.CircleDetectionResponse;
 import com.example.metasearch.model.PhotoResponse;
 
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.POST;
