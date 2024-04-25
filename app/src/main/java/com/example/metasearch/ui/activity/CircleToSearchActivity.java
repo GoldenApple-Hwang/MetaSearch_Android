@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -77,6 +78,8 @@ public class CircleToSearchActivity extends AppCompatActivity implements ImageAd
         List<Circle> circles = binding.customImageView.getCircles();
         if (imageUri != null && !circles.isEmpty()) {
             binding.btnSend.setEnabled(false); // 버튼 비활성화
+            // 요청 전에 로딩 애니메이션 표시
+            binding.spinKit.setVisibility(View.VISIBLE);
             uploadData(imageUri, circles, "source");
         } else {
             Toast.makeText(this, "이미지 또는 원 정보가 없습니다.", Toast.LENGTH_SHORT).show();
@@ -111,6 +114,8 @@ public class CircleToSearchActivity extends AppCompatActivity implements ImageAd
                             // detectedObjects가 널이거나 비어있으면 토스트 메시지를 띄움
                             runOnUiThread(() -> Toast.makeText(CircleToSearchActivity.this, "탐지된 객체가 없습니다.", Toast.LENGTH_LONG).show());
                             binding.btnSend.setEnabled(true); // 버튼 활성화
+                            // 로딩 애니메이션 숨김
+                            binding.spinKit.setVisibility(View.GONE);
                         } else {
                             // detectedObjects가 널이 아니고 비어있지 않으면 다른 서버로 데이터 전송
                             sendDetectedObjectsToAnotherServer(detectedObjects, "youjeong");
@@ -172,6 +177,8 @@ public class CircleToSearchActivity extends AppCompatActivity implements ImageAd
                     }
                 }
                 binding.btnSend.setEnabled(true); // 버튼 활성화
+                // 로딩 애니메이션 숨김
+                binding.spinKit.setVisibility(View.GONE);
             }
             @Override
             public void onFailure(Call<PhotoResponse> call, Throwable t) {
