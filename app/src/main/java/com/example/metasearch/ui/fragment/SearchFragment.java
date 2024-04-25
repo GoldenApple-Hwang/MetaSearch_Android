@@ -30,7 +30,7 @@ import com.example.metasearch.manager.Neo4jDatabaseManager;
 import com.example.metasearch.manager.Neo4jDriverManager;
 import com.example.metasearch.service.gptChat.OpenAIResponse;
 import com.example.metasearch.service.gptChat.OpenAIServiceManager;
-import com.example.metasearch.ui.activity.ImageDisplayActivity;
+import com.example.metasearch.ui.activity.CircleToSearchActivity;
 import com.example.metasearch.ui.viewmodel.ImageViewModel;
 
 import java.util.ArrayList;
@@ -250,7 +250,7 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
 
     @Override
     public void onImageClick(Uri uri) {
-        Intent intent = new Intent(requireContext(), ImageDisplayActivity.class);
+        Intent intent = new Intent(requireContext(), CircleToSearchActivity.class);
         intent.putExtra("imageUri", uri.toString());
         startActivity(intent);
     }
