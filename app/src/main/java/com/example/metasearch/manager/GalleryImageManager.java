@@ -13,6 +13,21 @@ import java.util.List;
 import java.util.Map;
 
 public class GalleryImageManager {
+    //갤러리에서 모든 이미지의 실제 경로를 가져오는 메소드
+    public static ArrayList<String> getAllGalleryImagesUriToString(Context context) {
+        ArrayList<String> imagePaths = new ArrayList<>();
+        Uri uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        String[] projection = {MediaStore.Images.Media.DATA};
+        Cursor cursor = context.getContentResolver().query(uri, projection, null, null, null);
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                String imagePath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
+                imagePaths.add(imagePath);
+            }
+            cursor.close();
+        }
+        return imagePaths;
+    }
 
     // 갤러리에서 모든 이미지의 URI를 가져오는 메서드
     public static List<Uri> getAllGalleryImagesUri(Context context) {
