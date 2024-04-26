@@ -12,17 +12,17 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-public class ImageUploadManager {
+public class ImageServiceRequestManager {
     private static final String TAG = "ImageUploader"; //로그에 표시될 태그
     private Context context; //Context 객체
     private DatabaseHelper databaseHelper; //sqlite 데이터베이스 접근 객체
     private ImageAnalyzeListManager imageAnalyzeListController; //이미지 분석된 리스트 객체
     private ApiService aiService;
-    private AIImageUploadManager aiImageUploaderController;
-    private WebImageUploadManager webImageUploaderController;
+    private AIRequestManager aiRequestManager;
+    private WebRequestManager webRequestManager;
     private ApiService webService;
 
-    public ImageUploadManager(Context context, DatabaseHelper databaseHelper) {
+    public ImageServiceRequestManager(Context context, DatabaseHelper databaseHelper) {
         this.context = context;
         this.databaseHelper = databaseHelper;
 //        this.imageAnalyzeListController = imageAnalyzeList;
@@ -37,10 +37,10 @@ public class ImageUploadManager {
 //         //aiService = aiRetrofit.create(ImageUploadService.class);
 //         webService = webRetrofit.create(ImageUploadService.class);
 
-        aiImageUploaderController = AIImageUploadManager.getAiImageUploader();
-        aiService = aiImageUploaderController.getAiService();
-        webImageUploaderController = WebImageUploadManager.getWebImageUploader();
-        webService = webImageUploaderController.getWebService();
+        aiRequestManager = AIRequestManager.getAiImageUploader();
+        aiService = aiRequestManager.getAiService();
+        webRequestManager = WebRequestManager.getWebImageUploader();
+        webService = webRequestManager.getWebService();
         ArrayList<String> imagePaths = GalleryImageManager.getAllGalleryImagesUriToString(context);
         Map<String,byte[]> dbImages = databaseHelper.getAllImages(); //데이터베이스에서 이미지를 byte로 로드
 
@@ -69,7 +69,7 @@ public class ImageUploadManager {
             //ArrayList<String> safeDeletePaths = deletePaths != null ? deletePaths : new ArrayList<>();
             //ArrayList<String> safeAddImagePaths = addImagePaths != null ? addImagePaths : new ArrayList<>();
             if(dbBytes!=null){
-                aiImageUploaderController.uploadDBImage(aiService, dbBytes, DBName).thenRun(() -> { //콜백 설정함 //db 요청 끝나고 사진 분석 요청 보냄
+                aiRequestManager.uploadDBImage(aiService, dbBytes, DBName).thenRun(() -> { //콜백 설정함 //db 요청 끝나고 사진 분석 요청 보냄
                     try {
                         //추가나 삭제 이미지를 서버에 전송
                         request_image_AIServer(addImagePaths,deletePaths,DBName);
@@ -107,19 +107,19 @@ public class ImageUploadManager {
 
         if(isDeleteExit && isAddExit){ // 삭제 요청 o, 추가 요청 o
             Log.d(TAG,"삭제 요청과 추가 요청이 있었음");
-            aiImageUploaderController.uploadDeleteGalleryImage(databaseHelper,deleteImagePaths,aiService,DBName).thenRun(() -> { //콜백 설정함
+            aiRequestManager.uploadDeleteGalleryImage(databaseHelper,deleteImagePaths,aiService,DBName).thenRun(() -> { //콜백 설정함
                 for(String imagePath:addImagePaths){
-                    webImageUploaderController.uploadAddGalleryImage(webService,new File(imagePath),DBName);
+                    webRequestManager.uploadAddGalleryImage(webService,new File(imagePath),DBName);
                 }
-                aiImageUploaderController.uploadDeleteGalleryImage(databaseHelper,deleteImagePaths,aiService, DBName).thenRun(() -> { //콜백 설정함
-                    aiImageUploaderController.completeUploadImage(aiService,DBName);
+                aiRequestManager.uploadDeleteGalleryImage(databaseHelper,deleteImagePaths,aiService, DBName).thenRun(() -> { //콜백 설정함
+                    aiRequestManager.completeUploadImage(aiService,DBName);
                     Log.d(TAG,"모든 이미지 전송 완료");
                 });
             });
         }
         else if(!isAddExit && isDeleteExit){ //삭제 요청 o, 추가 요청 x
-            aiImageUploaderController.uploadDeleteGalleryImage(databaseHelper,deleteImagePaths,aiService, DBName).thenRun(() -> { //콜백 설정함
-                aiImageUploaderController.completeUploadImage(aiService,DBName);
+            aiRequestManager.uploadDeleteGalleryImage(databaseHelper,deleteImagePaths,aiService, DBName).thenRun(() -> { //콜백 설정함
+                aiRequestManager.completeUploadImage(aiService,DBName);
                 Log.d(TAG,"모든 이미지 전송 완료");
             });
         }
@@ -128,10 +128,10 @@ public class ImageUploadManager {
             //List<CompletableFuture<Void>> futuresList = new ArrayList<>();
             // List<CompletableFuture<Void>> futureList = new ArrayList<>();
             for (String imagePath : addImagePaths) {
-                webImageUploaderController.uploadAddGalleryImage(webService, new File(imagePath), DBName);
+                webRequestManager.uploadAddGalleryImage(webService, new File(imagePath), DBName);
             }
-            aiImageUploaderController.uploadAddGalleryImage(databaseHelper, addImagePaths, aiService, DBName).thenRun(() -> { //콜백 설정함
-                aiImageUploaderController.completeUploadImage(aiService,DBName);
+            aiRequestManager.uploadAddGalleryImage(databaseHelper, addImagePaths, aiService, DBName).thenRun(() -> { //콜백 설정함
+                aiRequestManager.completeUploadImage(aiService,DBName);
                 Log.d(TAG,"모든 이미지 전송 완료");
             });
         }
