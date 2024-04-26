@@ -17,13 +17,13 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
-public class WebImageUploadManager {
+public class WebRequestManager {
     private static final String Webserver_BASE_URL = "http://113.198.85.4"; // ai 서버의 기본 url
-    private static WebImageUploadManager webImageUploader;
+    private static WebRequestManager webImageUploader;
     private Retrofit webRetrofit;
     private ApiService webService;
 
-    private WebImageUploadManager(){
+    private WebRequestManager(){
         //this.aiService = AIHttpService.getInstance(AIserver_BASE_URL);
         this.webService = HttpHelper.getInstance(Webserver_BASE_URL).getRetrofit().create(ApiService.class);
     }
@@ -32,10 +32,10 @@ public class WebImageUploadManager {
         return webService;
     }
 
-    public static WebImageUploadManager getWebImageUploader(){
+    public static WebRequestManager getWebImageUploader(){
         Log.d(TAG,"AIImageUploaderController 함수 들어옴 객체 생성 or 반환");
         if(webImageUploader == null){
-            webImageUploader = new WebImageUploadManager();
+            webImageUploader = new WebRequestManager();
 
         }
         return webImageUploader;
