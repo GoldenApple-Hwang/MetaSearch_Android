@@ -25,14 +25,14 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
-public class AIImageUploadManager {
+public class AIRequestManager {
     private static final String AIserver_BASE_URL = "http://113.198.85.5"; // ai 서버의 기본 url
-    private static AIImageUploadManager aiImageUploader;
+    private static AIRequestManager aiImageUploader;
     private Retrofit aiRetrofit;
     private ApiService aiService;
 
 
-    private AIImageUploadManager(){
+    private AIRequestManager(){
         //this.aiService = AIHttpService.getInstance(AIserver_BASE_URL);
         this.aiService = HttpHelper.getInstance(AIserver_BASE_URL).getRetrofit().create(ApiService.class);
     }
@@ -41,10 +41,10 @@ public class AIImageUploadManager {
         return aiService;
     }
 
-    public static AIImageUploadManager getAiImageUploader(){
+    public static AIRequestManager getAiImageUploader(){
         Log.d(TAG,"AIImageUploaderController 함수 들어옴 객체 생성 or 반환");
         if(aiImageUploader == null){
-            aiImageUploader = new AIImageUploadManager();
+            aiImageUploader = new AIRequestManager();
 
         }
         return aiImageUploader;
