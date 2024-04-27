@@ -9,8 +9,8 @@ android {
 
     defaultConfig {
         applicationId = "com.example.metasearch"
-//        minSdk = 33
-        minSdk = 31
+        minSdk = 33
+//        minSdk = 31
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -59,6 +59,8 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.0.1")
     //SpinKit dependency
     implementation("com.github.ybq:Android-SpinKit:1.4.0")
+    // Glide dependency
+    implementation("com.github.bumptech.glide:glide:4.16.0")
 
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.11.0")
