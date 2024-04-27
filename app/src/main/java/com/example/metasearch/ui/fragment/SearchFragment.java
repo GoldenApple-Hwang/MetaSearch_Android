@@ -22,6 +22,12 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.example.metasearch.R;
+import com.example.metasearch.helper.HttpHelper;
+import com.example.metasearch.manager.GalleryImageManager;
+import com.example.metasearch.model.NLQueryRequest;
+import com.example.metasearch.model.NLQueryResponse;
+import com.example.metasearch.model.PhotoResponse;
+import com.example.metasearch.service.ApiService;
 import com.example.metasearch.ui.adapter.CustomArrayAdapter;
 import com.example.metasearch.ui.adapter.ImageAdapter;
 import com.example.metasearch.databinding.FragmentSearchBinding;
@@ -32,16 +38,22 @@ import com.example.metasearch.service.gptChat.OpenAIResponse;
 import com.example.metasearch.service.gptChat.OpenAIServiceManager;
 import com.example.metasearch.ui.activity.CircleToSearchActivity;
 import com.example.metasearch.ui.viewmodel.ImageViewModel;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class SearchFragment extends Fragment implements ImageAdapter.OnImageClickListener {
-
+    private static final String WEB_SERVER_URL = "http://113.198.85.4";
     private ImageViewModel imageViewModel;
     private final Neo4jDatabaseManager Neo4jDatabaseManager = new Neo4jDatabaseManager();
     private OpenAIServiceManager openAIServiceManager = new OpenAIServiceManager();
@@ -61,10 +73,54 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
 
         setupAutoCompleteTextView();
         binding.searchButton.setOnClickListener(v -> retrieve());
-        binding.imageButton.setOnClickListener(v -> photoSearch());
         return root;
     }
+    private void sendQueryToServer(String dbName, String query) {
+        ApiService service = HttpHelper.getInstance(WEB_SERVER_URL).create(ApiService.class);
+        // Gson 인스턴스 생성
+        Gson gson = new Gson();
 
+        // dbName과 query를 포함하는 Map 객체 생성
+        Map<String, Object> jsonMap = new HashMap<>();
+        jsonMap.put("dbName", dbName);
+        jsonMap.put("query", query);
+
+        // Map 객체를 JSON 문자열로 변환
+        String jsonObject = gson.toJson(jsonMap);
+        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonObject);
+
+        // Send request
+        Call<NLQueryResponse> call = service.sendCypherQuery(requestBody);
+        call.enqueue(new Callback<NLQueryResponse>() {
+            @Override
+            public void onResponse(Call<NLQueryResponse> call, Response<NLQueryResponse> response) {
+                if (response.isSuccessful()) {
+                    // Handle successful response
+                    NLQueryResponse nlQueryResponse = response.body();
+                    if (nlQueryResponse != null && nlQueryResponse.getPhotoName() != null) {
+                        List<String> photoNames = nlQueryResponse.getPhotoName();
+                        // Process photo names
+                        // For example:
+                        Log.d("PhotoNames", photoNames.toString());
+
+                        List<Uri> matchedUris = findMatchedUris(photoNames, requireContext());
+                        updateUIWithMatchedUris(matchedUris);
+
+                    } else {
+                        Log.e("Response Error", "Received null response body or empty photos list");
+                    }
+                } else {
+                    // Handle failure
+                    Log.e("Response Error", "Failed to receive successful response");
+                }
+            }
+            @Override
+            public void onFailure(Call<NLQueryResponse> call, Throwable t) {
+                // Handle error
+                Log.e("Request Error", "Failed to send request to server", t);
+            }
+        });
+    }
     // OpenAI API 사용해서 사진 검색
     public void photoSearch() {
         // 사용자가 검색한 문장
@@ -73,7 +129,7 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
         if (userInput.length() == 0) return;
 
         // 사용자가 입력한 문장(찾고 싶은 사진) + gpt가 분석할 수 있도록 지시할 문장
-        userInput = userInput + getString(R.string.user_input_eng);
+        userInput = userInput + getString(R.string.user_input_kor);
 
         // OpenAIServiceHelper를 사용하여 API 호출
         openAIServiceManager.fetchOpenAIResponse(userInput, new Callback<OpenAIResponse>() {
@@ -130,18 +186,19 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
                     binding.textView2.post(() -> binding.textView2.setText(msg));
                     // 생성된 사이퍼쿼리를 텍스트뷰에 출력해서 확인 가능
                     binding.query.post(() -> binding.query.setText(neo4jQuery));
+
+                    // 웹 서버에 쿼리 전송
+                    sendQueryToServer("youjeong", neo4jQuery);
                 } else {
                     Log.e("OpenAI Error", "Error fetching response");
                 }
             }
-
             @Override
             public void onFailure(Call<OpenAIResponse> call, Throwable t) {
                 Log.e("OpenAI Failure", t.getMessage());
             }
         });
     }
-
     // 검색어 자동 완성 기능을 가지는 검색 창
     private void setupAutoCompleteTextView() {
         // 배열 리소스에서 아이템(추천 단어 리스트) 가져오기
@@ -189,66 +246,34 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
                 } else {
                     newText = selectedItem + " ";
                 }
-
                 // AutoCompleteTextView에 새로운 텍스트를 설정하고, 커서 위치를 조정
                 binding.searchText.setText(newText);
                 binding.searchText.setSelection(newText.length());
             }
         });
     }
-
     private void setupRecyclerView() {
         GridLayoutManager layoutManager = new GridLayoutManager(requireContext(), 3);
         binding.recyclerView.setLayoutManager(layoutManager);
     }
-
     private void updateRecyclerView(List<Uri> imageUris) {
         ImageAdapter adapter = new ImageAdapter(imageUris, requireContext(), this);
         binding.recyclerView.setAdapter(adapter);
     }
-
-    @SuppressLint("SetTextI18n")
-    private void findPicture(String relationship, String entity2) {
-        try {
-            // Neo4j 서버에서 사진 이름 받아오기
-            List<String> photoNamesFromNeo4j = Neo4jDatabaseManager.fetchPhotoNamesFromNeo4j(relationship, entity2);
-            // 갤러리에서 사진 이름 가져오기
-            // 확장자가 사진마다 달라서 코드 수정 필요
-            List<String> allGalleryImageNames = getAllImageNamesWithoutExtension(requireContext());
-//            List<String> allGalleryImageNames = getAllImageNames(requireContext());
-            // 같은 이름을 가지는 사진 탐색
-            List<Uri> matchedUris = findMatchedUris(photoNamesFromNeo4j, requireContext());
-//            List<Uri> matchedUris = findMatchedUris(photoNamesFromNeo4j, allGalleryImageNames, requireContext());
-            // 리사이클러뷰 업데이트
-            updateUIWithMatchedUris(matchedUris);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     // 새로운 이미지로 리사이클러뷰 업데이트
     private void updateUIWithMatchedUris(List<Uri> matchedUris) {
         binding.recyclerView.post(() -> imageViewModel.setImageUris(matchedUris));
     }
-
-    // 추후 이미지 버튼 클릭 시 동작하도록 수정 필요
-    // 지금은 retrieve 버튼 클릭 시 동작함
     private void retrieve() {
-        String relationship = binding.relationship.getText().toString();
-        String entity2 = binding.entity2.getText().toString();
         // 데이터 베이스 작업은 별도의 스레드에서 실행
-        new Thread(() -> {
-            findPicture(relationship, entity2);
-        }).start();
+        new Thread(this::photoSearch).start();
     }
-
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
         Neo4jDriverManager.closeDriver();
     }
-
     @Override
     public void onImageClick(Uri uri) {
         Intent intent = new Intent(requireContext(), CircleToSearchActivity.class);

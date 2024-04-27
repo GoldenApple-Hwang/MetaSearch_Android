@@ -1,8 +1,12 @@
 package com.example.metasearch.service;
 
 import com.example.metasearch.model.CircleDetectionResponse;
+import com.example.metasearch.model.NLQueryRequest;
 import com.example.metasearch.model.PhotoResponse;
+import com.example.metasearch.model.NLQueryResponse;
 import com.example.metasearch.model.UploadResponse;
+
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -13,6 +17,7 @@ import retrofit2.http.Multipart;
 import retrofit2.http.Part;
 
 public interface ApiService {
+    // AI 서버에 이미지 분석 요청(circle to search)
     @Multipart
     @POST("upload")
     Call<CircleDetectionResponse> uploadImageAndCircles(
@@ -20,8 +25,12 @@ public interface ApiService {
             @Part("source")RequestBody source,
             @Part("circles") RequestBody circles
     );
+    // Web 서버에 이미지 속성 전송 후 이미지 전송 요청(circle to search)
     @POST("android/circleToSearch")
     Call<PhotoResponse> sendDetectedObjects(@Body RequestBody detectedObjects);
+    // Web 서버에 사이퍼 쿼리 전송 후 이미지 전송 요청(NL search)
+    @POST("/nlqsearch")
+    Call<NLQueryResponse> sendCypherQuery(@Body RequestBody body);
 
     //AI서버에 추가 이미지 분석 요청
     @Multipart
