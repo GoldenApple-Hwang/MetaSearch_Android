@@ -2,13 +2,21 @@ package com.example.metasearch.manager;
 
 import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
+import android.content.Context;
+import android.net.Uri;
 import android.util.Base64;
 import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
 
 import com.example.metasearch.dao.DatabaseHelper;
 import com.example.metasearch.helper.HttpHelper;
+import com.example.metasearch.model.Circle;
+import com.example.metasearch.model.response.CircleDetectionResponse;
 import com.example.metasearch.model.response.UploadResponse;
 import com.example.metasearch.service.ApiService;
+import com.example.metasearch.ui.activity.CircleToSearchActivity;
+import com.google.gson.Gson;
 
 import java.io.File;
 import java.io.IOException;
@@ -231,4 +239,38 @@ public class AIRequestManager {
         return CompletableFuture.allOf(futuresList.toArray(new CompletableFuture[0]));
     }
 
+
+
+    public interface CircleDataUploadCallbacks {
+        void onUploadSuccess(List<String> detectedObjects);
+        void onUploadFailure(String message);
+    }
+    // AI Server로 이미지와 원 리스트 전송
+    public void uploadCircleData(Uri imageUri, List<Circle> circles, String source, Context context, CircleDataUploadCallbacks callbacks) throws IOException {
+        File file = UriToFileConverter.getFileFromUri(context, imageUri);
+        RequestBody requestFile = RequestBody.create(MediaType.parse("image/jpeg"), file);
+        MultipartBody.Part body = MultipartBody.Part.createFormData("searchImage", file.getName(), requestFile);
+
+        Gson gson = new Gson();
+        String jsonCircles = gson.toJson(circles);
+        RequestBody circleData = RequestBody.create(MediaType.parse("application/json"), jsonCircles);
+        RequestBody sourceBody = RequestBody.create(MediaType.parse("text/plain"), source);
+
+        Call<CircleDetectionResponse> call = aiService.uploadImageAndCircles(body, sourceBody, circleData);
+        call.enqueue(new Callback<CircleDetectionResponse>() {
+            @Override
+            public void onResponse(Call<CircleDetectionResponse> call, Response<CircleDetectionResponse> response) {
+                if (response.isSuccessful()) {
+                    callbacks.onUploadSuccess(response.body().getDetectedObjects());
+                } else {
+                    callbacks.onUploadFailure("Server responded with error");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<CircleDetectionResponse> call, Throwable t) {
+                callbacks.onUploadFailure("Failed to upload data and image: " + t.getMessage());
+            }
+        });
+    }
 }

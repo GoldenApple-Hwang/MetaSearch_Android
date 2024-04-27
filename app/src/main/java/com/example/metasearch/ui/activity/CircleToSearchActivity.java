@@ -1,5 +1,6 @@
 package com.example.metasearch.ui.activity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import com.bumptech.glide.Glide;
 import com.example.metasearch.databinding.ActivityCircleToSearchBinding;
 import com.example.metasearch.helper.HttpHelper;
+import com.example.metasearch.manager.AIRequestManager;
 import com.example.metasearch.manager.GalleryImageManager;
 import com.example.metasearch.manager.UriToFileConverter;
 import com.example.metasearch.model.Circle;
@@ -38,17 +40,19 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class CircleToSearchActivity extends AppCompatActivity implements ImageAdapter.OnImageClickListener {
+public class CircleToSearchActivity extends AppCompatActivity implements ImageAdapter.OnImageClickListener, AIRequestManager.CircleDataUploadCallbacks {
     private static final String AI_SERVER_URL = "http://113.198.85.5";
     private static final String WEB_SERVER_URL = "http://113.198.85.4";
     private ActivityCircleToSearchBinding binding;
     private Uri imageUri;
     private ImageViewModel imageViewModel;
+    private AIRequestManager aiRequestManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setupUI();
         setupListeners();
+        aiRequestManager = AIRequestManager.getAiImageUploader();
     }
     private void setupUI() {
         binding = ActivityCircleToSearchBinding.inflate(getLayoutInflater());
@@ -71,15 +75,14 @@ public class CircleToSearchActivity extends AppCompatActivity implements ImageAd
         binding.circleToSearchRecyclerView.setAdapter(adapter);
     }
     private void setupListeners() {
-        binding.btnSend.setOnClickListener(v -> attemptSend());
+        binding.btnSend.setOnClickListener(v -> {
+            try {
+                sendCirclesAndImage();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
         binding.btnReset.setOnClickListener(v -> binding.customImageView.clearCircles());
-    }
-    private void attemptSend() {
-        try {
-            sendCirclesAndImage();
-        } catch (IOException e) {
-            Toast.makeText(this, "Error processing image data.", Toast.LENGTH_SHORT).show();
-        }
     }
     private void sendCirclesAndImage() throws IOException {
         List<Circle> circles = binding.customImageView.getCircles();
@@ -87,60 +90,12 @@ public class CircleToSearchActivity extends AppCompatActivity implements ImageAd
             binding.btnSend.setEnabled(false); // 버튼 비활성화
             // 요청 전에 로딩 애니메이션 표시
             binding.spinKit.setVisibility(View.VISIBLE);
-            uploadData(imageUri, circles, "source");
+
+            // AI Server로 이미지와 원 리스트 전송
+            aiRequestManager.uploadCircleData(imageUri, circles, "source", this, this);
         } else {
             Toast.makeText(this, "이미지 또는 원 정보가 없습니다.", Toast.LENGTH_SHORT).show();
         }
-    }
-    // AI Server로 이미지와 원 리스트 전송
-    private void uploadData(Uri imageUri, List<Circle> circles, String source) throws IOException {
-        // Uri를 파일로 변환
-        File file = UriToFileConverter.getFileFromUri(this, imageUri);
-
-        // 파일을 사용하여 나머지 업로드 로직을 계속 수행
-        RequestBody requestFile = RequestBody.create(MediaType.parse("image/jpeg"), file);
-        MultipartBody.Part body = MultipartBody.Part.createFormData("searchImage", file.getName(), requestFile);
-
-        Gson gson = new Gson();
-        String jsonCircles = gson.toJson(circles);
-        RequestBody circleData = RequestBody.create(MediaType.parse("application/json"), jsonCircles);
-
-        //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
-        RequestBody sourceBody = RequestBody.create(MediaType.parse("text/plain"),source);
-
-        ApiService service = HttpHelper.getInstance(AI_SERVER_URL).getRetrofit().create(ApiService.class);
-        Call<CircleDetectionResponse> call = service.uploadImageAndCircles(body, sourceBody, circleData);
-        call.enqueue(new Callback<CircleDetectionResponse>() {
-            @Override
-            public void onResponse(Call<CircleDetectionResponse> call, Response<CircleDetectionResponse> response) {
-                if (response.isSuccessful()) {
-                    CircleDetectionResponse uploadResponse = response.body();
-                    if (uploadResponse != null) {
-                        List<String> detectedObjects = uploadResponse.getDetectedObjects();  // null-safe method 사용
-                        if (detectedObjects == null || detectedObjects.isEmpty()) {
-                            // detectedObjects가 널이거나 비어있으면 토스트 메시지를 띄움
-                            runOnUiThread(() -> Toast.makeText(CircleToSearchActivity.this, "탐지된 객체가 없습니다.", Toast.LENGTH_LONG).show());
-                            binding.btnSend.setEnabled(true); // 버튼 활성화
-                            // 로딩 애니메이션 숨김
-                            binding.spinKit.setVisibility(View.GONE);
-                        } else {
-                            // detectedObjects가 널이 아니고 비어있지 않으면 다른 서버로 데이터 전송
-                            sendDetectedObjectsToAnotherServer(detectedObjects, "youjeong");
-                            Log.d("Upload", "Detected Object: " + detectedObjects);
-                        }
-                    } else {
-                        Log.e("Upload", "Response body is null");
-                    }
-                } else {
-                    Log.e("Upload", "Error: " + response.errorBody());
-                }
-            }
-            @Override
-            public void onFailure(Call<CircleDetectionResponse> call, Throwable t) {
-                Log.e("Upload", "Failed to upload data and image", t);
-            }
-
-        });
     }
     // Web Server로 이미지 분석 결과 전송
     private void sendDetectedObjectsToAnotherServer(List<String> detectedObjects, String dbName) {
@@ -246,6 +201,27 @@ public class CircleToSearchActivity extends AppCompatActivity implements ImageAd
         Intent intent = new Intent(this, ImageDisplayActivity.class);
         intent.putExtra("imageUri", uri.toString());
         startActivity(intent);
+    }
+    @Override
+    public void onUploadSuccess(List<String> detectedObjects) {
+        runOnUiThread(() -> {
+            binding.btnSend.setEnabled(true);
+            binding.spinKit.setVisibility(View.GONE);
+            if (detectedObjects.isEmpty()) {
+                Toast.makeText(this, "No objects detected.", Toast.LENGTH_LONG).show();
+            } else {
+                sendDetectedObjectsToAnotherServer(detectedObjects, "youjeong");
+            }
+        });
+    }
+
+    @Override
+    public void onUploadFailure(String message) {
+        runOnUiThread(() -> {
+            binding.btnSend.setEnabled(true);
+            binding.spinKit.setVisibility(View.GONE);
+            Toast.makeText(this, "Upload failed: " + message, Toast.LENGTH_LONG).show();
+        });
     }
 }
 
