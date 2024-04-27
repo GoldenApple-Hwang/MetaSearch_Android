@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.metasearch.R;
 
 import java.util.ArrayList;
@@ -47,7 +48,11 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     @Override
     public void onBindViewHolder(ImageViewHolder holder, int position) {
         Uri imageUri = imageUris.get(position);
-        holder.imageView.setImageURI(imageUri);
+//        holder.imageView.setImageURI(imageUri);
+        // Glide를 사용하여 이미지 로드 및 표시
+        Glide.with(context)
+                .load(imageUri)
+                .into(holder.imageView);
 
         // 클릭 이벤트 설정
         holder.imageView.setOnClickListener(v -> {

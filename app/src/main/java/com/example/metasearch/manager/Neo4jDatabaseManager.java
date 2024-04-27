@@ -29,7 +29,7 @@ public class Neo4jDatabaseManager {
     public String createCypherQuery(List<String> entities, List<String> relationships, int count) {
         StringBuilder query = new StringBuilder("MATCH ");
         for (int i = 0; i < count; i++) {
-            query.append("(photo)-[:").append(relationships.get(i)).append("]->(entity {name: ").append(entities.get(i)).append("})");
+            query.append("(photo)-[:").append(relationships.get(i)).append("]->(entity {name: \"").append(entities.get(i)).append("\"})");
             if (i < count - 1) {
                 query.append(", ");
             }

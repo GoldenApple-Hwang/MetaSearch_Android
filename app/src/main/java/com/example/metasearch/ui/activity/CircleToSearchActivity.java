@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 
+import com.bumptech.glide.Glide;
 import com.example.metasearch.databinding.ActivityCircleToSearchBinding;
 import com.example.metasearch.helper.HttpHelper;
 import com.example.metasearch.manager.GalleryImageManager;
@@ -54,7 +55,13 @@ public class CircleToSearchActivity extends AppCompatActivity implements ImageAd
         setContentView(binding.getRoot());
 
         imageUri = Uri.parse(getIntent().getStringExtra("imageUri"));
-        binding.customImageView.setImageUri(imageUri);
+//        binding.customImageView.setImageUri(imageUri);
+        // Glide를 사용하여 이미지 로드 및 표시
+        // 이미지 자동 회전 방지
+        Glide.with(this)
+                .load(imageUri)
+                .into(binding.customImageView);
+
         // circle to search 결과 검색된 사진 출력하는 세로 방향 RecyclerView 세팅
         setupRecyclerView();
     }
