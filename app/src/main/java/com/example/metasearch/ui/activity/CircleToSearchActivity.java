@@ -3,7 +3,6 @@ package com.example.metasearch.ui.activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -13,28 +12,17 @@ import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.bumptech.glide.Glide;
 import com.example.metasearch.databinding.ActivityCircleToSearchBinding;
-import com.example.metasearch.helper.HttpHelper;
 import com.example.metasearch.manager.AIRequestManager;
 import com.example.metasearch.manager.GalleryImageManager;
 import com.example.metasearch.manager.WebRequestManager;
 import com.example.metasearch.model.Circle;
 import com.example.metasearch.model.response.PhotoResponse;
-import com.example.metasearch.service.ApiService;
 import com.example.metasearch.ui.adapter.ImageAdapter;
 import com.example.metasearch.ui.viewmodel.ImageViewModel;
-import com.google.gson.Gson;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import okhttp3.MediaType;
-import okhttp3.RequestBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class CircleToSearchActivity extends AppCompatActivity
         implements ImageAdapter.OnImageClickListener,
