@@ -129,7 +129,7 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
             return;
         }
         // 사용자가 입력한 문장(찾고 싶은 사진) + gpt가 분석할 수 있도록 지시할 문장
-        userInput = userInput + getString(R.string.user_input_kor);
+        userInput = userInput + getString(R.string.user_input_eng);
         if (userInput.length() == 0) return;
         ApiService service = HttpHelper.getInstance(OPENAI_URL).create(ApiService.class);
 
