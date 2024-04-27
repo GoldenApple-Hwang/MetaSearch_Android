@@ -6,6 +6,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide;
 import com.example.metasearch.databinding.ActivityCircleToSearchBinding;
 import com.example.metasearch.databinding.ActivityImageDisplayBinding;
 
@@ -31,6 +32,11 @@ public class ImageDisplayActivity extends AppCompatActivity {
 
     private void setImageToPhotoView(Uri imageUri) {
         // PhotoView에 이미지 설정
-        binding.imageViewFullScreen.setImageURI(imageUri);
+//        binding.imageViewFullScreen.setImageURI(imageUri);
+
+        // Glide를 사용하여 PhotoView에 이미지 설정
+        Glide.with(this)
+                .load(imageUri)
+                .into(binding.imageViewFullScreen);
     }
 }
