@@ -126,7 +126,11 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
         // 사용자가 검색한 문장
         String userInput = binding.searchText.getText().toString();
         // 사용자가 아무것도 입력하지 않고 검색 버튼 클릭 시, api 호출하지 않도록 리턴
-        if (userInput.length() == 0) return;
+        if (userInput.length() == 0) {
+            binding.searchButton.setEnabled(true);
+            binding.spinKit.setVisibility(View.GONE);
+            return;
+        }
 
         // 사용자가 입력한 문장(찾고 싶은 사진) + gpt가 분석할 수 있도록 지시할 문장
         userInput = userInput + getString(R.string.user_input_kor);
@@ -192,10 +196,14 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
                 } else {
                     Log.e("OpenAI Error", "Error fetching response");
                 }
+                binding.searchButton.setEnabled(true); // 버튼 활성화
+                binding.spinKit.setVisibility(View.GONE); // 로딩 아이콘 숨김
             }
             @Override
             public void onFailure(Call<OpenAIResponse> call, Throwable t) {
                 Log.e("OpenAI Failure", t.getMessage());
+                binding.searchButton.setEnabled(true); // 버튼 활성화
+                binding.spinKit.setVisibility(View.GONE); // 로딩 아이콘 숨김
             }
         });
     }
@@ -265,6 +273,8 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
         binding.recyclerView.post(() -> imageViewModel.setImageUris(matchedUris));
     }
     private void retrieve() {
+        binding.searchButton.setEnabled(false);
+        binding.spinKit.setVisibility(View.VISIBLE);
         // 데이터 베이스 작업은 별도의 스레드에서 실행
         new Thread(this::photoSearch).start();
     }
