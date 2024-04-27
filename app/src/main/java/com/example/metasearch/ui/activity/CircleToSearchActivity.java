@@ -1,6 +1,5 @@
 package com.example.metasearch.ui.activity;
 
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,16 +16,14 @@ import com.example.metasearch.databinding.ActivityCircleToSearchBinding;
 import com.example.metasearch.helper.HttpHelper;
 import com.example.metasearch.manager.AIRequestManager;
 import com.example.metasearch.manager.GalleryImageManager;
-import com.example.metasearch.manager.UriToFileConverter;
+import com.example.metasearch.manager.WebRequestManager;
 import com.example.metasearch.model.Circle;
-import com.example.metasearch.model.response.CircleDetectionResponse;
 import com.example.metasearch.model.response.PhotoResponse;
 import com.example.metasearch.service.ApiService;
 import com.example.metasearch.ui.adapter.ImageAdapter;
 import com.example.metasearch.ui.viewmodel.ImageViewModel;
 import com.google.gson.Gson;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,25 +31,28 @@ import java.util.List;
 import java.util.Map;
 
 import okhttp3.MediaType;
-import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class CircleToSearchActivity extends AppCompatActivity implements ImageAdapter.OnImageClickListener, AIRequestManager.CircleDataUploadCallbacks {
-    private static final String AI_SERVER_URL = "http://113.198.85.5";
+public class CircleToSearchActivity extends AppCompatActivity
+        implements ImageAdapter.OnImageClickListener,
+        AIRequestManager.CircleDataUploadCallbacks,
+        WebRequestManager.DetectedDataUploadCallbacks {
     private static final String WEB_SERVER_URL = "http://113.198.85.4";
     private ActivityCircleToSearchBinding binding;
     private Uri imageUri;
     private ImageViewModel imageViewModel;
     private AIRequestManager aiRequestManager;
+    private WebRequestManager webRequestManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setupUI();
         setupListeners();
         aiRequestManager = AIRequestManager.getAiImageUploader();
+        webRequestManager = WebRequestManager.getWebImageUploader();
     }
     private void setupUI() {
         binding = ActivityCircleToSearchBinding.inflate(getLayoutInflater());
@@ -60,8 +60,7 @@ public class CircleToSearchActivity extends AppCompatActivity implements ImageAd
 
         imageUri = Uri.parse(getIntent().getStringExtra("imageUri"));
 //        binding.customImageView.setImageUri(imageUri);
-        // Glide를 사용하여 이미지 로드 및 표시
-        // 이미지 자동 회전 방지
+        // Glide를 사용하여 이미지 로드 및 표시(이미지 자동 회전 방지)
         Glide.with(this)
                 .load(imageUri)
                 .into(binding.customImageView);
@@ -96,58 +95,6 @@ public class CircleToSearchActivity extends AppCompatActivity implements ImageAd
         } else {
             Toast.makeText(this, "이미지 또는 원 정보가 없습니다.", Toast.LENGTH_SHORT).show();
         }
-    }
-    // Web Server로 이미지 분석 결과 전송
-    private void sendDetectedObjectsToAnotherServer(List<String> detectedObjects, String dbName) {
-        // Gson 인스턴스 생성
-        Gson gson = new Gson();
-
-        // detectedObjects와 dbName을 포함하는 Map 객체 생성
-        Map<String, Object> jsonMap = new HashMap<>();
-        jsonMap.put("dbName", dbName);
-        jsonMap.put("properties", detectedObjects);
-
-        // Map 객체를 JSON 문자열로 변환
-        String jsonObject = gson.toJson(jsonMap);
-
-        // JSON 문자열을 바디로 사용하여 RequestBody 객체 생성
-        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonObject);
-
-        Log.d("e",jsonObject);
-
-        // HttpHelper를 사용하여 ApiService 인스턴스 생성
-        ApiService service = HttpHelper.getInstance(WEB_SERVER_URL).getRetrofit().create(ApiService.class);
-
-        // POST 요청 보내기
-        Call<PhotoResponse> sendCall = service.sendDetectedObjects(requestBody);
-        sendCall.enqueue(new Callback<PhotoResponse>() {
-            @Override
-            public void onResponse(Call<PhotoResponse> call, Response<PhotoResponse> response) {
-                if (response.isSuccessful()) {
-                    Log.d("Upload", "Detected objects sent successfully");
-                    PhotoResponse photoResponse = response.body();
-
-                    updateRecyclerViewWithResponse(photoResponse);
-
-                    Log.d("Upload", "Common Photos: " + photoResponse.getPhotos().getCommonPhotos());
-                    Log.d("Upload", "Individual Photos: " + photoResponse.getPhotos().getIndividualPhotos());
-                } else {
-                    try {
-                        Log.e("Upload", "Failed to send detected objects: " + response.errorBody().string());
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-                binding.btnSend.setEnabled(true); // 버튼 활성화
-                // 로딩 애니메이션 숨김
-                binding.spinKit.setVisibility(View.GONE);
-            }
-            @Override
-            public void onFailure(Call<PhotoResponse> call, Throwable t) {
-                Log.e("Upload", "Error sending detected objects", t);
-                binding.btnSend.setEnabled(true); // 버튼 활성화
-            }
-        });
     }
     private void updateRecyclerView(List<Uri> imageUris) {
         ImageAdapter adapter = new ImageAdapter(imageUris, this, this);
@@ -203,25 +150,35 @@ public class CircleToSearchActivity extends AppCompatActivity implements ImageAd
         startActivity(intent);
     }
     @Override
-    public void onUploadSuccess(List<String> detectedObjects) {
+    public void onCircleUploadSuccess(List<String> detectedObjects) {
         runOnUiThread(() -> {
             binding.btnSend.setEnabled(true);
             binding.spinKit.setVisibility(View.GONE);
             if (detectedObjects.isEmpty()) {
                 Toast.makeText(this, "No objects detected.", Toast.LENGTH_LONG).show();
             } else {
-                sendDetectedObjectsToAnotherServer(detectedObjects, "youjeong");
+                // Web Server로 이미지 분석 결과 전송
+                webRequestManager.sendDetectedObjectsToAnotherServer(detectedObjects, "youjeong", this);
             }
         });
     }
-
     @Override
-    public void onUploadFailure(String message) {
+    public void onCircleUploadFailure(String message) {
         runOnUiThread(() -> {
             binding.btnSend.setEnabled(true);
             binding.spinKit.setVisibility(View.GONE);
             Toast.makeText(this, "Upload failed: " + message, Toast.LENGTH_LONG).show();
         });
+    }
+    @Override
+    public void onDetectedDataUploadSuccess(PhotoResponse photoResponse) {
+        binding.btnSend.setEnabled(true); // 버튼 활성화
+        binding.spinKit.setVisibility(View.GONE); // 로딩 애니메이션 숨김
+        updateRecyclerViewWithResponse(photoResponse);
+    }
+    @Override
+    public void onDetectedDataUploadFailure(String message) {
+        binding.btnSend.setEnabled(true); // 버튼 활성화
     }
 }
 

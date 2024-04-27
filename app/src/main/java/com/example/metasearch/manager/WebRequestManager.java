@@ -5,9 +5,15 @@ import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 import android.util.Log;
 
 import com.example.metasearch.helper.HttpHelper;
+import com.example.metasearch.model.response.PhotoResponse;
 import com.example.metasearch.service.ApiService;
+import com.google.gson.Gson;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -18,7 +24,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 
 public class WebRequestManager {
-    private static final String Webserver_BASE_URL = "http://113.198.85.4"; // ai 서버의 기본 url
+    private static final String Webserver_BASE_URL = "http://113.198.85.4"; // web 서버의 기본 url
     private static WebRequestManager webImageUploader;
     private Retrofit webRetrofit;
     private ApiService webService;
@@ -92,6 +98,54 @@ public class WebRequestManager {
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
                 Log.e(TAG, "추가 이미지 업로드 실패함" + t.getMessage());
+            }
+        });
+    }
+
+
+
+
+    // UI 업데이트를 위한 콜백 메서드
+    public interface DetectedDataUploadCallbacks {
+        void onDetectedDataUploadSuccess(PhotoResponse detectedObjects);
+        void onDetectedDataUploadFailure(String message);
+    }
+    // Web Server로 Circle to Search 이미지 분석 결과 전송
+    public void sendDetectedObjectsToAnotherServer(List<String> detectedObjects, String dbName, WebRequestManager.DetectedDataUploadCallbacks callbacks) {
+        // Gson 인스턴스 생성
+        Gson gson = new Gson();
+
+        // detectedObjects와 dbName을 포함하는 Map 객체 생성
+        Map<String, Object> jsonMap = new HashMap<>();
+        jsonMap.put("dbName", dbName);
+        jsonMap.put("properties", detectedObjects);
+
+        // Map 객체를 JSON 문자열로 변환
+        String jsonObject = gson.toJson(jsonMap);
+
+        // JSON 문자열을 바디로 사용하여 RequestBody 객체 생성
+        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonObject);
+
+        Log.d("e",jsonObject);
+
+        // POST 요청 보내기
+        Call<PhotoResponse> sendCall = webService.sendDetectedObjects(requestBody);
+        sendCall.enqueue(new Callback<PhotoResponse>() {
+            @Override
+            public void onResponse(Call<PhotoResponse> call, Response<PhotoResponse> response) {
+                if (response.isSuccessful()) {
+                    Log.d("Upload", "Detected objects sent successfully");
+                    assert response.body() != null;
+                    Log.d("Upload", "Common Photos: " + response.body().getPhotos().getCommonPhotos());
+                    Log.d("Upload", "Individual Photos: " + response.body().getPhotos().getIndividualPhotos());
+                    callbacks.onDetectedDataUploadSuccess(response.body());
+                } else {
+                    callbacks.onDetectedDataUploadFailure("Server responded with error");
+                }
+            }
+            @Override
+            public void onFailure(Call<PhotoResponse> call, Throwable t) {
+                Log.e("Upload", "Error sending detected objects", t);
             }
         });
     }
