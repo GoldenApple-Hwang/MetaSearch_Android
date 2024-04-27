@@ -6,8 +6,6 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Base64;
 import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
 
 import com.example.metasearch.dao.DatabaseHelper;
 import com.example.metasearch.helper.HttpHelper;
@@ -15,7 +13,6 @@ import com.example.metasearch.model.Circle;
 import com.example.metasearch.model.response.CircleDetectionResponse;
 import com.example.metasearch.model.response.UploadResponse;
 import com.example.metasearch.service.ApiService;
-import com.example.metasearch.ui.activity.CircleToSearchActivity;
 import com.google.gson.Gson;
 
 import java.io.File;
@@ -241,9 +238,10 @@ public class AIRequestManager {
 
 
 
+    // UI 업데이트를 위한 콜백 메서드
     public interface CircleDataUploadCallbacks {
-        void onUploadSuccess(List<String> detectedObjects);
-        void onUploadFailure(String message);
+        void onCircleUploadSuccess(List<String> detectedObjects);
+        void onCircleUploadFailure(String message);
     }
     // AI Server로 이미지와 원 리스트 전송
     public void uploadCircleData(Uri imageUri, List<Circle> circles, String source, Context context, CircleDataUploadCallbacks callbacks) throws IOException {
@@ -261,15 +259,15 @@ public class AIRequestManager {
             @Override
             public void onResponse(Call<CircleDetectionResponse> call, Response<CircleDetectionResponse> response) {
                 if (response.isSuccessful()) {
-                    callbacks.onUploadSuccess(response.body().getDetectedObjects());
+                    callbacks.onCircleUploadSuccess(response.body().getDetectedObjects());
                 } else {
-                    callbacks.onUploadFailure("Server responded with error");
+                    callbacks.onCircleUploadFailure("Server responded with error");
                 }
             }
 
             @Override
             public void onFailure(Call<CircleDetectionResponse> call, Throwable t) {
-                callbacks.onUploadFailure("Failed to upload data and image: " + t.getMessage());
+                callbacks.onCircleUploadFailure("Failed to upload data and image: " + t.getMessage());
             }
         });
     }
