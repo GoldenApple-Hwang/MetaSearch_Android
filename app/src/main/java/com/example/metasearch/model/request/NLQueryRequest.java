@@ -1,4 +1,4 @@
-package com.example.metasearch.model;
+package com.example.metasearch.model.request;
 
 public class NLQueryRequest {
     private String dbName;

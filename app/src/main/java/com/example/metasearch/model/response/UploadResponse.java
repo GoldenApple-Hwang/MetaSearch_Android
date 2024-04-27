@@ -1,4 +1,4 @@
-package com.example.metasearch.model;
+package com.example.metasearch.model.response;
 
 import java.util.List;
 

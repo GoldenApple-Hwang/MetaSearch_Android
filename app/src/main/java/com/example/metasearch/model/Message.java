@@ -1,4 +1,4 @@
-package com.example.metasearch.service.gptChat;
+package com.example.metasearch.model;
 
 public class Message {
     private String role;

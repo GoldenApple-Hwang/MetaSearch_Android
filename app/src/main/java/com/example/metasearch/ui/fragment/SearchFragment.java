@@ -1,9 +1,7 @@
 package com.example.metasearch.ui.fragment;
 
 import static com.example.metasearch.manager.GalleryImageManager.findMatchedUris;
-import static com.example.metasearch.manager.GalleryImageManager.getAllImageNamesWithoutExtension;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -21,22 +19,21 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 
+import com.example.metasearch.BuildConfig;
 import com.example.metasearch.R;
-import com.example.metasearch.helper.HttpHelper;
-import com.example.metasearch.manager.GalleryImageManager;
-import com.example.metasearch.model.NLQueryRequest;
-import com.example.metasearch.model.NLQueryResponse;
-import com.example.metasearch.model.PhotoResponse;
-import com.example.metasearch.service.ApiService;
-import com.example.metasearch.ui.adapter.CustomArrayAdapter;
-import com.example.metasearch.ui.adapter.ImageAdapter;
 import com.example.metasearch.databinding.FragmentSearchBinding;
-import com.example.metasearch.service.gptChat.Choice;
+import com.example.metasearch.helper.HttpHelper;
 import com.example.metasearch.manager.Neo4jDatabaseManager;
 import com.example.metasearch.manager.Neo4jDriverManager;
-import com.example.metasearch.service.gptChat.OpenAIResponse;
-import com.example.metasearch.service.gptChat.OpenAIServiceManager;
+import com.example.metasearch.model.response.NLQueryResponse;
+import com.example.metasearch.service.ApiService;
+import com.example.metasearch.model.Choice;
+import com.example.metasearch.model.Message;
+import com.example.metasearch.model.request.OpenAIRequest;
+import com.example.metasearch.model.response.OpenAIResponse;
 import com.example.metasearch.ui.activity.CircleToSearchActivity;
+import com.example.metasearch.ui.adapter.CustomArrayAdapter;
+import com.example.metasearch.ui.adapter.ImageAdapter;
 import com.example.metasearch.ui.viewmodel.ImageViewModel;
 import com.google.gson.Gson;
 
@@ -53,10 +50,10 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class SearchFragment extends Fragment implements ImageAdapter.OnImageClickListener {
+    private static final String OPENAI_URL = "https://api.openai.com/";
     private static final String WEB_SERVER_URL = "http://113.198.85.4";
     private ImageViewModel imageViewModel;
     private final Neo4jDatabaseManager Neo4jDatabaseManager = new Neo4jDatabaseManager();
-    private OpenAIServiceManager openAIServiceManager = new OpenAIServiceManager();
     private FragmentSearchBinding binding;
     private String userInputText = ""; // 사용자 입력을 추적하는 변수
     private String neo4jQuery = ""; // Neo4j 서버에 보낼 쿼리문
@@ -131,12 +128,17 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
             binding.spinKit.setVisibility(View.GONE);
             return;
         }
-
         // 사용자가 입력한 문장(찾고 싶은 사진) + gpt가 분석할 수 있도록 지시할 문장
         userInput = userInput + getString(R.string.user_input_kor);
+        if (userInput.length() == 0) return;
+        ApiService service = HttpHelper.getInstance(OPENAI_URL).create(ApiService.class);
 
-        // OpenAIServiceHelper를 사용하여 API 호출
-        openAIServiceManager.fetchOpenAIResponse(userInput, new Callback<OpenAIResponse>() {
+        List<Message> messages = new ArrayList<>();
+        messages.add(new Message("user", userInput));
+        OpenAIRequest request = new OpenAIRequest("gpt-3.5-turbo", messages);
+        String apiKey = "Bearer " + BuildConfig.OPENAI_API_KEY;
+
+        service.createChatCompletion(apiKey, request).enqueue(new Callback<OpenAIResponse>() {
             @Override
             public void onResponse(@NonNull Call<OpenAIResponse> call, @NonNull Response<OpenAIResponse> response) {
                 // 응답 처리 로직

@@ -1,4 +1,6 @@
-package com.example.metasearch.service.gptChat;
+package com.example.metasearch.model.request;
+
+import com.example.metasearch.model.Message;
 
 import java.util.List;
 

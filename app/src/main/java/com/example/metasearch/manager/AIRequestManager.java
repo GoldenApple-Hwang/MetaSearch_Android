@@ -7,7 +7,7 @@ import android.util.Log;
 
 import com.example.metasearch.dao.DatabaseHelper;
 import com.example.metasearch.helper.HttpHelper;
-import com.example.metasearch.model.UploadResponse;
+import com.example.metasearch.model.response.UploadResponse;
 import com.example.metasearch.service.ApiService;
 
 import java.io.File;

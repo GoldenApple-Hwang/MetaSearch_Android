@@ -1,15 +1,16 @@
 package com.example.metasearch.service;
 
-import com.example.metasearch.model.CircleDetectionResponse;
-import com.example.metasearch.model.NLQueryRequest;
-import com.example.metasearch.model.PhotoResponse;
-import com.example.metasearch.model.NLQueryResponse;
-import com.example.metasearch.model.UploadResponse;
-
-import java.util.List;
+import com.example.metasearch.model.response.CircleDetectionResponse;
+import com.example.metasearch.model.response.PhotoResponse;
+import com.example.metasearch.model.response.NLQueryResponse;
+import com.example.metasearch.model.response.UploadResponse;
+import com.example.metasearch.model.request.OpenAIRequest;
+import com.example.metasearch.model.response.OpenAIResponse;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.Header;
+import retrofit2.http.Headers;
 import retrofit2.http.POST;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
@@ -17,6 +18,11 @@ import retrofit2.http.Multipart;
 import retrofit2.http.Part;
 
 public interface ApiService {
+    // OpenAI service
+    @Headers("Content-Type: application/json")
+    @POST("/v1/chat/completions")
+    Call<OpenAIResponse> createChatCompletion(
+            @Header("Authorization") String authToken, @Body OpenAIRequest body);
     // AI 서버에 이미지 분석 요청(circle to search)
     @Multipart
     @POST("upload")
