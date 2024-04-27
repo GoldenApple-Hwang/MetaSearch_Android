@@ -12,4 +12,11 @@
         예를 들어, \'아기가 바다에서 바나나와 아이스크림을 먹는 사진\' 이라면, \'3,baby,person,banana,fruit,ice cream,ice cream\'처럼 공백 없이 총 한 줄로 리턴.
         맨 앞의 숫자는 entity와 relationship을 한 쌍으로 봤을 때 총 개수를 의미. entity도 영어로 리턴.
         추출된 속성 쌍의 개수가 0이면, \'0\'을 리턴.</string>
+    <string name="user_input_kor">. 이 사진을 찾을 때 필요한 속성인 entity와 relationship을 추출할거야.
+        entity는 사람이나 사물의 이름 또는 감정, 인종, 성별을 나타내는 단어이고,
+        relationship은 entity가 속하는 카테고리로 \"person, color, 동물, furniture, fruit, food, beverage, dessert, ice cream, clothing, jewelry, electronic_equipment, footwear, flower, street,
+        building, cap, sports, glasses, sunset, sunrise, sky, toy, cup, car, 감정, 인종, 성별\" 중 하나야. 장소는 추출 하지 말고, 아이스크림은 ice cream으로 분류.
+        예를 들어, \'아기가 바다에서 바나나와 아이스크림을 먹는 사진\' 이라면, \'3,baby,person,banana,fruit,ice cream,ice cream\'처럼 공백 없이 총 한 줄로 리턴.
+        맨 앞의 숫자는 entity와 relationship을 한 쌍으로 봤을 때 총 개수를 의미. entity와 relationship 전부 한글로 리턴.
+        추출된 속성 쌍의 개수가 0이면, \'0\'을 리턴.</string>
 </resources>
