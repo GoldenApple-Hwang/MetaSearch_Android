@@ -72,16 +72,14 @@ public class WebRequestManager {
 //            }
 //        });
 //    }
-    public void uploadAddGalleryImage(ApiService service, File imageFile, String source){
+    public void uploadAddGalleryImage(ApiService service, File imageFile, String dbName){
         Log.d(TAG,"web의 uploadAddGalleryImage 안에 들어옴");
 
         Log.d(TAG,"addImge 이름 : " + imageFile.getName());
         RequestBody requestBody = RequestBody.create(MediaType.parse("image/*"), imageFile);
         MultipartBody.Part imagePart = MultipartBody.Part.createFormData("image", imageFile.getName(), requestBody);
-
-        RequestBody sourceBody = RequestBody.create(MediaType.parse("text/plain"), source);
-
-        Call<Void> call = service.uploadWebAddImage(imagePart, sourceBody);
+        
+        Call<Void> call = service.uploadWebAddImage(imagePart, dbName);
         call.enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
