@@ -8,6 +8,7 @@ import com.example.metasearch.helper.HttpHelper;
 import com.example.metasearch.service.ApiService;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -95,4 +96,33 @@ public class WebRequestManager {
             }
         });
     }
+    public void uploadDeleteGalleryImage(ApiService service, ArrayList<String> deleteImagePahts, String source ){
+        RequestBody requestBody;
+        MultipartBody.Part imagePart;
+        for(String deleteImagePath : deleteImagePahts){
+            requestBody = RequestBody.create(MediaType.parse("filename"),deleteImagePath);
+            //파일의 경로를 해당 이미지의 이름으로 설정함
+            imagePart = MultipartBody.Part.createFormData("deleteImage",deleteImagePath,requestBody);
+
+            //이미지 출처 정보를 전송할 RequestBody 생성
+            RequestBody sourceBody = RequestBody.create(MediaType.parse("text/plain"),source); //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
+
+            //API 호출
+            Call<Void> call = service.uploadWebDeleteImage(imagePart,sourceBody); //이미지 업로드 API 호출
+            call.enqueue(new Callback<Void>() { //비동기
+                @Override
+                public void onResponse(Call<Void> call, Response<Void> response) {
+                    if (response.isSuccessful()) {
+                        Log.e(TAG, "delete Image upload 성공: " + response.message());
+
+                    }
+                }
+                @Override
+                public void onFailure(Call<Void> call, Throwable t) {
+                    Log.e(TAG, "삭제 이미지 업로드 실패함" + t.getMessage());
+                }
+            });
+        }
+    }
+
 }
