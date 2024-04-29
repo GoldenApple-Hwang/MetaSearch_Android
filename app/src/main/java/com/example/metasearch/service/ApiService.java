@@ -51,7 +51,7 @@ public interface ApiService {
 
     @Multipart
     @POST("android/deleteimg")
-    Call<Void> uploadWebDeleteImage(@Part MultipartBody.Part filename, @Part("source")RequestBody source);
+    Call<Void> uploadWebDeleteImage(@Part MultipartBody.Part filename, @Query("dbName") String dbName);
 
 
 
