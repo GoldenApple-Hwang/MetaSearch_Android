@@ -2,6 +2,8 @@ package com.example.metasearch.ui.adapter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -56,6 +58,10 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
     public void onBindViewHolder(PersonViewHolder holder, int position) {
         Person person = people.get(position);
         holder.nameView.setText(person.getName());
+
+        // 바이트 배열을 Bitmap으로 변환
+        Bitmap imageBitmap = BitmapFactory.decodeByteArray(person.getImage(), 0, person.getImage().length);
+        holder.imageView.setImageBitmap(imageBitmap);
 
         // 클릭 이벤트 설정
         holder.imageView.setOnClickListener(new View.OnClickListener() {

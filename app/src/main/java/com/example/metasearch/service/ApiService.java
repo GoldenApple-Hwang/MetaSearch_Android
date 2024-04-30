@@ -25,7 +25,7 @@ public interface ApiService {
             @Header("Authorization") String authToken, @Body OpenAIRequest body);
     // AI 서버에 이미지 분석 요청(circle to search)
     @Multipart
-    @POST("upload")
+    @POST("android/circle_search")
     Call<CircleDetectionResponse> uploadImageAndCircles(
             @Part MultipartBody.Part image,
             @Part("source")RequestBody source,

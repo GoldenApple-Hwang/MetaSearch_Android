@@ -22,10 +22,4 @@
         android:name="com.example.metasearch.ui.fragment.GraphFragment"
         android:label="@string/title_graph"
         tools:layout="@layout/fragment_graph" />
-
-    <fragment
-        android:id="@+id/navigation_composite"
-        android:name="com.example.metasearch.ui.fragment.CompositeFragment"
-        android:label="@string/title_composite"
-        tools:layout="@layout/fragment_composite" />
 </navigation>
