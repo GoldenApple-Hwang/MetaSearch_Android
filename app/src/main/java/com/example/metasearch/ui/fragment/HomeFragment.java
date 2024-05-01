@@ -47,15 +47,8 @@ public class HomeFragment extends Fragment implements ImageAdapter.OnImageClickL
         return root;
     }
     private void loadFaceImages() {
-        List<Person> people = new ArrayList<>();
-        Map<String, byte[]> imagesMap = databaseHelper.getAllImagesWithNameAsBytes();
+        List<Person> people = databaseHelper.getAllImagesWithNameAsBytes();
 
-        for (Map.Entry<String, byte[]> entry : imagesMap.entrySet()) {
-            String username = entry.getKey();
-            byte[] imageByte = entry.getValue();
-
-            people.add(new Person(username, imageByte));
-        }
         PersonAdapter adapter = new PersonAdapter(people, this, getContext());
         LinearLayoutManager layoutManager = new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false);
         binding.personRecyclerViewHorizon.setLayoutManager(layoutManager);
