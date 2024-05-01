@@ -4,18 +4,18 @@
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_marginHorizontal="2dp"
-    android:background="@color/grey"
     android:orientation="vertical"
-    android:layout_marginEnd="20dp">
+    android:layout_marginEnd="15dp">
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/face"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:src="@drawable/ic_launcher_foreground"
-        app:civ_border_overlay="true"
-        app:civ_border_width="6dp"
-        app:civ_border_color="@color/light_green"
+        app:civ_border_overlay="false"
+        app:civ_border_width="5dp"
+        android:padding="3dp"
+        app:civ_border_color="@color/coral"
         />
     <TextView
         android:id="@+id/name"
@@ -23,7 +23,6 @@
         android:layout_height="wrap_content"
         android:text="외계인"
         android:textSize="18sp"
-        android:textColor="@color/white"
         android:gravity="center"
         android:layout_marginTop="8dp"/>
 </LinearLayout>
