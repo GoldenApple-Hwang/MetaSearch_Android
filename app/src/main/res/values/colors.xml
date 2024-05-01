@@ -18,9 +18,14 @@
     <color name="light_pink">#efccd2</color>
     <color name="pink">#fea4ce</color>
     <color name="hot_pink">#de4893</color>
-    <color name="grey_b">#8694b0</color>
-    <color name="sky_blue">#9ec2f4</color>
-    <color name="green_d">#7fb785</color>
+    <color name="blue_grey">#a4c0da</color>
+    <color name="sky_blue">#97ccfb</color>
+    <color name="dark_green">#7fb785</color>
     <color name="yellow">#fae847</color>
     <color name="light_yellow">#fde794</color>
+    <color name="salmon">#fc9478</color>
+    <color name="mint">#78fcc0</color>
+    <color name="light_brown">#baa177</color>
+    <color name="pastel_blue"></color>
+    <color name="pastel_purple">#b597fb</color>
 </resources>
