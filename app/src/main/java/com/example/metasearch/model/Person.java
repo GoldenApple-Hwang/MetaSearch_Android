@@ -1,18 +1,19 @@
 package com.example.metasearch.model;
 
 public class Person {
-    private String name;
+    private String imageName; // 사진 이름
+    private String userName; // 사용자가 입력한 이름
     private byte[] image; // 홈 화면 상단에 작게 표시되는 얼굴 이미지를 위한 데이터
-//    private Uri imageUrl; // 추후 데이터 타입 수정 필요
 
-    public Person(String name, byte[] image) {
-        this.name = name;
+    public Person(String imageName, String name, byte[] image) {
+        this.imageName = imageName;
+        this.userName = name;
         this.image = image;
     }
+    public String getImageName() { return imageName; }
     public String getName() {
-        return name;
+        return userName;
     }
-
     public byte[] getImage() {
         return image;
     }
