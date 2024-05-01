@@ -79,7 +79,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("NAME", name);
-        values.put("USERNAME","인물"); //'인물1'과 같이 나타냄
+        values.put("USERNAME",""); //'인물1'과 같이 나타냄
         values.put("IMAGE", imageBytes);
         //values.put(DBHelper.COLUMN_IMAGE, imageBytes);
         long result = db.insert(TABLE_NAME, null, values);
