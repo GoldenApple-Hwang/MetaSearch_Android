@@ -3,7 +3,7 @@
 
     <item
         android:id="@+id/navigation_home"
-        android:icon="@drawable/baseline_account_circle_24"
+        android:icon="@drawable/icon_home"
         android:title="@string/title_home" />
 
     <item
@@ -13,7 +13,7 @@
 
     <item
         android:id="@+id/navigation_graph"
-        android:icon="@drawable/baseline_animation_24"
+        android:icon="@drawable/icon_graph"
         android:title="@string/title_graph" />
 
 </menu>
