@@ -12,11 +12,14 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
 
+import com.example.metasearch.model.Person;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
@@ -79,7 +82,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("NAME", name);
-        values.put("USERNAME","인물"); //'인물1'과 같이 나타냄
+        values.put("USERNAME",""); //'인물1'과 같이 나타냄
         values.put("IMAGE", imageBytes);
         //values.put(DBHelper.COLUMN_IMAGE, imageBytes);
         long result = db.insert(TABLE_NAME, null, values);
@@ -138,20 +141,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         // 이미지 데이터가 담긴 HashMap 반환
         return imagesMap;
     }
-    public Map<String, byte[]> getAllImagesWithNameAsBytes() {
-        Map<String, byte[]> imagesMap = new HashMap<>();
+    public List<Person> getAllImagesWithNameAsBytes() {
+        List<Person> people = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT USERNAME, IMAGE FROM " + TABLE_NAME, null);
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
 
+        int imageNameColumnIndex = cursor.getColumnIndex("NAME");
         int usernameColumnIndex = cursor.getColumnIndex("USERNAME");
         int imageColumnIndex = cursor.getColumnIndex("IMAGE");
 
         if (cursor.moveToFirst()) {
             do {
-                String username = cursor.getString(usernameColumnIndex);
-                byte[] imageData = cursor.getBlob(imageColumnIndex);
-                if (username != null && imageData != null) {
-                    imagesMap.put(username, imageData);
+                String imageName = cursor.getString(imageNameColumnIndex); // 사진 이름
+                String username = cursor.getString(usernameColumnIndex); // 인물 이름
+                byte[] imageData = cursor.getBlob(imageColumnIndex); // 사진 데이터
+                if (imageName != null && username != null && imageData != null) {
+                    people.add(new Person(imageName,username,imageData));
                     Log.d(TAG, "Loaded byte data for username: " + username);
                 } else {
                     Log.d(TAG, "Null value found for username or image data");
@@ -162,7 +167,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         cursor.close();
         db.close();
-        return imagesMap;
+        return people;
     }
     public ArrayList<byte[]> getImageData(){
         ArrayList<byte[]> images = new ArrayList<>();
