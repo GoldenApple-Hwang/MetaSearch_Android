@@ -105,36 +105,56 @@ public class ImageServiceRequestManager {
         boolean isAddExit = !addImagePaths.isEmpty();; //추가 요청이 있는지 확인
         boolean isDeleteExit = !deleteImagePaths.isEmpty(); //삭제 요청이 있는지 확인
 
+
         if(isDeleteExit && isAddExit){ // 삭제 요청 o, 추가 요청 o
             Log.d(TAG,"삭제 요청과 추가 요청이 있었음");
+
+            //AI 서버에 삭제 관련 이미지 이름 전송
+
             aiRequestManager.uploadDeleteGalleryImage(databaseHelper,deleteImagePaths,aiService,DBName).thenRun(() -> { //콜백 설정함
-                for(String imagePath:addImagePaths){
-                    webRequestManager.uploadAddGalleryImage(webService,new File(imagePath),DBName);
+
+                //웹 서버에 추가 분석 이미지 전송
+                webRequestManager.uploadAddGalleryImage(webService, addImagePaths, DBName);
+                try {
+                    //AI 서버에 추가 분석 이미지 전송
+                    aiRequestManager.uploadAddGalleryImage(databaseHelper, addImagePaths, aiService, DBName).thenRun(() -> {
+                        //콜백 설정
+                        //모든 요청이 끝났다는 마지막 요청
+                        aiRequestManager.completeUploadImage(aiService, DBName);
+                    });
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
-                aiRequestManager.uploadDeleteGalleryImage(databaseHelper,deleteImagePaths,aiService, DBName).thenRun(() -> { //콜백 설정함
-                    aiRequestManager.completeUploadImage(aiService,DBName);
-                    Log.d(TAG,"모든 이미지 전송 완료");
-                });
             });
         }
         else if(!isAddExit && isDeleteExit){ //삭제 요청 o, 추가 요청 x
+            //웹 서버에 삭제 관련 이미지 전송
+            //webRequestManager.uploadDeleteGalleryImage(webService,deleteImagePaths,DBName);
+
+            //AI 서버에 삭제 관련 이미지 이름 전송
             aiRequestManager.uploadDeleteGalleryImage(databaseHelper,deleteImagePaths,aiService, DBName).thenRun(() -> { //콜백 설정함
+
+                //AI 서버에 모든 요청이 마무리 되었다는 요청
                 aiRequestManager.completeUploadImage(aiService,DBName);
                 Log.d(TAG,"모든 이미지 전송 완료");
             });
         }
-        else if(isAddExit){ //삭제 요청 x, 추가 요청 o
-            Log.d(TAG,"추가 작업만 진행");
-            //List<CompletableFuture<Void>> futuresList = new ArrayList<>();
-            // List<CompletableFuture<Void>> futureList = new ArrayList<>();
-            for (String imagePath : addImagePaths) {
-                webRequestManager.uploadAddGalleryImage(webService, new File(imagePath), DBName);
-            }
-            aiRequestManager.uploadAddGalleryImage(databaseHelper, addImagePaths, aiService, DBName).thenRun(() -> { //콜백 설정함
-                aiRequestManager.completeUploadImage(aiService,DBName);
-                Log.d(TAG,"모든 이미지 전송 완료");
+        else if(isAddExit) { //삭제 요청 x, 추가 요청 o
+            Log.d(TAG, "추가 작업만 진행");
+
+            //웹 서버에 추가 분석 이미지 전송
+            webRequestManager.uploadAddGalleryImage(webService, addImagePaths, DBName);
+
+            //AI 서버에 추가 분석 이미지 전송
+            aiRequestManager.uploadAddGalleryImage(databaseHelper, addImagePaths, aiService, DBName).thenRun(() -> {
+                //콜백 설정
+
+                //AI 서버에 모든 요청이 보내졌다는 마무리 요청
+                aiRequestManager.completeUploadImage(aiService, DBName);
             });
         }
+
+        //추가 이미지 경로 리스트, 삭제 이미지 경로 리스트 초기화
         imageAnalyzeListController.clearAddDeleteImageList();
     }
 
