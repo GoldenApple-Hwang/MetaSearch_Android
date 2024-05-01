@@ -28,7 +28,6 @@ public class CircleToSearchActivity extends AppCompatActivity
         implements ImageAdapter.OnImageClickListener,
         AIRequestManager.CircleDataUploadCallbacks,
         WebRequestManager.DetectedDataUploadCallbacks {
-    private static final String WEB_SERVER_URL = "http://113.198.85.4";
     private ActivityCircleToSearchBinding binding;
     private Uri imageUri;
     private ImageViewModel imageViewModel;
