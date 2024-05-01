@@ -55,8 +55,8 @@ public class CustomImageView extends androidx.appcompat.widget.AppCompatImageVie
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                if (circles.size() >= 10) {
-                    Toast.makeText(getContext(), "최대 10개의 원만 그릴 수 있습니다.", Toast.LENGTH_SHORT).show();
+                if (circles.size() >= 5) {
+                    Toast.makeText(getContext(), "최대 5개의 원만 그릴 수 있습니다.", Toast.LENGTH_SHORT).show();
                     return false;  // 더 이상 그리지 않음
                 }
                 startX = event.getX();
