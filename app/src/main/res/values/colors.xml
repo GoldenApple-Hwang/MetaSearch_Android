@@ -14,6 +14,7 @@
     <color name="purple_d">#837daa</color>
     <color name="red">#fa4747</color>
     <color name="orange">#fc9678</color>
+    <color name="coral">#fca096</color>
     <color name="light_pink">#efccd2</color>
     <color name="pink">#fea4ce</color>
     <color name="hot_pink">#de4893</color>
@@ -21,4 +22,5 @@
     <color name="sky_blue">#9ec2f4</color>
     <color name="green_d">#7fb785</color>
     <color name="yellow">#fae847</color>
+    <color name="light_yellow">#fde794</color>
 </resources>
