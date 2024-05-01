@@ -15,7 +15,7 @@
         android:textStyle="bold"
         android:textSize="16sp"
         android:text="추천 단어"
-        android:textColor="@color/green_d" />
+        android:textColor="@color/sky_blue" />
 
     <!-- 구분선 -->
     <View
