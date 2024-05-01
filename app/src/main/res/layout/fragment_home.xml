@@ -62,7 +62,7 @@
         android:layout_marginBottom="40dp"
         android:backgroundTint="@color/white"
         android:clickable="true"
-        android:src="@drawable/btn"
+        android:src="@drawable/upload"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/galleryRecyclerView" />
 
