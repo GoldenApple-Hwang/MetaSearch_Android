@@ -1,21 +1,18 @@
 package com.example.metasearch.ui.activity;
 
 import android.os.Bundle;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.metasearch.R;
+import com.example.metasearch.databinding.ActivityPersonPhotosBinding;
 
 public class PersonPhotosActivity extends AppCompatActivity {
+    private ActivityPersonPhotosBinding binding;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_person_photos);
-        String personName = getIntent().getStringExtra("personName");
 
-        TextView nameTextView = findViewById(R.id.personName);
-        nameTextView.setText(personName);
+        setupUI();
 
         // 여기에서 personName을 사용하여 사진을 로드하고 표시
 
@@ -24,5 +21,11 @@ public class PersonPhotosActivity extends AppCompatActivity {
 //        PhotoAdapter photoAdapter = new PhotoAdapter(photoUris, this);
 //        recyclerView.setAdapter(photoAdapter);
 //        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+    }
+    private void setupUI() {
+        binding = ActivityPersonPhotosBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        binding.personName.setText(getIntent().getStringExtra("personName"));
     }
 }
