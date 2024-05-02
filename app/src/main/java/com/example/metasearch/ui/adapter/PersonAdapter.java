@@ -68,8 +68,10 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(context, PersonPhotosActivity.class);
-                intent.putExtra("personName", person.getName()); // 예시로 personName을 전달
-                context.startActivity(intent);
+                intent.putExtra("personName", person.getName()); // 인물 이름 전달
+                intent.putExtra("imageName", person.getImageName()); // 사진 이름 전달
+                intent.putExtra("imagedata", person.getImage()); // 사진(바이트 배열) 전달
+                context.startActivity(intent); // 클릭한 인물이 나온 사진을 모두 찾아서 보여주는 화면으로 전환
             }
         });
 
