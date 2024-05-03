@@ -25,7 +25,8 @@ import com.example.metasearch.databinding.FragmentSearchBinding;
 import com.example.metasearch.helper.HttpHelper;
 import com.example.metasearch.manager.Neo4jDatabaseManager;
 import com.example.metasearch.manager.Neo4jDriverManager;
-import com.example.metasearch.model.response.NLQueryResponse;
+import com.example.metasearch.model.request.NLQueryRequest;
+import com.example.metasearch.model.response.PhotoNameResponse;
 import com.example.metasearch.service.ApiService;
 import com.example.metasearch.model.Choice;
 import com.example.metasearch.model.Message;
@@ -77,25 +78,26 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
         // Gson 인스턴스 생성
         Gson gson = new Gson();
 
+        NLQueryRequest nlQueryRequest = new NLQueryRequest(dbName, query);
         // dbName과 query를 포함하는 Map 객체 생성
-        Map<String, Object> jsonMap = new HashMap<>();
-        jsonMap.put("dbName", dbName);
-        jsonMap.put("query", query);
+        Map<String, String> jsonMap = new HashMap<>();
+        jsonMap.put("dbName", nlQueryRequest.getDbName());
+        jsonMap.put("query", nlQueryRequest.getQuery());
 
         // Map 객체를 JSON 문자열로 변환
         String jsonObject = gson.toJson(jsonMap);
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonObject);
 
         // Send request
-        Call<NLQueryResponse> call = service.sendCypherQuery(requestBody);
-        call.enqueue(new Callback<NLQueryResponse>() {
+        Call<PhotoNameResponse> call = service.sendCypherQuery(requestBody);
+        call.enqueue(new Callback<PhotoNameResponse>() {
             @Override
-            public void onResponse(Call<NLQueryResponse> call, Response<NLQueryResponse> response) {
+            public void onResponse(Call<PhotoNameResponse> call, Response<PhotoNameResponse> response) {
                 if (response.isSuccessful()) {
                     // Handle successful response
-                    NLQueryResponse nlQueryResponse = response.body();
-                    if (nlQueryResponse != null && nlQueryResponse.getPhotoName() != null) {
-                        List<String> photoNames = nlQueryResponse.getPhotoName();
+                    PhotoNameResponse photoNameResponse = response.body();
+                    if (photoNameResponse != null && photoNameResponse.getPhotoNames() != null) {
+                        List<String> photoNames = photoNameResponse.getPhotoNames();
                         // Process photo names
                         // For example:
                         Log.d("PhotoNames", photoNames.toString());
@@ -112,7 +114,7 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
                 }
             }
             @Override
-            public void onFailure(Call<NLQueryResponse> call, Throwable t) {
+            public void onFailure(Call<PhotoNameResponse> call, Throwable t) {
                 // Handle error
                 Log.e("Request Error", "Failed to send request to server", t);
             }
