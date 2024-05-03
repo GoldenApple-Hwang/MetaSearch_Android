@@ -5,6 +5,7 @@ import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 import android.util.Log;
 
 import com.example.metasearch.helper.HttpHelper;
+import com.example.metasearch.model.response.PhotoNameResponse;
 import com.example.metasearch.model.response.PhotoResponse;
 import com.example.metasearch.service.ApiService;
 import com.google.gson.Gson;
@@ -104,14 +105,54 @@ public class WebRequestManager {
 
 
 
-
     // UI 업데이트를 위한 콜백 메서드
-    public interface DetectedDataUploadCallbacks {
-        void onDetectedDataUploadSuccess(PhotoResponse detectedObjects);
-        void onDetectedDataUploadFailure(String message);
+    public interface WebServerUploadCallbacks {
+        void onWebServerUploadSuccess(PhotoResponse detectedObjects);
+        void onWebServerUploadFailure(String message);
+    }
+    public interface WebServerPersonDataUploadCallbacks {
+        void onPersonDataUploadSuccess(List<String> photoNameResponse);
+        void onPersonDataUploadFailure(String message);
+    }
+    // Web Server로 인물 이름 or 사진 이름 전송
+    public void sendPersonData(String personData, String dbName, WebServerPersonDataUploadCallbacks callbacks) {
+        // Gson 인스턴스 생성
+        Gson gson = new Gson();
+
+        // dbName과 인물 정보(인물 이름 또는 사진 이름)을 포함하는 Map 객체 생성
+        Map<String, String> jsonMap = new HashMap<>();
+        jsonMap.put("dbName", dbName);
+        jsonMap.put("personName", personData);
+
+        // Map 객체를 JSON 문자열로 변환
+        String jsonObject = gson.toJson(jsonMap);
+
+        // JSON 문자열을 바디로 사용하여 RequestBody 객체 생성
+        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonObject);
+
+        // POST 요청 보내기
+        Call<List<String>> sendCall = webService.sendPersonData(requestBody);
+        sendCall.enqueue(new Callback<List<String>>() {
+            @Override
+            public void onResponse(Call<List<String>> call, Response<List<String>> response) {
+                if (response.isSuccessful()) {
+                    Log.d("Upload", "Person data sent successfully");
+                    assert response.body() != null;
+                    Log.d("Upload", "Common Photos: " + response.body());
+                    callbacks.onPersonDataUploadSuccess(response.body());
+                } else {
+                    callbacks.onPersonDataUploadFailure("Server responded with error");
+                }
+            }
+            @Override
+            public void onFailure(Call<List<String>> call, Throwable t) {
+                Log.e("Upload", "Error sending person data", t);
+                callbacks.onPersonDataUploadFailure(t.getMessage());
+            }
+        });
     }
     // Web Server로 Circle to Search 이미지 분석 결과 전송
-    public void sendDetectedObjectsToAnotherServer(List<String> detectedObjects, String dbName, WebRequestManager.DetectedDataUploadCallbacks callbacks) {
+    public void sendDetectedObjectsToAnotherServer(List<String> detectedObjects, String dbName, WebRequestManager.WebServerUploadCallbacks callbacks) {
         // Gson 인스턴스 생성
         Gson gson = new Gson();
 
@@ -138,9 +179,9 @@ public class WebRequestManager {
                     assert response.body() != null;
                     Log.d("Upload", "Common Photos: " + response.body().getPhotos().getCommonPhotos());
                     Log.d("Upload", "Individual Photos: " + response.body().getPhotos().getIndividualPhotos());
-                    callbacks.onDetectedDataUploadSuccess(response.body());
+                    callbacks.onWebServerUploadSuccess(response.body());
                 } else {
-                    callbacks.onDetectedDataUploadFailure("Server responded with error");
+                    callbacks.onWebServerUploadFailure("Server responded with error");
                 }
             }
             @Override
