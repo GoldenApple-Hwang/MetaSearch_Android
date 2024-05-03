@@ -141,7 +141,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         // 이미지 데이터가 담긴 HashMap 반환
         return imagesMap;
     }
-    public List<Person> getAllImagesWithNameAsBytes() {
+    // 데이터베이스에서 모든 행의 정보(사진 이름, 사진 정보, 인물 이름)를 가져와서 Person 데이터 모델 형식으로 반환
+    public List<Person> getAllPerson() {
         List<Person> people = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);

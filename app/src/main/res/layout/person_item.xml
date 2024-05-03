@@ -5,6 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_marginHorizontal="2dp"
     android:orientation="vertical"
+    android:layout_marginStart="16dp"
     android:layout_marginEnd="15dp">
 
     <de.hdodenhof.circleimageview.CircleImageView
@@ -15,7 +16,7 @@
         app:civ_border_overlay="false"
         app:civ_border_width="5dp"
         android:padding="3dp"
-        app:civ_border_color="@color/blue_grey"
+        app:civ_border_color="@color/light_pink"
         />
     <TextView
         android:id="@+id/name"

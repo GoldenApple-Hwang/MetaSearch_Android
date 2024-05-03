@@ -27,7 +27,7 @@ import java.util.List;
 public class CircleToSearchActivity extends AppCompatActivity
         implements ImageAdapter.OnImageClickListener,
         AIRequestManager.CircleDataUploadCallbacks,
-        WebRequestManager.DetectedDataUploadCallbacks {
+        WebRequestManager.WebServerUploadCallbacks {
     private ActivityCircleToSearchBinding binding;
     private Uri imageUri;
     private ImageViewModel imageViewModel;
@@ -158,13 +158,13 @@ public class CircleToSearchActivity extends AppCompatActivity
         });
     }
     @Override
-    public void onDetectedDataUploadSuccess(PhotoResponse photoResponse) {
+    public void onWebServerUploadSuccess(PhotoResponse photoResponse) {
         binding.btnSend.setEnabled(true); // 버튼 활성화
         binding.spinKit.setVisibility(View.GONE); // 로딩 애니메이션 숨김
         updateRecyclerViewWithResponse(photoResponse);
     }
     @Override
-    public void onDetectedDataUploadFailure(String message) {
+    public void onWebServerUploadFailure(String message) {
         binding.btnSend.setEnabled(true); // 버튼 활성화
     }
 }

@@ -47,7 +47,7 @@ public class HomeFragment extends Fragment implements ImageAdapter.OnImageClickL
         return root;
     }
     private void loadFaceImages() {
-        List<Person> people = databaseHelper.getAllImagesWithNameAsBytes();
+        List<Person> people = databaseHelper.getAllPerson();
 
         PersonAdapter adapter = new PersonAdapter(people, this, getContext());
         LinearLayoutManager layoutManager = new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false);

@@ -12,9 +12,13 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.Toast;
 
+import androidx.core.content.ContextCompat;
+
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.example.metasearch.R;
 import com.example.metasearch.model.Circle;
 
 public class CustomImageView extends androidx.appcompat.widget.AppCompatImageView {
@@ -25,12 +29,13 @@ public class CustomImageView extends androidx.appcompat.widget.AppCompatImageVie
 
     public CustomImageView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init();
+        init(context);
     }
-    private void init() {
+    private void init(Context context) {
+        int color = ContextCompat.getColor(context, R.color.red);
         paint = new Paint();
         paint.setAntiAlias(true);
-        paint.setColor(Color.RED);
+        paint.setColor(color);
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(7);
     }

@@ -2,10 +2,12 @@ package com.example.metasearch.service;
 
 import com.example.metasearch.model.response.CircleDetectionResponse;
 import com.example.metasearch.model.response.PhotoResponse;
-import com.example.metasearch.model.response.NLQueryResponse;
+import com.example.metasearch.model.response.PhotoNameResponse;
 import com.example.metasearch.model.response.UploadResponse;
 import com.example.metasearch.model.request.OpenAIRequest;
 import com.example.metasearch.model.response.OpenAIResponse;
+
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -28,7 +30,7 @@ public interface ApiService {
     @POST("android/circle_search")
     Call<CircleDetectionResponse> uploadImageAndCircles(
             @Part MultipartBody.Part image,
-            @Part("source")RequestBody source,
+            @Part("dbName")RequestBody dbName,
             @Part("circles") RequestBody circles
     );
     // Web 서버에 이미지 속성 전송 후 이미지 전송 요청(circle to search)
@@ -36,7 +38,11 @@ public interface ApiService {
     Call<PhotoResponse> sendDetectedObjects(@Body RequestBody detectedObjects);
     // Web 서버에 사이퍼 쿼리 전송 후 이미지 전송 요청(NL search)
     @POST("/nlqsearch")
-    Call<NLQueryResponse> sendCypherQuery(@Body RequestBody body);
+    Call<PhotoNameResponse> sendCypherQuery(@Body RequestBody body);
+    // Web 서버에 인물 이름 or 사진 이름 전송 후 이미지 전송 요청(people search)
+    @POST("personsearch")
+    Call<List<String>> sendPersonData(@Body RequestBody body);
+
 
     //AI서버에 추가 이미지 분석 요청
     @Multipart
