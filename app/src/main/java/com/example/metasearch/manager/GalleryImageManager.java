@@ -100,7 +100,7 @@ public class GalleryImageManager {
         return matchedUris;
     }
 
-    // Neo4j 서버에서 받은 이름과 갤러리의 이름을 비교하여 일치하는 URI만 리스트로 반환하는 메서드
+    // Neo4j 서버에서 받은 이름과 갤러리의 이름을 비교하여 일치하는 URI만 반환하는 메서드
     public static Uri findMatchedUri(String photoNameFromServer, Context context) {
         Map<String, Uri> allGalleryUrisWithName = getAllGalleryImagesUriWithName(context);
 
