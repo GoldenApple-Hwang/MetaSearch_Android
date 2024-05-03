@@ -35,9 +35,9 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         AppBarConfiguration appBarConfiguration =
                 new AppBarConfiguration.Builder(
-                        R.id.navigation_home,
-                        R.id.navigation_search,
-                        R.id.navigation_graph
+                        R.id.navigation_home, // 홈 화면(하단에 갤러리 모든 사진 출력, 상단에 인물 얼굴 출력)
+                        R.id.navigation_search, // 사진 검색(자연어)
+                        R.id.navigation_graph // 지식 그래프 출력
                         ).build();
 
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
