@@ -70,16 +70,11 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
                 Intent intent = new Intent(context, PersonPhotosActivity.class);
                 intent.putExtra("personName", person.getName()); // 인물 이름 전달
                 intent.putExtra("imageName", person.getImageName()); // 사진 이름 전달
-                intent.putExtra("imagedata", person.getImage()); // 사진(바이트 배열) 전달
+                intent.putExtra("imageData", person.getImage()); // 사진(바이트 배열) 전달
                 context.startActivity(intent); // 클릭한 인물이 나온 사진을 모두 찾아서 보여주는 화면으로 전환
             }
         });
-
-//        holder.imageView.setImageURI(person.getImageUrl());
-        // 인물 이름으로 사이퍼쿼리 생성 후 서버에서 받은 데이터로 리사이클러뷰에 이미지 로딩
-
     }
-
     @Override
     public int getItemCount() {
         return people.size();
