@@ -21,14 +21,22 @@ public class ImageServiceRequestManager {
     private AIRequestManager aiRequestManager;
     private WebRequestManager webRequestManager;
     private ApiService webService;
+    private static ImageServiceRequestManager instance;
 
-    public ImageServiceRequestManager(Context context, DatabaseHelper databaseHelper) {
+    private ImageServiceRequestManager(Context context, DatabaseHelper databaseHelper) {
         this.context = context;
         this.databaseHelper = databaseHelper;
 //        this.imageAnalyzeListController = imageAnalyzeList;
         this.imageAnalyzeListController = ImageAnalyzeListManager.getInstance();
 
     } //생성자
+
+    public static ImageServiceRequestManager getInstance(Context context,DatabaseHelper databaseHelper){
+        if (instance == null){
+            instance = new ImageServiceRequestManager(context,databaseHelper);
+        }
+        return instance;
+    }
 
     public void getImagePathsAndUpload() throws IOException, ExecutionException, InterruptedException { // 갤러리 이미지 경로 / 데이터베이스의 모든 얼굴 byte 가져옴
         Log.d(TAG,"getImagePathsAndUpload 함수 들어옴");
