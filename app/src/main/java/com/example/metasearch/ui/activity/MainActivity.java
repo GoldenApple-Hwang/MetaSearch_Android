@@ -12,12 +12,14 @@ import com.example.metasearch.R;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.example.metasearch.databinding.ActivityMainBinding;
+import com.example.metasearch.ui.fragment.HomeFragment;
 
 public class MainActivity extends AppCompatActivity {
     private static final int PERMISSIONS_REQUEST_READ_PHOTOS = 101;
@@ -45,27 +47,36 @@ public class MainActivity extends AppCompatActivity {
 
         requestStoragePermission(); // 권한 요청
     }
+    // 하단의 네비 바 숨김
     public void hideBottomNavigationView() {
         binding.navView.animate().translationY(binding.navView.getHeight());
     }
-
+    // 하단의 네비 바 보임
     public void showBottomNavigationView() {
         binding.navView.animate().translationY(0);
     }
-
     // 권한 받은 이후 작동
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSIONS_REQUEST_READ_PHOTOS) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // 권한이 허용된 경우, 필요한 작업 수행
-                // 예: 이미지 업로드 작업 시작
-                //이미지 분석 처리 코드
                 hasPermission = true;
 
+                // 권한이 허용된 경우 HomeFragment의 loadAllImages 호출
+                loadAllImagesInHomeFragment();
             } else {
                 // 권한이 거부된 경우, 사용자에게 권한이 필요한 이유를 설명하거나, 권한 없이 사용할 수 있는 기능으로 안내
+            }
+        }
+    }
+    // HomeFragment에 접근하여 loadAllImages 호출
+    private void loadAllImagesInHomeFragment() {
+        Fragment navHostFragment = getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment_activity_main);
+        if (navHostFragment != null) {
+            Fragment currentFragment = navHostFragment.getChildFragmentManager().getPrimaryNavigationFragment();
+            if (currentFragment instanceof HomeFragment) {
+                ((HomeFragment) currentFragment).loadAllGalleryImages();
             }
         }
     }
@@ -77,7 +88,6 @@ public class MainActivity extends AppCompatActivity {
             if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.READ_MEDIA_IMAGES}, PERMISSIONS_REQUEST_READ_PHOTOS);
             }
-
         } // Android13 이하 버전의 경우
         else if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE},PERMISSIONS_REQUEST_READ_PHOTOS);

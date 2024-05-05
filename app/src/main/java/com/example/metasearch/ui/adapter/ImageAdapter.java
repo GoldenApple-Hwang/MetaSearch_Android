@@ -49,7 +49,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     public void onBindViewHolder(ImageViewHolder holder, int position) {
         Uri imageUri = imageUris.get(position);
 //        holder.imageView.setImageURI(imageUri);
-        // Glide를 사용하여 이미지 로드 및 표시
+        // Glide를 사용하여 이미지 로드 및 표시(속도 향상)
         Glide.with(context)
                 .load(imageUri)
                 .into(holder.imageView);
