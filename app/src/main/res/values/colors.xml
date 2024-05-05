@@ -11,6 +11,7 @@
     <color name="light_grey">#efefef</color>
     <color name="SemiTransparentWhite">#B3FFFFFF</color>
     <color name="grey">#353a3a</color>
+    <color name="semi_transparent_black_50">#80000000</color>
     <color name="purple">#a06bd5</color>
     <color name="purple_d">#837daa</color>
     <color name="red">#e82a2a</color>
