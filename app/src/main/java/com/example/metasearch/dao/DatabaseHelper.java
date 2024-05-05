@@ -37,6 +37,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String createQuery = "CREATE TABLE " + TABLE_NAME +
                 "( ID INTEGER PRIMARY KEY AUTOINCREMENT, " // 프라이머리 키 추가
                 + "NAME TEXT NOT NULL, "
+                + "PHONENUMBER TEXT,"
                 + "USERNAME Text,"
                 + "IMAGE BLOB );"; // 이미지 컬럼 추가
         sqLiteDatabase.execSQL(createQuery);
@@ -80,7 +81,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put("NAME", name);
         values.put("USERNAME",""); //'인물1'과 같이 나타냄
-        values.put("IMAGE", imageBytes);
+        values.put("IMAGE", imageBytes); //이미지 바이트
+        values.put("PHONENUMBER",""); //휴대전화 번호 ""(기본값)
         //values.put(DBHelper.COLUMN_IMAGE, imageBytes);
         long result = db.insert(TABLE_NAME, null, values);
         db.close(); // 데이터베이스 사용 후 닫기
