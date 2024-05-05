@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.bumptech.glide.Glide;
+import com.example.metasearch.R;
 import com.example.metasearch.databinding.ActivityCircleToSearchBinding;
 import com.example.metasearch.manager.AIRequestManager;
 import com.example.metasearch.manager.GalleryImageManager;
@@ -24,6 +25,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.github.muddz.styleabletoast.StyleableToast;
+
 public class CircleToSearchActivity extends AppCompatActivity
         implements ImageAdapter.OnImageClickListener,
         AIRequestManager.CircleDataUploadCallbacks,
@@ -36,6 +39,7 @@ public class CircleToSearchActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        StyleableToast.makeText(this, "드래그 해서 원을 그려주세요.", R.style.customToast).show();
         setupUI();
         setupListeners();
         aiRequestManager = AIRequestManager.getAiImageUploader();
@@ -80,7 +84,8 @@ public class CircleToSearchActivity extends AppCompatActivity
             // AI Server로 이미지와 원 리스트 전송
             aiRequestManager.uploadCircleData(imageUri, circles, "source", this, this);
         } else {
-            Toast.makeText(this, "이미지 또는 원 정보가 없습니다.", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(this, "이미지 또는 원 정보가 없습니다.", Toast.LENGTH_SHORT).show();
+            StyleableToast.makeText(this, "이미지 또는 원 정보가 없습니다. 드래그 해서 원을 그려주세요.", R.style.customToast).show();
         }
     }
     private void updateRecyclerView(List<Uri> imageUris) {
