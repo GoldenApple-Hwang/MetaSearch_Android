@@ -57,7 +57,7 @@ public class CircleToSearchActivity extends AppCompatActivity
     }
     private void setupRecyclerView() {
         ImageAdapter adapter = new ImageAdapter(new ArrayList<>(), this, this);
-        binding.circleToSearchRecyclerView.setLayoutManager(new GridLayoutManager(this, 3));
+        binding.circleToSearchRecyclerView.setLayoutManager(new GridLayoutManager(this, 5));
         binding.circleToSearchRecyclerView.setAdapter(adapter);
     }
     private void setupListeners() {
@@ -120,7 +120,7 @@ public class CircleToSearchActivity extends AppCompatActivity
                 adapter.updateData(matchedUris);
             }
         } else {
-            Toast.makeText(this, "No matched images found.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "관련 사진을 찾지 못했습니다.", Toast.LENGTH_SHORT).show();
         }
 
         // 카테고리 이름만 TextView에 표시

@@ -60,7 +60,7 @@ public class HomeFragment extends Fragment implements ImageAdapter.OnImageClickL
 
         // 갤러리의 모든 사진을 출력하는 세로 방향 RecyclerView 세팅
         ImageAdapter adapter = new ImageAdapter(getAllGalleryImagesUri(requireContext()), requireContext(), this);
-        GridLayoutManager layoutManager = new GridLayoutManager(requireContext(), 3);
+        GridLayoutManager layoutManager = new GridLayoutManager(requireContext(), 5);
         binding.galleryRecyclerView.setAdapter(adapter) ;
         binding.galleryRecyclerView.setLayoutManager(layoutManager);
 
