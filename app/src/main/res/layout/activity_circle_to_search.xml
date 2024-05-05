@@ -17,7 +17,7 @@
         app:layout_constraintTop_toBottomOf="@+id/circleToSearchRecyclerView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:SpinKit_Color="@color/light_pink" />
+        app:SpinKit_Color="@color/blue_grey" />
 
     <Button
         android:id="@+id/btnSend"
