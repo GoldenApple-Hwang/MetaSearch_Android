@@ -37,6 +37,8 @@ public class HomeFragment extends Fragment implements ImageAdapter.OnImageClickL
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
+        databaseHelper = DatabaseHelper.getInstance(requireContext());
+
         binding.galleryRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -53,9 +55,6 @@ public class HomeFragment extends Fragment implements ImageAdapter.OnImageClickL
                 }
             }
         });
-
-        databaseHelper = new DatabaseHelper(requireContext(),"FACEIMAGE.db",null,1);
-
         loadFaceImages(); // 가로 방향 RecyclerView(인물 얼굴과 이름) 로드
 
         // 갤러리의 모든 사진을 출력하는 세로 방향 RecyclerView 세팅

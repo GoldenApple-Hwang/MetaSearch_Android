@@ -27,9 +27,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_IMAGE = "IMAGE"; // 이미지 컬럼
     private static final String COLUMN_NAME = "NAME"; // 이미지 이름 컬럼
     private static final String COLUMN_USERNAME = "USERNAME"; // 유저가 입력한 이름 컬럼
+    private static final String COLUMN_PHONENUMBER = "PHONENUMBER"; // 전화번호 컬럼
+    private static DatabaseHelper instance;
 
-
-    public DatabaseHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version){
+    // DatabaseHelper 싱글톤 생성자
+    public static synchronized DatabaseHelper getInstance(Context context) {
+        if (instance == null) {
+            instance = new DatabaseHelper(context.getApplicationContext(), "FACEIMAGE.db", null, 1);
+        }
+        return instance;
+    }
+    // 싱글톤으로 만들기 위해 private으로 변경
+    private DatabaseHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version){
         super(context, name, factory, version);
         Log.d(TAG,"DataBaseHelper 생성자 호출");
     }
@@ -120,7 +129,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return result != -1; // 삭제된 행의 수가 0보다 크면 true를 반환
     }
-    //데이터베이스에서 이미지
+    // 데이터베이스에서 모든 이미지와 이름을 선택하여 반환
     public Map<String, byte[]> getAllImages() {
         Map<String, byte[]> imagesMap = new HashMap<>();
         // 데이터베이스에서 모든 이미지와 이름을 선택하는 쿼리
