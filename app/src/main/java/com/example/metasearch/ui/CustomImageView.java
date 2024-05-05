@@ -32,7 +32,7 @@ public class CustomImageView extends androidx.appcompat.widget.AppCompatImageVie
         init(context);
     }
     private void init(Context context) {
-        int color = ContextCompat.getColor(context, R.color.red);
+        int color = ContextCompat.getColor(context, R.color.hot_pink);
         paint = new Paint();
         paint.setAntiAlias(true);
         paint.setColor(color);
