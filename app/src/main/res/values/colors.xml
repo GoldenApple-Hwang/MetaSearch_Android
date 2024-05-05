@@ -9,11 +9,13 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="light_grey">#efefef</color>
+    <color name="SemiTransparentWhite">#B3FFFFFF</color>
     <color name="grey">#353a3a</color>
     <color name="purple">#a06bd5</color>
     <color name="purple_d">#837daa</color>
     <color name="red">#e82a2a</color>
     <color name="orange">#fc9678</color>
+    <color name="beige">#dfcbbd</color>
     <color name="coral">#fca096</color>
     <color name="light_pink">#efccd2</color>
     <color name="pink">#f5b2c0</color>

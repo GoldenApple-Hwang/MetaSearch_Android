@@ -4,6 +4,7 @@ import static com.example.metasearch.manager.GalleryImageManager.getAllGalleryIm
 
 import com.example.metasearch.dao.DatabaseHelper;
 import com.example.metasearch.model.Person;
+import com.example.metasearch.ui.activity.MainActivity;
 import com.example.metasearch.ui.adapter.PersonAdapter;
 
 import android.annotation.SuppressLint;
@@ -18,6 +19,8 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.metasearch.ui.adapter.ImageAdapter;
 import com.example.metasearch.ui.activity.CircleToSearchActivity;
 import com.example.metasearch.databinding.FragmentHomeBinding;
@@ -34,13 +37,30 @@ public class HomeFragment extends Fragment implements ImageAdapter.OnImageClickL
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
+        binding.galleryRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                MainActivity activity = (MainActivity) getActivity();
+                if (activity != null) {
+                    if (dy > 0) {
+                        // 스크롤 내릴 때, 네비게이션 바 숨기기
+                        activity.hideBottomNavigationView();
+                    } else if (dy < 0) {
+                        // 스크롤 올릴 때, 네비게이션 바 보이기
+                        activity.showBottomNavigationView();
+                    }
+                }
+            }
+        });
+
         databaseHelper = new DatabaseHelper(requireContext(),"FACEIMAGE.db",null,1);
 
         loadFaceImages(); // 가로 방향 RecyclerView(인물 얼굴과 이름) 로드
 
         // 갤러리의 모든 사진을 출력하는 세로 방향 RecyclerView 세팅
         ImageAdapter adapter = new ImageAdapter(getAllGalleryImagesUri(requireContext()), requireContext(), this);
-        GridLayoutManager layoutManager = new GridLayoutManager(requireContext(), 3);
+        GridLayoutManager layoutManager = new GridLayoutManager(requireContext(), 5);
         binding.galleryRecyclerView.setAdapter(adapter) ;
         binding.galleryRecyclerView.setLayoutManager(layoutManager);
 

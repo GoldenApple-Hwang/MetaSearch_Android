@@ -63,6 +63,8 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.16.0")
     // CardView dependency
     implementation("androidx.cardview:cardview:1.0.0")
+    // StyleableToast dependency
+    implementation("io.github.muddz:styleabletoast:2.4.0")
 
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.11.0")

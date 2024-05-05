@@ -51,7 +51,7 @@ public class PersonPhotosActivity extends AppCompatActivity
     }
     private void setupRecyclerView() {
         ImageAdapter adapter = new ImageAdapter(new ArrayList<>(), this, this);
-        binding.recyclerViewPerson.setLayoutManager(new GridLayoutManager(this, 3));
+        binding.recyclerViewPerson.setLayoutManager(new GridLayoutManager(this, 5));
         binding.recyclerViewPerson.setAdapter(adapter);
     }
     private void setupUI() {
@@ -62,7 +62,7 @@ public class PersonPhotosActivity extends AppCompatActivity
         // 바이트 배열을 Bitmap으로 변환
         Bitmap imageBitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
 
-        binding.imageView2.setImageBitmap(imageBitmap);
+        binding.face.setImageBitmap(imageBitmap);
         setupRecyclerView();
     }
     private void init() {

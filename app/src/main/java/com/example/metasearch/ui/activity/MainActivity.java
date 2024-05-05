@@ -45,6 +45,13 @@ public class MainActivity extends AppCompatActivity {
 
         requestStoragePermission(); // 권한 요청
     }
+    public void hideBottomNavigationView() {
+        binding.navView.animate().translationY(binding.navView.getHeight());
+    }
+
+    public void showBottomNavigationView() {
+        binding.navView.animate().translationY(0);
+    }
 
     // 권한 받은 이후 작동
     @Override
