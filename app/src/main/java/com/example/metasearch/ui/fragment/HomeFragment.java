@@ -46,6 +46,8 @@ public class HomeFragment extends Fragment implements ImageAdapter.OnImageClickL
         View root = binding.getRoot();
 
         Button imageAnalyzeBtn = root.findViewById(R.id.imageAnalyzeBtn);
+
+        //이미지 분석 버튼 클릭 시에
         imageAnalyzeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
