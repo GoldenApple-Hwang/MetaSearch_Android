@@ -2,7 +2,7 @@
 <resources>
     <style name="customToast">
 <!--        <item name="stTextBold">true</item>-->
-        <item name="stTextColor">@color/hot_pink</item>
+        <item name="stTextColor">@color/pink_grey</item>
 <!--        <item name="stFont">@font/godic</item>-->
         <item name="stTextSize">14sp</item>
         <item name="stColorBackground">@color/semi_transparent_black_50</item>
