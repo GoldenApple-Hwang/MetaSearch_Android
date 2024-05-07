@@ -6,7 +6,7 @@
 <!--        <item name="colorPrimaryVariant">@color/grey</item>-->
 <!--        <item name="colorOnPrimary">@color/white</item>-->
         <item name="colorPrimary">@color/white</item>
-        <item name="colorPrimaryVariant">@color/light_brown</item>
+        <item name="colorPrimaryVariant">@color/blue_grey</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/teal_200</item>
@@ -16,6 +16,6 @@
         <item name="android:statusBarColor">@color/grey</item>
         <!-- Customize your theme here. -->
 
-        <item name="android:fontFamily">@font/continuous</item>
+        <item name="android:fontFamily">@font/godic</item>
     </style>
 </resources>

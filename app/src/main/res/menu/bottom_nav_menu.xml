@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-
+    <item
+        android:id="@+id/navigation_search"
+        android:icon="@drawable/icon_search"
+        android:title="@string/title_search" />
     <item
         android:id="@+id/navigation_home"
         android:icon="@drawable/icon_home"
         android:title="@string/title_home" />
-
-    <item
-        android:id="@+id/navigation_search"
-        android:icon="@drawable/baseline_image_search_24"
-        android:title="@string/title_search" />
-
     <item
         android:id="@+id/navigation_graph"
         android:icon="@drawable/icon_graph"
         android:title="@string/title_graph" />
-
+    <item
+        android:id="@+id/navigation_like"
+        android:icon="@drawable/icon_like"
+        android:title="@string/title_like" />
 </menu>

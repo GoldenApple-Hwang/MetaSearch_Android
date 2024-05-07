@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="customToast">
+<!--        <item name="stTextBold">true</item>-->
+        <item name="stTextColor">@color/pink_grey</item>
+<!--        <item name="stFont">@font/godic</item>-->
+        <item name="stTextSize">14sp</item>
+        <item name="stColorBackground">@color/semi_transparent_black_50</item>
+<!--        <item name="stStrokeWidth">3dp</item>-->
+<!--        <item name="stStrokeColor">@color/blue_grey</item>-->
+<!--        <item name="stIconStart">@drawable/favorite</item>-->
+<!--        <item name="stIconEnd">@drawable/favorite</item>-->
+        <item name="stLength">SHORT</item>
+        <item name="stGravity">center</item>
+        <item name="stRadius">60dp</item>
+    </style>
+</resources>

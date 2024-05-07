@@ -11,10 +11,12 @@ import com.example.metasearch.service.ApiService;
 import com.google.gson.Gson;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.ArrayList;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -78,29 +80,42 @@ public class WebRequestManager {
 //            }
 //        });
 //    }
-    public void uploadAddGalleryImage(ApiService service, File imageFile, String source){
+    public void uploadAddGalleryImage(ApiService service, ArrayList<String>addImagePaths, String dbName){
         Log.d(TAG,"web의 uploadAddGalleryImage 안에 들어옴");
 
-        Log.d(TAG,"addImge 이름 : " + imageFile.getName());
-        RequestBody requestBody = RequestBody.create(MediaType.parse("image/*"), imageFile);
-        MultipartBody.Part imagePart = MultipartBody.Part.createFormData("image", imageFile.getName(), requestBody);
+        for(String addImagePath : addImagePaths){
+            //Log.d(TAG,"addImge 이름 : " + imageFile.getName());
+            File imageFile = new File(addImagePath);
 
-        RequestBody sourceBody = RequestBody.create(MediaType.parse("text/plain"), source);
+            // 파일 이름을 URL 인코딩
+            String fileName = null;
+            try {
+                fileName = URLEncoder.encode(imageFile.getName(), "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                Log.e(TAG, "파일 이름 인코딩 실패: " + e.getMessage());
+                continue;
+            }
 
-        Call<Void> call = service.uploadWebAddImage(imagePart, sourceBody);
-        call.enqueue(new Callback<Void>() {
-            @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
-                if (response.isSuccessful()) {
-                    Log.e(TAG, "Image upload 성공: " + response.message());
+
+            RequestBody requestBody = RequestBody.create(MediaType.parse("image/*"), imageFile);
+            MultipartBody.Part imagePart = MultipartBody.Part.createFormData("image", fileName, requestBody);
+
+            Call<Void> call = service.uploadWebAddImage(imagePart, dbName); // sourceBody 대신 dbName을 직접 전달합니다.
+            call.enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(Call<Void> call, Response<Void> response) {
+                    if (response.isSuccessful()) {
+                        Log.e(TAG, "Image upload 성공: " + response.message());
+                    }
                 }
-            }
 
-            @Override
-            public void onFailure(Call<Void> call, Throwable t) {
-                Log.e(TAG, "추가 이미지 업로드 실패함" + t.getMessage());
-            }
-        });
+                @Override
+                public void onFailure(Call<Void> call, Throwable t) {
+                    Log.e(TAG, "추가 이미지 업로드 실패함" + t.getMessage());
+                }
+            });
+        }
+
     }
 
 
@@ -190,4 +205,32 @@ public class WebRequestManager {
             }
         });
     }
+
+    public void uploadDeleteGalleryImage(ApiService service, ArrayList<String> deleteImagePahts, String dbName ){
+        RequestBody requestBody;
+        MultipartBody.Part imagePart;
+        for(String deleteImagePath : deleteImagePahts){
+            requestBody = RequestBody.create(MediaType.parse("filename"),deleteImagePath);
+            //파일의 경로를 해당 이미지의 이름으로 설정함
+            imagePart = MultipartBody.Part.createFormData("deleteImage",deleteImagePath,requestBody);
+
+            //API 호출
+            Call<Void> call = service.uploadWebDeleteImage(imagePart,dbName); //이미지 업로드 API 호출
+            call.enqueue(new Callback<Void>() { //비동기
+                @Override
+                public void onResponse(Call<Void> call, Response<Void> response) {
+                    if (response.isSuccessful()) {
+                        Log.e(TAG, "delete Image upload 성공: " + response.message());
+
+                    }
+                }
+                @Override
+                public void onFailure(Call<Void> call, Throwable t) {
+                    Log.e(TAG, "삭제 이미지 업로드 실패함" + t.getMessage());
+                }
+            });
+        }
+    }
+
+    
 }

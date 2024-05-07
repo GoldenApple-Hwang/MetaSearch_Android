@@ -32,12 +32,12 @@ public class CustomImageView extends androidx.appcompat.widget.AppCompatImageVie
         init(context);
     }
     private void init(Context context) {
-        int color = ContextCompat.getColor(context, R.color.red);
+        int color = ContextCompat.getColor(context, R.color.white);
         paint = new Paint();
         paint.setAntiAlias(true);
         paint.setColor(color);
         paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(7);
+        paint.setStrokeWidth(6);
     }
     public List<Circle> getCircles() {
         return new ArrayList<>(circles);  // 원 정보를 포함하는 리스트 반환

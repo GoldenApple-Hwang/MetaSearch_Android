@@ -25,8 +25,6 @@ import com.example.metasearch.ui.adapter.ImageAdapter;
 import com.example.metasearch.ui.activity.CircleToSearchActivity;
 import com.example.metasearch.databinding.FragmentHomeBinding;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
 
 public class HomeFragment extends Fragment implements ImageAdapter.OnImageClickListener {
     private FragmentHomeBinding binding;
@@ -36,6 +34,8 @@ public class HomeFragment extends Fragment implements ImageAdapter.OnImageClickL
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
+
+        databaseHelper = DatabaseHelper.getInstance(requireContext());
 
         binding.galleryRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -53,18 +53,17 @@ public class HomeFragment extends Fragment implements ImageAdapter.OnImageClickL
                 }
             }
         });
+        loadFaceImages(); // 홈 화면 상단에 가로 방향 RecyclerView(인물 얼굴과 이름) 로드
+        loadAllGalleryImages(); // 홈 화면 하단에 세로 방향 RecyclerView(갤러리 모든 사진) 로드
 
-        databaseHelper = new DatabaseHelper(requireContext(),"FACEIMAGE.db",null,1);
-
-        loadFaceImages(); // 가로 방향 RecyclerView(인물 얼굴과 이름) 로드
-
+        return root;
+    }
+    public void loadAllGalleryImages() {
         // 갤러리의 모든 사진을 출력하는 세로 방향 RecyclerView 세팅
         ImageAdapter adapter = new ImageAdapter(getAllGalleryImagesUri(requireContext()), requireContext(), this);
         GridLayoutManager layoutManager = new GridLayoutManager(requireContext(), 5);
         binding.galleryRecyclerView.setAdapter(adapter) ;
         binding.galleryRecyclerView.setLayoutManager(layoutManager);
-
-        return root;
     }
     private void loadFaceImages() {
         List<Person> people = databaseHelper.getAllPerson();
