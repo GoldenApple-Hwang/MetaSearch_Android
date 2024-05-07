@@ -24,9 +24,4 @@
         android:name="com.example.metasearch.ui.fragment.LikeFragment"
         android:label="@string/title_like"
         tools:layout="@layout/fragment_like" />
-    <fragment
-        android:id="@+id/navigation_analysis"
-        android:name="com.example.metasearch.ui.fragment.AnalysisFragment"
-        android:label="@string/title_analysis"
-        tools:layout="@layout/fragment_analysis" />
 </navigation>
