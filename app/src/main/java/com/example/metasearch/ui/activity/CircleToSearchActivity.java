@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -51,6 +52,13 @@ public class CircleToSearchActivity extends AppCompatActivity
 
         imageUri = Uri.parse(getIntent().getStringExtra("imageUri"));
 //        binding.customImageView.setImageUri(imageUri);
+
+        // 화면 크기의 1/2 높이로 CustomImageView 크기 조정
+        int halfScreenHeight = getResources().getDisplayMetrics().heightPixels / 2;
+        ViewGroup.LayoutParams layoutParams = binding.customImageView.getLayoutParams();
+        layoutParams.height = halfScreenHeight;
+        binding.customImageView.setLayoutParams(layoutParams);
+
         // Glide를 사용하여 이미지 로드 및 표시(이미지 자동 회전 방지)
         Glide.with(this)
                 .load(imageUri)
