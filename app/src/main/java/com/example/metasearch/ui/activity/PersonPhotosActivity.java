@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 
+import com.example.metasearch.R;
 import com.example.metasearch.databinding.ActivityPersonPhotosBinding;
 import com.example.metasearch.manager.GalleryImageManager;
 import com.example.metasearch.manager.WebRequestManager;
@@ -19,6 +20,8 @@ import com.example.metasearch.ui.viewmodel.ImageViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import io.github.muddz.styleabletoast.StyleableToast;
 
 public class PersonPhotosActivity extends AppCompatActivity
         implements WebRequestManager.WebServerPersonDataUploadCallbacks,
@@ -83,7 +86,8 @@ public class PersonPhotosActivity extends AppCompatActivity
                 adapter.updateData(matchedUris);
             }
         } else {
-            Toast.makeText(this, "No matched images found.", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(this, "No matched images found.", Toast.LENGTH_SHORT).show();
+            StyleableToast.makeText(this, "관련 사진이 없습니다.", R.style.customToast).show();
         }
     }
     private void updateRecyclerViewWithResponse(List<String> photoResponse) {
