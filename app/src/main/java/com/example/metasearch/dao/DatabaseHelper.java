@@ -52,7 +52,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + "PHONENUMBER TEXT, "
                 + "USERNAME TEXT, "
                 + "IMAGE BLOB, " // 이미지 컬럼 추가
-                + "IS_VERIFIED INTEGER DEFAULT 1);"; // IS_VERIFIED 컬럼 추가, BOOLEAN 대신 INTEGER 사용
+                + "IS_DELETE INTEGER DEFAULT 1);"; // IS_VERIFIED 컬럼 추가, BOOLEAN 대신 INTEGER 사용
         sqLiteDatabase.execSQL(createQuery);
     }
 
