@@ -1,33 +1,57 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/face"
-        android:layout_width="110dp"
-        android:layout_height="110dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:padding="3dp"
-        android:src="@drawable/ic_launcher_foreground"
-        app:civ_border_color="@color/white"
-        app:civ_border_overlay="false"
-        app:civ_border_width="6dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/personName"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/linearLayoutContainer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="28dp"
-        android:layout_marginBottom="20dp"
-        android:text="사람 이름"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="@+id/face"
-        app:layout_constraintStart_toEndOf="@+id/face" />
+        android:layout_marginHorizontal="2dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/face"
+            android:layout_width="110dp"
+            android:layout_height="110dp"
+            android:src="@drawable/ic_launcher_foreground"
+            app:civ_border_color="@color/white"
+            app:civ_border_overlay="false"
+            app:civ_border_width="6dp"
+            app:layout_constraintBottom_toTopOf="@+id/personName"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/personName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:gravity="center"
+            android:text="외계인"
+            android:textColor="@color/grey"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/face" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="24dp"
+        android:text="관련 사진"
+        android:textSize="20dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayoutContainer" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewPerson"
@@ -40,25 +64,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView" />
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:text="관련 사진"
-        android:textSize="20dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/face" />
-
     <ImageView
         android:id="@+id/imageView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         android:layout_marginTop="16dp"
-        app:layout_constraintStart_toEndOf="@+id/personName"
-        app:layout_constraintTop_toTopOf="@+id/personName"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/icon_edit" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
