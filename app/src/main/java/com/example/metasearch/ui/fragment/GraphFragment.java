@@ -148,6 +148,14 @@ public class GraphFragment extends Fragment {
         return (int) (dp * getResources().getDisplayMetrics().density);
     }
 
+    // 이미지 공유를 위한 메소드
+    private void shareImage(Uri imageUri) {
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
+        shareIntent.setType("image/*");
+        startActivity(Intent.createChooser(shareIntent, "사진 공유"));
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
