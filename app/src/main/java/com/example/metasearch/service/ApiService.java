@@ -48,22 +48,22 @@ public interface ApiService {
     //AI서버에 추가 이미지 분석 요청
     @Multipart
     @POST("android/upload_add")
-    Call<UploadResponse> uploadAddImage(@Part MultipartBody.Part image, @Part("source")RequestBody source);
+    Call<Void> uploadAddImage(@Part MultipartBody.Part image, @Part("dbName")RequestBody dbName);
 
     //AI서버에 삭제 이미지 요청
     @Multipart
     @POST("android/upload_delete")
-    Call<UploadResponse> UploadDeleteImage(@Part MultipartBody.Part filename, @Part("source")RequestBody source);
+    Call<UploadResponse> UploadDeleteImage(@Part MultipartBody.Part filename, @Part("dbName")RequestBody dbName);
 
     //AI서버에 데이터베이스 이미지 전송 요청
     @Multipart
     @POST("android/upload_database")
-    Call<Void> uploadDatabaseImage(@Part MultipartBody.Part filename, @Part("source")RequestBody source);
+    Call<Void> uploadDatabaseImage(@Part MultipartBody.Part filename, @Part("dbName")RequestBody dbName);
 
     //AI서버에 마지막 전송 알림 요청
     @Multipart
     @POST("android/upload_finish")
-    Call<Void> upload_finish(@Part("finish")RequestBody finish,@Part("source")RequestBody source);
+    Call<UploadResponse> upload_finish(@Part("finish")RequestBody finish,@Part("dbName")RequestBody dbName);
 
     //Web서버에 이미지 전송 요청
     @Multipart
