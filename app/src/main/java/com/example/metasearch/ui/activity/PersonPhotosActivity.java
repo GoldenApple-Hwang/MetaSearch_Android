@@ -54,7 +54,7 @@ public class PersonPhotosActivity extends AppCompatActivity
     }
     private void setupRecyclerView() {
         ImageAdapter adapter = new ImageAdapter(new ArrayList<>(), this, this);
-        binding.recyclerViewPerson.setLayoutManager(new GridLayoutManager(this, 5));
+        binding.recyclerViewPerson.setLayoutManager(new GridLayoutManager(this, 3));
         binding.recyclerViewPerson.setAdapter(adapter);
     }
     private void setupUI() {

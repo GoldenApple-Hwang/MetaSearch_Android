@@ -61,9 +61,9 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
             }
         });
 
-        // 화면 너비의 1/3 크기로 이미지 뷰의 크기를 조절
+        // 이미지 뷰의 크기를 조절
         int screenWidth = context.getResources().getDisplayMetrics().widthPixels;
-        int imageSize = screenWidth / 5;
+        int imageSize = screenWidth / 3;
 
         ViewGroup.LayoutParams layoutParams = holder.imageView.getLayoutParams();
         layoutParams.width = imageSize;

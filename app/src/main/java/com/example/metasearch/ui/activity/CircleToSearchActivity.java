@@ -73,7 +73,7 @@ public class CircleToSearchActivity extends AppCompatActivity
     }
     private void setupRecyclerView() {
         ImageAdapter adapter = new ImageAdapter(new ArrayList<>(), this, this);
-        binding.circleToSearchRecyclerView.setLayoutManager(new GridLayoutManager(this, 5));
+        binding.circleToSearchRecyclerView.setLayoutManager(new GridLayoutManager(this, 3));
         binding.circleToSearchRecyclerView.setAdapter(adapter);
     }
     private void setupListeners() {
