@@ -4,6 +4,7 @@ import static com.example.metasearch.manager.GalleryImageManager.findMatchedUri;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Bundle;
@@ -16,6 +17,8 @@ import android.webkit.JavascriptInterface;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,11 +29,15 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.metasearch.databinding.FragmentGraphBinding;
 import com.example.metasearch.ui.viewmodel.GraphViewModel;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GraphFragment extends Fragment {
 
     private FragmentGraphBinding binding;
+
+    private List<ImageView> imageViews = new ArrayList<>(); // ImageView 객체 저장
+    private static final int MAX_IMAGES = 10; // 최대 이미지 수
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -79,13 +86,12 @@ public class GraphFragment extends Fragment {
                 public void run() {
                     // 백그라운드 스레드에서 갤러리 이미지 이름들을 가져오기
                     final Uri matchedUri = findMatchedUri(photoName, requireContext());
-
                     // 메인 스레드에서 UI 업데이트
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
                             if (matchedUri != null) {
-                                binding.photoView.setImageURI(matchedUri);
+                                addImageToGallery(matchedUri);
                             } else {
                                 @SuppressLint("ShowToast") Toast toast = Toast.makeText(mContext, "사진을 찾지 못했습니다", Toast.LENGTH_SHORT);
                                 toast.show();
@@ -102,6 +108,44 @@ public class GraphFragment extends Fragment {
                 }
             }).start();
         }
+    }
+
+    private List<Uri> existingUris = new ArrayList<>(); // 이미 추가된 이미지 URI 목록
+
+    private void addImageToGallery(Uri uri) {
+        if (existingUris.contains(uri)) {
+            Toast.makeText(getContext(), "이미 추가된 사진입니다.", Toast.LENGTH_SHORT).show();
+            return; // 이미 목록에 있는 URI이면 추가하지 않고 종료
+        }
+
+        ImageView imageView = new ImageView(getContext());
+        int sizeInPixels = dpToPx(300); // 이미지 크기를 픽셀 단위로 설정
+        imageView.setLayoutParams(new LinearLayout.LayoutParams(sizeInPixels, sizeInPixels));
+        imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        imageView.setImageURI(uri);
+
+        // 최대 이미지 수를 초과하면 가장 오래된 이미지 제거
+        if (imageViews.size() >= MAX_IMAGES) {
+            ImageView oldestView = imageViews.remove(imageViews.size() - 1);
+            binding.imageContainer.removeView(oldestView);
+            existingUris.remove(existingUris.size() - 1); // 가장 오래된 URI도 제거
+        }
+
+        // 새 이미지 및 URI 추가
+        imageViews.add(0, imageView);
+        binding.imageContainer.addView(imageView, 0);
+        existingUris.add(0, uri); // 새 URI를 리스트의 맨 앞에 추가
+
+        imageView.setOnLongClickListener(v -> {
+            shareImage(uri);
+            return true;
+        });
+    }
+
+
+    // dp를 픽셀로 변환하는 유틸리티 메소드
+    private int dpToPx(int dp) {
+        return (int) (dp * getResources().getDisplayMetrics().density);
     }
 
     @Override
