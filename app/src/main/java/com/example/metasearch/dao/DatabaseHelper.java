@@ -49,9 +49,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String createQuery = "CREATE TABLE " + TABLE_NAME +
                 "( ID INTEGER PRIMARY KEY AUTOINCREMENT, " // 프라이머리 키 추가
                 + "NAME TEXT NOT NULL, "
-                + "PHONENUMBER TEXT,"
-                + "USERNAME Text,"
-                + "IMAGE BLOB );"; // 이미지 컬럼 추가
+                + "PHONENUMBER TEXT, "
+                + "USERNAME TEXT, "
+                + "IMAGE BLOB, " // 이미지 컬럼 추가
+                + "IS_VERIFIED INTEGER DEFAULT 1);"; // IS_VERIFIED 컬럼 추가, BOOLEAN 대신 INTEGER 사용
         sqLiteDatabase.execSQL(createQuery);
     }
 
