@@ -57,33 +57,47 @@ public class AIRequestManager {
         return aiImageUploader;
     }
 
-    public void completeUploadImage(ApiService service,String DBName){
+    public void completeUploadImage(DatabaseHelper databaseHelper,ApiService service,String DBName){
         RequestBody requestBody;
         MultipartBody.Part imagePart;
 
         //이미지 출처 정보를 전송할 RequestBody 생성
         RequestBody finishBody = RequestBody.create(MediaType.parse("text/plain"),"finish"); //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
         RequestBody sourceBody = RequestBody.create(MediaType.parse("text/plain"),DBName); //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
-        Call<Void> call = service.upload_finish(finishBody,sourceBody); //이미지 업로드 API 호출
-        call.enqueue(new Callback<Void>() { //비동기
+        Call<UploadResponse> call = service.upload_finish(finishBody,sourceBody); //이미지 업로드 API 호출
+        call.enqueue(new Callback<UploadResponse>() { //비동기
             @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
+            public void onResponse(Call<UploadResponse> call, Response<UploadResponse> response) {
                 if (response.isSuccessful()) {
                     Log.e(TAG, "Image upload 성공: " + response.message());
+                    if(response.body() != null) {
+                        for (UploadResponse.ImageData imageData : response.body().getImages()) {
+                            boolean isFaceExit = imageData.getIsExit(); //추출된 이미지가 있다는 것
+                            if (isFaceExit) {
+                                //Log.d(TAG,"추출한 얼굴 이미지 있음");
+                                Log.d(TAG, "추가 이미지에 대한 응답 받음 / 추가할 얼굴 있음");
+                                String imageName = imageData.getImageName();
+                                String imageBytes = imageData.getImageBytes();
+                                // 여기서 바이트 배열로 변환 후 이미지 처리를 할 수 있음
+                                byte[] decodedString = Base64.decode(imageBytes, Base64.DEFAULT);
+                                Log.d(TAG, "imageName : " + imageName);
+                                databaseHelper.insertImage(imageName, decodedString);
+                            } else {
+                                Log.d(TAG, "추가 이미지에 대한 응답 받음 / 추가할 얼굴 없음");
+                                //Log.e(TAG, "이미지 업로드 성공, 추출된 이미지 없음" + response.message());
+                            }
+                        }
+                    }
                 }
             }
             @Override
-            public void onFailure(Call<Void> call, Throwable t) {
+            public void onFailure(Call<UploadResponse> call, Throwable t) {
                 Log.e(TAG, "추가 이미지 업로드 실패함" + t.getMessage());
             }
         });
-
-
-
-
     }
     //추가된 이미지 관해 서버에 전송
-    public CompletableFuture<Void> uploadAddGalleryImage(DatabaseHelper databaseHelper, ArrayList<String> imagePaths, ApiService service, String source) throws IOException {
+    public CompletableFuture<Void> uploadAddGalleryImage( ArrayList<String> imagePaths, ApiService service, String source) throws IOException {
         List<CompletableFuture<Void>> futuresList = new ArrayList<>();
         Log.d(TAG,"uploadAddGalleryImage 안에 들어옴");
         //List<CompletableFuture<Void>> futuresList = new ArrayList<>();
@@ -105,38 +119,39 @@ public class AIRequestManager {
             //이미지 출처 정보를 전송할 RequestBody 생성
             RequestBody sourceBody = RequestBody.create(MediaType.parse("text/plain"),source); //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
             //API 호출
-            Call<UploadResponse> call = service.uploadAddImage(imagePart,sourceBody); //이미지 업로드 API 호출
-            call.enqueue(new Callback<UploadResponse>() { //비동기
+            Call<Void> call = service.uploadAddImage(imagePart,sourceBody); //이미지 업로드 API 호출
+            call.enqueue(new Callback<Void>() { //비동기
                 @Override
-                public void onResponse(Call<UploadResponse> call, Response<UploadResponse> response) {
+                public void onResponse(Call<Void> call, Response<Void> response) {
                     if (response.isSuccessful()) {
                         Log.e(TAG, "Image upload 성공: " + response.message());
                         // 서버로부터 받은 응답 처리
-                        if(response.body() != null) {
-                            for (UploadResponse.ImageData imageData : response.body().getImages()) {
-                                boolean isFaceExit = imageData.getIsExit(); //추출된 이미지가 있다는 것
-                                if (isFaceExit) {
-                                    //Log.d(TAG,"추출한 얼굴 이미지 있음");
-                                    Log.d(TAG, "추가 이미지에 대한 응답 받음 / 추가할 얼굴 있음");
-                                    String imageName = imageData.getImageName();
-                                    String imageBytes = imageData.getImageBytes();
-                                    // 여기서 바이트 배열로 변환 후 이미지 처리를 할 수 있음
-                                    byte[] decodedString = Base64.decode(imageBytes, Base64.DEFAULT);
-                                    Log.d(TAG, "imageName : " + imageName);
-                                    databaseHelper.insertImage(imageName, decodedString);
-                                } else {
-                                    Log.d(TAG, "추가 이미지에 대한 응답 받음 / 추가할 얼굴 없음");
-                                    //Log.e(TAG, "이미지 업로드 성공, 추출된 이미지 없음" + response.message());
-                                }
-                            }
-                        }
+//                        if(response.body() != null) {
+//                            for (UploadResponse.ImageData imageData : response.body().getImages()) {
+//                                boolean isFaceExit = imageData.getIsExit(); //추출된 이미지가 있다는 것
+//                                if (isFaceExit) {
+//                                    //Log.d(TAG,"추출한 얼굴 이미지 있음");
+//                                    Log.d(TAG, "추가 이미지에 대한 응답 받음 / 추가할 얼굴 있음");
+//                                    String imageName = imageData.getImageName();
+//                                    String imageBytes = imageData.getImageBytes();
+//                                    // 여기서 바이트 배열로 변환 후 이미지 처리를 할 수 있음
+//                                    byte[] decodedString = Base64.decode(imageBytes, Base64.DEFAULT);
+//                                    Log.d(TAG, "imageName : " + imageName);
+//                                    databaseHelper.insertImage(imageName, decodedString);
+//                                } else {
+//                                    Log.d(TAG, "추가 이미지에 대한 응답 받음 / 추가할 얼굴 없음");
+//                                    //Log.e(TAG, "이미지 업로드 성공, 추출된 이미지 없음" + response.message());
+//                                }
+//                            }
+//                        }
                         future.complete(null);
                     }
                 }
                 @Override
-                public void onFailure(Call<UploadResponse> call, Throwable t) {
+                public void onFailure(Call<Void> call, Throwable t) {
                     Log.e(TAG, "추가 이미지 업로드 실패함" + t.getMessage());
-                    future.completeExceptionally(t); // 작업 실패 시 future에 예외를 설정
+                    //future.completeExceptionally(t); // 작업 실패 시 future에 예외를 설정
+                    future.complete(null);
                 }
             });
         }
