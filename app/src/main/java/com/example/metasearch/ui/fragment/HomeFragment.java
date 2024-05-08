@@ -35,9 +35,9 @@ import java.util.concurrent.ExecutionException;
 public class HomeFragment extends Fragment implements ImageAdapter.OnImageClickListener {
     private FragmentHomeBinding binding;
     //데이터베이스 관리 객체 가져옴
-    private DatabaseHelper databaseHelper = DatabaseHelper.getInstance(requireContext());
+    private DatabaseHelper databaseHelper;
     //이미지 분석 요청 관리 객체 가져옴
-    private ImageServiceRequestManager imageServiceRequestManager = ImageServiceRequestManager.getInstance(requireContext(),databaseHelper);
+    private ImageServiceRequestManager imageServiceRequestManager;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -46,6 +46,10 @@ public class HomeFragment extends Fragment implements ImageAdapter.OnImageClickL
         View root = binding.getRoot();
 
         Button imageAnalyzeBtn = root.findViewById(R.id.imageAnalyzeBtn);
+
+        // `requireContext()`를 사용하는 대신 `getContext()` 사용
+        databaseHelper = DatabaseHelper.getInstance(getContext());
+        imageServiceRequestManager = ImageServiceRequestManager.getInstance(getContext(),databaseHelper);
 
         //이미지 분석 버튼 클릭 시에
         imageAnalyzeBtn.setOnClickListener(new View.OnClickListener() {
