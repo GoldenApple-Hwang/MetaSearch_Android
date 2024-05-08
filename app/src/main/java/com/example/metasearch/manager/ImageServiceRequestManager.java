@@ -125,10 +125,10 @@ public class ImageServiceRequestManager {
                 webRequestManager.uploadAddGalleryImage(webService, addImagePaths, DBName);
                 try {
                     //AI 서버에 추가 분석 이미지 전송
-                    aiRequestManager.uploadAddGalleryImage(databaseHelper, addImagePaths, aiService, DBName).thenRun(() -> {
+                    aiRequestManager.uploadAddGalleryImage(addImagePaths, aiService, DBName).thenRun(() -> {
                         //콜백 설정
                         //모든 요청이 끝났다는 마지막 요청
-                        aiRequestManager.completeUploadImage(aiService, DBName);
+                        aiRequestManager.completeUploadImage(databaseHelper,aiService, DBName);
                     });
                 } catch (IOException e) {
                     throw new RuntimeException(e);
@@ -143,7 +143,7 @@ public class ImageServiceRequestManager {
             aiRequestManager.uploadDeleteGalleryImage(databaseHelper,deleteImagePaths,aiService, DBName).thenRun(() -> { //콜백 설정함
 
                 //AI 서버에 모든 요청이 마무리 되었다는 요청
-                aiRequestManager.completeUploadImage(aiService,DBName);
+                aiRequestManager.completeUploadImage(databaseHelper,aiService,DBName);
                 Log.d(TAG,"모든 이미지 전송 완료");
             });
         }
@@ -154,11 +154,11 @@ public class ImageServiceRequestManager {
             webRequestManager.uploadAddGalleryImage(webService, addImagePaths, DBName);
 
             //AI 서버에 추가 분석 이미지 전송
-            aiRequestManager.uploadAddGalleryImage(databaseHelper, addImagePaths, aiService, DBName).thenRun(() -> {
+            aiRequestManager.uploadAddGalleryImage(addImagePaths, aiService, DBName).thenRun(() -> {
                 //콜백 설정
 
                 //AI 서버에 모든 요청이 보내졌다는 마무리 요청
-                aiRequestManager.completeUploadImage(aiService, DBName);
+                aiRequestManager.completeUploadImage(databaseHelper,aiService, DBName);
             });
         }
 
