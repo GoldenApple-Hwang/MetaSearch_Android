@@ -172,7 +172,7 @@ public class CircleToSearchActivity extends AppCompatActivity
                 adapter.updateData(matchedUris);
             }
         } else {
-            Toast.makeText(this, "관련 사진을 찾지 못했습니다.", Toast.LENGTH_SHORT).show();
+            StyleableToast.makeText(this, "관련 사진을 찾지 못했습니다.", R.style.customToast).show();
         }
 
         // 카테고리 이름만 TextView에 표시
@@ -196,7 +196,7 @@ public class CircleToSearchActivity extends AppCompatActivity
             searchItem.setEnabled(true);
             binding.spinKit.setVisibility(View.GONE);
             if (detectedObjects.isEmpty()) {
-                Toast.makeText(this, "No objects detected.", Toast.LENGTH_LONG).show();
+                StyleableToast.makeText(this, "No objects detected.", R.style.customToast).show();
             } else {
                 // Web Server로 이미지 분석 결과 전송
                 webRequestManager.sendDetectedObjectsToAnotherServer(detectedObjects, "youjeong", this);
@@ -210,7 +210,7 @@ public class CircleToSearchActivity extends AppCompatActivity
             MenuItem searchItem = binding.circleMenu.getMenu().findItem(R.id.search);
             searchItem.setEnabled(true);
             binding.spinKit.setVisibility(View.GONE);
-            Toast.makeText(this, "Upload failed: " + message, Toast.LENGTH_LONG).show();
+            StyleableToast.makeText(this, "Upload failed: " + message, R.style.customToast).show();
         });
     }
     @Override

@@ -7,8 +7,11 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+import com.example.metasearch.R;
 import com.example.metasearch.databinding.ActivityCircleToSearchBinding;
 import com.example.metasearch.databinding.ActivityImageDisplayBinding;
+
+import io.github.muddz.styleabletoast.StyleableToast;
 
 public class ImageDisplayActivity extends AppCompatActivity {
     private ActivityImageDisplayBinding binding;
@@ -26,7 +29,7 @@ public class ImageDisplayActivity extends AppCompatActivity {
             Uri imageUri = Uri.parse(imageUriString);
             setImageToPhotoView(imageUri);
         } else {
-            Toast.makeText(this, "이미지를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show();
+            StyleableToast.makeText(this, "이미지를 불러올 수 없습니다.", R.style.customToast).show();
         }
     }
 

@@ -21,6 +21,8 @@ import java.util.List;
 import com.example.metasearch.R;
 import com.example.metasearch.model.Circle;
 
+import io.github.muddz.styleabletoast.StyleableToast;
+
 public class CustomImageView extends androidx.appcompat.widget.AppCompatImageView {
     private final List<Circle> circles = new ArrayList<>(); // 원들을 저장할 리스트
     private Paint paint;
@@ -61,7 +63,7 @@ public class CustomImageView extends androidx.appcompat.widget.AppCompatImageVie
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 if (circles.size() >= 5) {
-                    Toast.makeText(getContext(), "최대 5개의 원만 그릴 수 있습니다.", Toast.LENGTH_SHORT).show();
+                    StyleableToast.makeText(getContext(), "최대 5개의 원만 그릴 수 있습니다.", R.style.customToast).show();
                     return false;  // 더 이상 그리지 않음
                 }
                 startX = event.getX();

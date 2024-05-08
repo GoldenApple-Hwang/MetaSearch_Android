@@ -44,6 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.github.muddz.styleabletoast.StyleableToast;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import retrofit2.Call;
@@ -183,7 +184,7 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
 
                             if (entities.size() != pairCount || relationships.size() != pairCount) {
                                 Log.e("Data Mismatch", "The number of pairs does not match the pairCount.");
-                                Toast.makeText(getContext(), "데이터 불일치. 응답 확인 필요.", Toast.LENGTH_LONG).show();
+                                StyleableToast.makeText(getContext(), "데이터 불일치. 응답 확인 필요.", R.style.customToast).show();
                             } else {
                                 neo4jQuery = Neo4jDatabaseManager.createCypherQuery(entities, relationships, pairCount);
                                 System.out.println("TEST_QUERY : " + neo4jQuery);
