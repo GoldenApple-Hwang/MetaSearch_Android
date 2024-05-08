@@ -3,13 +3,16 @@ package com.example.metasearch.ui.activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.metasearch.R;
@@ -21,6 +24,7 @@ import com.example.metasearch.model.Circle;
 import com.example.metasearch.model.response.PhotoResponse;
 import com.example.metasearch.ui.adapter.ImageAdapter;
 import com.example.metasearch.ui.viewmodel.ImageViewModel;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -73,19 +77,54 @@ public class CircleToSearchActivity extends AppCompatActivity
         binding.circleToSearchRecyclerView.setAdapter(adapter);
     }
     private void setupListeners() {
-        binding.btnSend.setOnClickListener(v -> {
-            try {
-                sendCirclesAndImage();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+        binding.circleMenu.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int itemId = item.getItemId();
+                if (itemId == R.id.search) {
+                    try {
+                        sendCirclesAndImage();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return true;
+                } else if (itemId == R.id.reset) {
+                    binding.customImageView.clearCircles();
+                    return true;
+                }
+                return false;
             }
         });
-        binding.btnReset.setOnClickListener(v -> binding.customImageView.clearCircles());
+        binding.circleToSearchRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                if (dy > 0) {
+                    // 스크롤 내릴 때, 네비게이션 바 숨기기
+                    hideBottomNavigationView();
+                } else if (dy < 0) {
+                    // 스크롤 올릴 때, 네비게이션 바 보이기
+                    showBottomNavigationView();
+                }
+            }
+        });
     }
+    // 하단의 네비 바 숨김
+    public void hideBottomNavigationView() {
+        binding.circleMenu.animate().translationY(binding.circleMenu.getHeight());
+    }
+    // 하단의 네비 바 보임
+    public void showBottomNavigationView() {
+        binding.customImageView.animate().translationY(0);
+    }
+
     private void sendCirclesAndImage() throws IOException {
         List<Circle> circles = binding.customImageView.getCircles();
         if (imageUri != null && !circles.isEmpty()) {
-            binding.btnSend.setEnabled(false); // 버튼 비활성화
+//            binding.circleMenu.setEnabled(false); // 버튼 비활성화
+            // 메뉴 아이템을 직접 비활성화
+            MenuItem searchItem = binding.circleMenu.getMenu().findItem(R.id.search);
+            searchItem.setEnabled(false);
             // 요청 전에 로딩 애니메이션 표시
             binding.spinKit.setVisibility(View.VISIBLE);
 
@@ -152,7 +191,9 @@ public class CircleToSearchActivity extends AppCompatActivity
     @Override
     public void onCircleUploadSuccess(List<String> detectedObjects) {
         runOnUiThread(() -> {
-            binding.btnSend.setEnabled(true);
+//            binding.circleMenu.setEnabled(true);
+            MenuItem searchItem = binding.circleMenu.getMenu().findItem(R.id.search);
+            searchItem.setEnabled(true);
             binding.spinKit.setVisibility(View.GONE);
             if (detectedObjects.isEmpty()) {
                 Toast.makeText(this, "No objects detected.", Toast.LENGTH_LONG).show();
@@ -165,20 +206,25 @@ public class CircleToSearchActivity extends AppCompatActivity
     @Override
     public void onCircleUploadFailure(String message) {
         runOnUiThread(() -> {
-            binding.btnSend.setEnabled(true);
+//            binding.circleMenu.setEnabled(true);
+            MenuItem searchItem = binding.circleMenu.getMenu().findItem(R.id.search);
+            searchItem.setEnabled(true);
             binding.spinKit.setVisibility(View.GONE);
             Toast.makeText(this, "Upload failed: " + message, Toast.LENGTH_LONG).show();
         });
     }
     @Override
     public void onWebServerUploadSuccess(PhotoResponse photoResponse) {
-        binding.btnSend.setEnabled(true); // 버튼 활성화
+        MenuItem searchItem = binding.circleMenu.getMenu().findItem(R.id.search);
+        searchItem.setEnabled(true);
+//        binding.circleMenu.setEnabled(true); // 버튼 활성화
         binding.spinKit.setVisibility(View.GONE); // 로딩 애니메이션 숨김
         updateRecyclerViewWithResponse(photoResponse);
     }
     @Override
     public void onWebServerUploadFailure(String message) {
-        binding.btnSend.setEnabled(true); // 버튼 활성화
+        MenuItem searchItem = binding.circleMenu.getMenu().findItem(R.id.search);
+        searchItem.setEnabled(true);
     }
 }
 
