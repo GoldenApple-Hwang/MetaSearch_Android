@@ -52,7 +52,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + "PHONENUMBER TEXT, "
                 + "USERNAME TEXT, "
                 + "IMAGE BLOB, " // 이미지 컬럼 추가
-                + "IS_DELETE INTEGER DEFAULT 1);"; // IS_VERIFIED 컬럼 추가, BOOLEAN 대신 INTEGER 사용
+                + "IS_DELETE INTEGER DEFAULT 0);"; // IS_VERIFIED 컬럼 추가, BOOLEAN 대신 INTEGER 사용
         sqLiteDatabase.execSQL(createQuery);
     }
 
@@ -153,35 +153,123 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         // 이미지 데이터가 담긴 HashMap 반환
         return imagesMap;
     }
+    // 특정 인물의 전화번호를 가져오는 메서드
+    public String getPhoneNumber(String userName) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String phoneNumber = "";
+
+        String query = "SELECT PHONENUMBER FROM " + TABLE_NAME + " WHERE USERNAME = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{userName});
+
+        if (cursor.moveToFirst()) {
+            phoneNumber = cursor.getString(cursor.getColumnIndexOrThrow("PHONENUMBER"));
+        }
+
+        cursor.close();
+        db.close();
+
+        return phoneNumber;
+    }
+
+    // 유저가 이름을 입력하면 USERNAME을 해당 이름으로 변경
+    public boolean updateUserNameAndPhoneNumber(String beforeUserName, String afterUserName, String phoneNumber) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("USERNAME", afterUserName);
+        values.put("PHONENUMBER", phoneNumber);
+
+        // USERNAME 컬럼이 beforeUserName과 일치하는 행을 찾아서 update 실행
+        String selection = "USERNAME = ?";
+        String[] selectionArgs = { beforeUserName };
+
+        int result = db.update(TABLE_NAME, values, selection, selectionArgs);
+
+        db.close(); // 데이터베이스 사용 후 닫기
+
+        return result != -1; // 하나 이상의 행이 변경되었다면 true, 아니면 false 반환
+    }
+//    public List<Person> getAllPerson() {
+//        List<Person> people = new ArrayList<>();
+//        SQLiteDatabase db = this.getReadableDatabase();
+//        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
+//
+//        int imageNameColumnIndex = cursor.getColumnIndex("NAME");
+//        int usernameColumnIndex = cursor.getColumnIndex("USERNAME");
+//        int imageColumnIndex = cursor.getColumnIndex("IMAGE");
+//
+//        if (cursor.moveToFirst()) {
+//            do {
+//                String imageName = cursor.getString(imageNameColumnIndex); // 사진 이름
+//                String username = cursor.getString(usernameColumnIndex); // 인물 이름
+//                byte[] imageData = cursor.getBlob(imageColumnIndex); // 사진 데이터
+//                if (imageName != null && username != null && imageData != null) {
+//                    people.add(new Person(imageName,username,imageData));
+//                    Log.d(TAG, "Loaded byte data for username: " + username);
+//                } else {
+//                    Log.d(TAG, "Null value found for username or image data");
+//                }
+//            } while (cursor.moveToNext());
+//        } else {
+//            Log.d(TAG, "No data found in the database");
+//        }
+//        cursor.close();
+//        db.close();
+//        return people;
+//    }
     // 데이터베이스에서 모든 행의 정보(사진 이름, 사진 정보, 인물 이름)를 가져와서 Person 데이터 모델 형식으로 반환
     public List<Person> getAllPerson() {
         List<Person> people = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
+        Cursor cursor = null;
 
-        int imageNameColumnIndex = cursor.getColumnIndex("NAME");
-        int usernameColumnIndex = cursor.getColumnIndex("USERNAME");
-        int imageColumnIndex = cursor.getColumnIndex("IMAGE");
+        try {
+            // Include a WHERE clause to return only rows with isDelete = 0
+            cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE IS_DELETE = 0", null);
 
-        if (cursor.moveToFirst()) {
-            do {
-                String imageName = cursor.getString(imageNameColumnIndex); // 사진 이름
-                String username = cursor.getString(usernameColumnIndex); // 인물 이름
-                byte[] imageData = cursor.getBlob(imageColumnIndex); // 사진 데이터
-                if (imageName != null && username != null && imageData != null) {
-                    people.add(new Person(imageName,username,imageData));
-                    Log.d(TAG, "Loaded byte data for username: " + username);
-                } else {
-                    Log.d(TAG, "Null value found for username or image data");
-                }
-            } while (cursor.moveToNext());
-        } else {
-            Log.d(TAG, "No data found in the database");
+            int imageNameColumnIndex = cursor.getColumnIndex(COLUMN_NAME);
+            int usernameColumnIndex = cursor.getColumnIndex(COLUMN_USERNAME);
+            int imageColumnIndex = cursor.getColumnIndex(COLUMN_IMAGE);
+            int phoneColumnIndex = cursor.getColumnIndex(COLUMN_PHONENUMBER);
+            int isDeleteColumnIndex = cursor.getColumnIndex("IS_DELETE");
+
+            if (cursor.moveToFirst()) {
+                do {
+                    String imageName = cursor.getString(imageNameColumnIndex);
+                    String username = cursor.getString(usernameColumnIndex);
+                    byte[] imageData = cursor.getBlob(imageColumnIndex);
+                    String phoneNumber = cursor.getString(phoneColumnIndex);
+                    Integer isDelete = cursor.getInt(isDeleteColumnIndex);
+
+                    // Ensure the required fields are not null
+                    if (imageName != null && username != null && imageData != null) {
+                        Person person = new Person(imageName, username, imageData);
+                        person.setPhone(phoneNumber);
+                        person.setIsDelete(isDelete);
+
+                        // Add person to the list
+                        people.add(person);
+                        Log.d(TAG, "Loaded data for username: " + username);
+                    } else {
+                        Log.d(TAG, "Null value found for username or image data");
+                    }
+                } while (cursor.moveToNext());
+            } else {
+                Log.d(TAG, "No data found in the database");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error fetching all persons: " + e.getMessage());
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+            db.close();
         }
-        cursor.close();
-        db.close();
+
         return people;
     }
+
+
+
     public ArrayList<byte[]> getImageData(){
         ArrayList<byte[]> images = new ArrayList<>();
         SQLiteDatabase db = this.getWritableDatabase();
