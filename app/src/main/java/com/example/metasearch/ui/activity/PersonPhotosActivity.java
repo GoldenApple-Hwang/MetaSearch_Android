@@ -5,13 +5,18 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.example.metasearch.R;
+import com.example.metasearch.dao.DatabaseHelper;
 import com.example.metasearch.databinding.ActivityPersonPhotosBinding;
 import com.example.metasearch.manager.GalleryImageManager;
 import com.example.metasearch.manager.WebRequestManager;
@@ -32,12 +37,14 @@ public class PersonPhotosActivity extends AppCompatActivity
     private String imageName;
     private String userName;
     private byte[] imageData;
+    private DatabaseHelper databaseHelper;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         init();
         setupUI();
+        setupListeners(); // 인물 정보 수정 버튼
         loadImages(); // 리사이클러뷰에 관련 인물 사진 모두 출력
     }
     private void loadImages() {
@@ -54,7 +61,7 @@ public class PersonPhotosActivity extends AppCompatActivity
     }
     private void setupRecyclerView() {
         ImageAdapter adapter = new ImageAdapter(new ArrayList<>(), this, this);
-        binding.recyclerViewPerson.setLayoutManager(new GridLayoutManager(this, 3));
+        binding.recyclerViewPerson.setLayoutManager(new GridLayoutManager(this, 5));
         binding.recyclerViewPerson.setAdapter(adapter);
     }
     private void setupUI() {
@@ -68,12 +75,50 @@ public class PersonPhotosActivity extends AppCompatActivity
         binding.face.setImageBitmap(imageBitmap);
         setupRecyclerView();
     }
+    private void setupListeners() {
+        binding.editbtn.setOnClickListener(v -> showEditPersonDialog());
+    }
     private void init() {
         webRequestManager = WebRequestManager.getWebImageUploader();
+        databaseHelper = DatabaseHelper.getInstance(this);
         imageName = getIntent().getStringExtra("imageName");
         imageData = getIntent().getByteArrayExtra("imageData");
         userName = getIntent().getStringExtra("personName");
     }
+    private void showEditPersonDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_edit_person, null);
+
+        EditText editPersonName = dialogView.findViewById(R.id.editPersonName);
+        EditText editPhoneNumber = dialogView.findViewById(R.id.editPhoneNumber);
+
+        editPersonName.setText(userName);
+        editPhoneNumber.setText(databaseHelper.getPhoneNumber(userName));
+
+        builder.setView(dialogView)
+                .setTitle("Edit Person Info")
+                .setPositiveButton("Save", (dialog, which) -> {
+                    String newPersonName = editPersonName.getText().toString();
+                    String newPhoneNumber = editPhoneNumber.getText().toString();
+
+                    // 이름 및 전화번호 업데이트
+                    if (!newPersonName.isEmpty()) {
+                        boolean updateSuccess = databaseHelper.updateUserNameAndPhoneNumber(userName, newPersonName, newPhoneNumber);
+                        if (updateSuccess) {
+                            userName = newPersonName;
+                            binding.personName.setText(newPersonName);
+                        } else {
+                            Toast.makeText(this, "Failed to update info.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .create()
+                .show();
+    }
+
     private void updateUIWithMatchedUris(List<Uri> matchedUris) {
         if (imageViewModel == null) {
             imageViewModel = new ViewModelProvider(this).get(ImageViewModel.class);
