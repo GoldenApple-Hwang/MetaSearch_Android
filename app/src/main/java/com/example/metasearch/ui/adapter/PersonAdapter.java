@@ -57,7 +57,8 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
     @Override
     public void onBindViewHolder(PersonViewHolder holder, int position) {
         Person person = people.get(position);
-        holder.nameView.setText(person.getName());
+//        holder.nameView.setText(person.getUserName());
+        holder.nameView.setText(person.getUserName());
 
         // 바이트 배열을 Bitmap으로 변환
         Bitmap imageBitmap = BitmapFactory.decodeByteArray(person.getImage(), 0, person.getImage().length);
@@ -68,7 +69,7 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(context, PersonPhotosActivity.class);
-                intent.putExtra("personName", person.getName()); // 인물 이름 전달
+                intent.putExtra("personName", person.getUserName()); // 인물 이름 전달
                 intent.putExtra("imageName", person.getImageName()); // 사진 이름 전달
                 intent.putExtra("imageData", person.getImage()); // 사진(바이트 배열) 전달
                 context.startActivity(intent); // 클릭한 인물이 나온 사진을 모두 찾아서 보여주는 화면으로 전환
