@@ -6,9 +6,9 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.github.muddz.styleabletoast.StyleableToast;
+import me.jfenn.colorpickerdialog.dialogs.ColorPickerDialog;
+import me.jfenn.colorpickerdialog.interfaces.OnColorPickedListener;
 
 public class CircleToSearchActivity extends AppCompatActivity
         implements ImageAdapter.OnImageClickListener,
@@ -73,8 +75,20 @@ public class CircleToSearchActivity extends AppCompatActivity
     }
     private void setupRecyclerView() {
         ImageAdapter adapter = new ImageAdapter(new ArrayList<>(), this, this);
-        binding.circleToSearchRecyclerView.setLayoutManager(new GridLayoutManager(this, 3));
+        binding.circleToSearchRecyclerView.setLayoutManager(new GridLayoutManager(this, 5));
         binding.circleToSearchRecyclerView.setAdapter(adapter);
+    }
+    private void showColorPickerDialog() {
+        new ColorPickerDialog()
+                .withColor(getResources().getColor(R.color.white)) // 기본 색상
+                .withListener(new OnColorPickedListener<ColorPickerDialog>() {
+                    @Override
+                    public void onColorPicked(@Nullable ColorPickerDialog dialog, int color) {
+                        // 선택한 색상 사용
+                        binding.customImageView.setCircleColor(color);
+                    }
+                })
+                .show(getSupportFragmentManager(), "colorPicker");
     }
     private void setupListeners() {
         binding.circleMenu.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -89,7 +103,12 @@ public class CircleToSearchActivity extends AppCompatActivity
                     }
                     return true;
                 } else if (itemId == R.id.reset) {
+                    // 리셋 버튼 클릭 시 모든 원 삭제
                     binding.customImageView.clearCircles();
+                    return true;
+                } else if (itemId == R.id.color) {
+                    // 컬러 버튼 클릭 시 컬러 피커 다이얼로그 표시
+                    showColorPickerDialog();
                     return true;
                 }
                 return false;

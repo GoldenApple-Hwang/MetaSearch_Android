@@ -8,4 +8,8 @@
         android:id="@+id/reset"
         android:icon="@drawable/icon_refresh"
         android:title="Reset" />
+    <item
+        android:id="@+id/color"
+        android:icon="@drawable/icon_pen"
+        android:title="Color" />
 </menu>

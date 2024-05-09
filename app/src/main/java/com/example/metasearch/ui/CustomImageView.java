@@ -41,6 +41,10 @@ public class CustomImageView extends androidx.appcompat.widget.AppCompatImageVie
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(6);
     }
+    public void setCircleColor(int color) {
+        paint.setColor(color);
+        invalidate(); // 변경된 색으로 다시 그리기
+    }
     public List<Circle> getCircles() {
         return new ArrayList<>(circles);  // 원 정보를 포함하는 리스트 반환
     }

@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">MetaSearch</string>
     <string name="title_home">MetaSearch</string>
+    <string name="title_refresh"> </string>
     <string name="title_search">검색</string>
     <string name="title_graph">그래프</string>
     <string name="title_like">좋아요</string>
