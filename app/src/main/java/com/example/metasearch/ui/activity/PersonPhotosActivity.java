@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import com.example.metasearch.R;
 import com.example.metasearch.dao.DatabaseHelper;
 import com.example.metasearch.databinding.ActivityPersonPhotosBinding;
+import com.example.metasearch.helper.DatabaseUtils;
 import com.example.metasearch.manager.GalleryImageManager;
 import com.example.metasearch.manager.WebRequestManager;
 import com.example.metasearch.ui.adapter.ImageAdapter;
@@ -57,7 +58,8 @@ public class PersonPhotosActivity extends AppCompatActivity
 //        }
 
         // Test
-        webRequestManager.sendPersonData("사람B","youjeong", this);
+//        webRequestManager.sendPersonData("사람B","youjeong", this);
+        webRequestManager.sendPersonData("사람B", DatabaseUtils.getPersistentDeviceDatabaseName(this), this);
     }
     private void setupRecyclerView() {
         ImageAdapter adapter = new ImageAdapter(new ArrayList<>(), this, this);

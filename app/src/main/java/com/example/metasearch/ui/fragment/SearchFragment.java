@@ -12,7 +12,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -22,6 +21,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import com.example.metasearch.BuildConfig;
 import com.example.metasearch.R;
 import com.example.metasearch.databinding.FragmentSearchBinding;
+import com.example.metasearch.helper.DatabaseUtils;
 import com.example.metasearch.helper.HttpHelper;
 import com.example.metasearch.manager.Neo4jDatabaseManager;
 import com.example.metasearch.manager.Neo4jDriverManager;
@@ -197,7 +197,8 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
                     binding.query.post(() -> binding.query.setText(neo4jQuery));
 
                     // 웹 서버에 쿼리 전송
-                    sendQueryToServer("youjeong", neo4jQuery);
+//                    sendQueryToServer("youjeong", neo4jQuery);
+                    sendQueryToServer(DatabaseUtils.getPersistentDeviceDatabaseName(getContext()), neo4jQuery);
                 } else {
                     Log.e("OpenAI Error", "Error fetching response");
                 }
