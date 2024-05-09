@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.metasearch.R;
 import com.example.metasearch.databinding.ActivityCircleToSearchBinding;
+import com.example.metasearch.helper.DatabaseUtils;
 import com.example.metasearch.manager.AIRequestManager;
 import com.example.metasearch.manager.GalleryImageManager;
 import com.example.metasearch.manager.WebRequestManager;
@@ -218,7 +219,8 @@ public class CircleToSearchActivity extends AppCompatActivity
                 StyleableToast.makeText(this, "No objects detected.", R.style.customToast).show();
             } else {
                 // Web Server로 이미지 분석 결과 전송
-                webRequestManager.sendDetectedObjectsToAnotherServer(detectedObjects, "youjeong", this);
+//                webRequestManager.sendDetectedObjectsToAnotherServer(detectedObjects, "youjeong", this);
+                webRequestManager.sendDetectedObjectsToAnotherServer(detectedObjects, DatabaseUtils.getPersistentDeviceDatabaseName(this), this);
             }
         });
     }
