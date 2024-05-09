@@ -13,6 +13,7 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -64,7 +65,6 @@ public class HomeFragment extends Fragment implements ImageAdapter.OnImageClickL
             }
         });
 
-
         binding.galleryRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -89,12 +89,16 @@ public class HomeFragment extends Fragment implements ImageAdapter.OnImageClickL
     public void loadAllGalleryImages() {
         // 갤러리의 모든 사진을 출력하는 세로 방향 RecyclerView 세팅
         ImageAdapter adapter = new ImageAdapter(getAllGalleryImagesUri(requireContext()), requireContext(), this);
-        GridLayoutManager layoutManager = new GridLayoutManager(requireContext(), 3);
+        GridLayoutManager layoutManager = new GridLayoutManager(requireContext(), 5);
         binding.galleryRecyclerView.setAdapter(adapter) ;
         binding.galleryRecyclerView.setLayoutManager(layoutManager);
     }
     private void loadFaceImages() {
         List<Person> people = databaseHelper.getAllPerson();
+        if (people.isEmpty()) {
+            Log.d("HomeFragment", "No face images found.");
+            return;
+        }
 
         PersonAdapter adapter = new PersonAdapter(people, this, getContext());
         LinearLayoutManager layoutManager = new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false);
