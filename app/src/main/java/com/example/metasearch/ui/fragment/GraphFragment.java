@@ -63,7 +63,7 @@ public class GraphFragment extends Fragment {
         binding.webView.addJavascriptInterface(new WebAppInterface(requireContext()), "Android");
 
         //수정해야됨 제발
-        String dbName = "youjeong";
+        String dbName = "meet";
         binding.webView.loadUrl("http://113.198.85.4/graph/" + dbName );
 
         return root;
