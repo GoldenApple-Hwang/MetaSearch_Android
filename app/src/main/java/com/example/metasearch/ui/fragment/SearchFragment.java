@@ -266,7 +266,7 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
         });
     }
     private void setupRecyclerView() {
-        GridLayoutManager layoutManager = new GridLayoutManager(requireContext(), 3);
+        GridLayoutManager layoutManager = new GridLayoutManager(requireContext(), 5);
         binding.recyclerView.setLayoutManager(layoutManager);
     }
     private void updateRecyclerView(List<Uri> imageUris) {
