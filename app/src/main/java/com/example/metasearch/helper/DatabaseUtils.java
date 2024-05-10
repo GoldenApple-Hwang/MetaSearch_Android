@@ -11,7 +11,7 @@ public class DatabaseUtils {
 
     public static String getPersistentDeviceDatabaseName(Context context) {
         String uniqueId = getOrCreateUniqueId(context);
-        return "db_" + uniqueId;
+        return "db" + uniqueId;
     }
 
     private static String getOrCreateUniqueId(Context context) {
