@@ -63,7 +63,7 @@ public interface ApiService {
     //AI서버에 마지막 전송 알림 요청
     @Multipart
     @POST("android/upload_finish")
-    Call<UploadResponse> upload_finish(@Part("finish")RequestBody finish,@Part("dbName")RequestBody dbName);
+    Call<UploadResponse> upload_finish(@Part("finish")RequestBody finish,@Part("dbName")RequestBody dbName,@Part("rowCount")RequestBody source);
 
     //Web서버에 이미지 전송 요청
     @Multipart

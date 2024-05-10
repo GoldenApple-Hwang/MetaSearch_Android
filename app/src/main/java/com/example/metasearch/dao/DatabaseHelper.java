@@ -64,6 +64,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 //        onCreate(sqLiteDatabase); // 새로운 테이블 생성
     }
 
+    // 테이블의 행의 개수를 반환하는 함수
+    public int getRowCount(String tableName) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String countQuery = "SELECT * FROM " + tableName;
+        Cursor cursor = db.rawQuery(countQuery, null);
+        int rowCount = cursor.getCount();
+        cursor.close();
+
+        return rowCount;
+    }
+
     public static byte[] getBytes(Bitmap bitmap){ // 이미지를 바이트 배열로 변환하는 예시 코드
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 0, stream);

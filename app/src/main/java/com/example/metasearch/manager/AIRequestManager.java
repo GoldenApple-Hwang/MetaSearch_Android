@@ -37,6 +37,8 @@ public class AIRequestManager {
     private static AIRequestManager aiImageUploader;
     private Retrofit aiRetrofit;
     private ApiService aiService;
+    static final String TABLE_NAME = "Faces";
+
 
 
     private AIRequestManager(){
@@ -57,14 +59,25 @@ public class AIRequestManager {
         return aiImageUploader;
     }
 
-    public void completeUploadImage(DatabaseHelper databaseHelper,ApiService service,String DBName){
+    public CompletableFuture<Void> completeUploadImage(DatabaseHelper databaseHelper,ApiService service,String DBName){
+        List<CompletableFuture<Void>> futuresList = new ArrayList<>();
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        futuresList.add(future);
+
         RequestBody requestBody;
         MultipartBody.Part imagePart;
+
+        int index = databaseHelper.getRowCount(TABLE_NAME);
+
 
         //이미지 출처 정보를 전송할 RequestBody 생성
         RequestBody finishBody = RequestBody.create(MediaType.parse("text/plain"),"finish"); //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
         RequestBody sourceBody = RequestBody.create(MediaType.parse("text/plain"),DBName); //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
-        Call<UploadResponse> call = service.upload_finish(finishBody,sourceBody); //이미지 업로드 API 호출
+        RequestBody indexBody = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(index)); //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
+
+
+        Call<UploadResponse> call = service.upload_finish(finishBody,sourceBody,indexBody); //이미지 업로드 API 호출
+
         call.enqueue(new Callback<UploadResponse>() { //비동기
             @Override
             public void onResponse(Call<UploadResponse> call, Response<UploadResponse> response) {
@@ -88,13 +101,18 @@ public class AIRequestManager {
                             }
                         }
                     }
+                    future.complete(null);
+
                 }
             }
             @Override
             public void onFailure(Call<UploadResponse> call, Throwable t) {
                 Log.e(TAG, "추가 이미지 업로드 실패함" + t.getMessage());
+                future.complete(null);
+
             }
         });
+        return CompletableFuture.allOf(futuresList.toArray(new CompletableFuture[0]));
     }
     //추가된 이미지 관해 서버에 전송
     public CompletableFuture<Void> uploadAddGalleryImage( ArrayList<String> imagePaths, ApiService service, String source) throws IOException {
