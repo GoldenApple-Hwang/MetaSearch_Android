@@ -51,15 +51,15 @@ public class PersonPhotosActivity extends AppCompatActivity
     private void loadImages() {
         // 얼굴 DB에는 사진 이름, 바이트 배열, 인물 이름이 저장 되어 있음
         // 사용자가 이름을 재설정 하지 않은 경우, 사진 이름으로 검색
-//        if (userName.equals("")) {
-//            webRequestManager.sendPersonData(imageName, "youjeong", this);
-//        } else { // 유저 이름으로 검색
-//            webRequestManager.sendPersonData(userName, "youjeong", this);
-//        }
+        if (userName.equals("")) {
+            webRequestManager.sendPersonData(imageName, DatabaseUtils.getPersistentDeviceDatabaseName(this), this);
+        } else { // 유저 이름으로 검색
+            webRequestManager.sendPersonData(userName, DatabaseUtils.getPersistentDeviceDatabaseName(this), this);
+        }
 
         // Test
 //        webRequestManager.sendPersonData("사람B","youjeong", this);
-        webRequestManager.sendPersonData("사람B", DatabaseUtils.getPersistentDeviceDatabaseName(this), this);
+//        webRequestManager.sendPersonData("사람B", DatabaseUtils.getPersistentDeviceDatabaseName(this), this);
     }
     private void setupRecyclerView() {
         ImageAdapter adapter = new ImageAdapter(new ArrayList<>(), this, this);
@@ -88,7 +88,7 @@ public class PersonPhotosActivity extends AppCompatActivity
         userName = getIntent().getStringExtra("personName");
     }
     private void showEditPersonDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomAlertDialogTheme);
         LayoutInflater inflater = getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_edit_person, null);
 
@@ -99,8 +99,8 @@ public class PersonPhotosActivity extends AppCompatActivity
         editPhoneNumber.setText(databaseHelper.getPhoneNumber(userName));
 
         builder.setView(dialogView)
-                .setTitle("Edit Person Info")
-                .setPositiveButton("Save", (dialog, which) -> {
+                .setTitle("인물 정보 수정")
+                .setPositiveButton("저장", (dialog, which) -> {
                     String newPersonName = editPersonName.getText().toString();
                     String newPhoneNumber = editPhoneNumber.getText().toString();
 
@@ -111,12 +111,12 @@ public class PersonPhotosActivity extends AppCompatActivity
                             userName = newPersonName;
                             binding.personName.setText(newPersonName);
                         } else {
-                            Toast.makeText(this, "Failed to update info.", Toast.LENGTH_SHORT).show();
+                            StyleableToast.makeText(this, "Failed to update info.", R.style.customToast).show();
                         }
                     }
 
                 })
-                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .setNegativeButton("취소", (dialog, which) -> dialog.dismiss())
                 .create()
                 .show();
     }

@@ -6,25 +6,27 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <TextView
-        android:id="@+id/dialogTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Edit Person Info"
-        android:textSize="18sp"
-        android:paddingBottom="8dp"/>
+<!--    <TextView-->
+<!--        android:id="@+id/dialogTitle"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="인물 정보를 입력해주세요."-->
+<!--        android:textColor="@color/orange"-->
+<!--        android:paddingStart="6dp"-->
+<!--        android:textSize="15sp"-->
+<!--        android:paddingBottom="8dp"/>-->
 
     <EditText
         android:id="@+id/editPersonName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter Name"/>
+        android:hint="이름"/>
 
     <EditText
         android:id="@+id/editPhoneNumber"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter Phone Number"
+        android:hint="전화번호"
         android:inputType="phone"/>
 
 </LinearLayout>
