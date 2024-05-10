@@ -23,6 +23,7 @@ import com.example.metasearch.R;
 import com.example.metasearch.databinding.FragmentSearchBinding;
 import com.example.metasearch.helper.DatabaseUtils;
 import com.example.metasearch.helper.HttpHelper;
+import com.example.metasearch.manager.GalleryImageManager;
 import com.example.metasearch.manager.Neo4jDatabaseManager;
 import com.example.metasearch.manager.Neo4jDriverManager;
 import com.example.metasearch.model.request.NLQueryRequest;
@@ -76,47 +77,38 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
     }
     private void sendQueryToServer(String dbName, String query) {
         ApiService service = HttpHelper.getInstance(WEB_SERVER_URL).create(ApiService.class);
-        // Gson 인스턴스 생성
         Gson gson = new Gson();
 
         NLQueryRequest nlQueryRequest = new NLQueryRequest(dbName, query);
-        // dbName과 query를 포함하는 Map 객체 생성
         Map<String, String> jsonMap = new HashMap<>();
         jsonMap.put("dbName", nlQueryRequest.getDbName());
         jsonMap.put("query", nlQueryRequest.getQuery());
 
-        // Map 객체를 JSON 문자열로 변환
         String jsonObject = gson.toJson(jsonMap);
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonObject);
 
-        // Send request
         Call<PhotoNameResponse> call = service.sendCypherQuery(requestBody);
         call.enqueue(new Callback<PhotoNameResponse>() {
             @Override
-            public void onResponse(Call<PhotoNameResponse> call, Response<PhotoNameResponse> response) {
+            public void onResponse(@NonNull Call<PhotoNameResponse> call, @NonNull Response<PhotoNameResponse> response) {
                 if (response.isSuccessful()) {
-                    // Handle successful response
                     PhotoNameResponse photoNameResponse = response.body();
-                    if (photoNameResponse != null && photoNameResponse.getPhotoNames() != null) {
-                        List<String> photoNames = photoNameResponse.getPhotoNames();
-                        // Process photo names
-                        // For example:
-                        Log.d("PhotoNames", photoNames.toString());
+                    if (photoNameResponse != null && photoNameResponse.getPhotoName() != null) {
+                        Log.d("PhotoNames", photoNameResponse.getPhotoName().toString());
 
-                        List<Uri> matchedUris = findMatchedUris(photoNames, requireContext());
+                        List<Uri> matchedUris = findMatchedUris(photoNameResponse.getPhotoName(), requireContext());
                         updateUIWithMatchedUris(matchedUris);
 
                     } else {
                         Log.e("Response Error", "Received null response body or empty photos list");
                     }
                 } else {
-                    // Handle failure
-                    Log.e("Response Error", "Failed to receive successful response");
+                    Log.e("Response Error", "Failed to receive successful response: " + response.message());
                 }
             }
+
             @Override
-            public void onFailure(Call<PhotoNameResponse> call, Throwable t) {
-                // Handle error
+            public void onFailure(@NonNull Call<PhotoNameResponse> call, @NonNull Throwable t) {
                 Log.e("Request Error", "Failed to send request to server", t);
             }
         });
@@ -132,7 +124,7 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
             return;
         }
         // 사용자가 입력한 문장(찾고 싶은 사진) + gpt가 분석할 수 있도록 지시할 문장
-        userInput = userInput + getString(R.string.user_input_eng);
+        userInput = userInput + getString(R.string.user_input_kor);
         if (userInput.length() == 0) return;
         ApiService service = HttpHelper.getInstance(OPENAI_URL).create(ApiService.class);
 
