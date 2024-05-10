@@ -64,10 +64,10 @@ public class GraphFragment extends Fragment {
         binding.webView.addJavascriptInterface(new WebAppInterface(requireContext()), "Android");
 
         //수정해야됨 제발
-        String dbName = "meet";
-        binding.webView.loadUrl("http://113.198.85.4/graph/" + dbName );
-        // 추후 아래 코드 사용
-//        binding.webView.loadUrl("http://113.198.85.4/graph/" + DatabaseUtils.getPersistentDeviceDatabaseName(getContext()));
+//        String dbName = "meet";
+//        binding.webView.loadUrl("http://113.198.85.4/graph/" + dbName );
+        // 수정 후 코드
+        binding.webView.loadUrl("http://113.198.85.4/graph/" + DatabaseUtils.getPersistentDeviceDatabaseName(getContext()));
 
         return root;
     }
