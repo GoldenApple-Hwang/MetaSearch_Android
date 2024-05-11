@@ -57,6 +57,32 @@ public class AIRequestManager {
         return aiImageUploader;
     }
 
+    public void uploadPersonName(ApiService service,String DBName,String oldName,String newName){
+        RequestBody requestBody;
+        MultipartBody.Part imagePart;
+        CompletableFuture<Void> future = new CompletableFuture<>();
+
+        RequestBody sourceBody = RequestBody.create(MediaType.parse("text/plain"),DBName); //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
+        RequestBody oldNameBody = RequestBody.create(MediaType.parse("text/plain"),oldName); //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
+        RequestBody newNameBody = RequestBody.create(MediaType.parse("text/plain"),newName); //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
+
+        Call<Void> call = service.upload_person_name(sourceBody,oldNameBody,newNameBody); //이미지 업로드 API 호출
+        call.enqueue(new Callback<Void>() { //비동기
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Log.e(TAG, "first upload 성공: " + response.message());
+                    future.complete(null);
+                }
+            }
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Log.e(TAG, "first upload  실패함" + t.getMessage());
+                future.complete(null);
+            }
+        });
+    }
+
     public CompletableFuture<Void> fristUploadImage(ApiService service,String DBName){
         Log.d(TAG,"첫 번째 업로드");
         RequestBody requestBody;
