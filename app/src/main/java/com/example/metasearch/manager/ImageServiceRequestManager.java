@@ -79,21 +79,21 @@ public class ImageServiceRequestManager {
             //ArrayList<String> safeDeletePaths = deletePaths != null ? deletePaths : new ArrayList<>();
             //ArrayList<String> safeAddImagePaths = addImagePaths != null ? addImagePaths : new ArrayList<>();
             if(dbBytes!=null){
-                aiRequestManager.uploadDBImage(aiService, dbBytes, DBName).thenRun(() -> { //콜백 설정함 //db 요청 끝나고 사진 분석 요청 보냄
-                    try {
-                        //추가나 삭제 이미지를 서버에 전송
-                        request_image_AIServer(addImagePaths,deletePaths,DBName);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+                aiRequestManager.fristUploadImage(aiService,DBName).thenRun(()->{
+                    aiRequestManager.uploadDBImage(aiService, dbBytes, DBName).thenRun(() -> { //콜백 설정함 //db 요청 끝나고 사진 분석 요청 보냄
+                        try {
+                            //추가나 삭제 이미지를 서버에 전송
+                            request_image_AIServer(addImagePaths,deletePaths,DBName);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
                 });
             }
             else{ //데이터베이스에 이미지가 없는 경우,
                 request_image_AIServer(addImagePaths,deletePaths,DBName);
-
             }
         }
-
     }
     //이미지 분석 리스트를 통해 해당 이미지가 추가될 이미지인지, 삭제될 이미지인지 확인하고 그에 맞게 서버에 요청하는 함수
     public ArrayList<String> checkAddImagePath(ArrayList<String> imagesPaths){
