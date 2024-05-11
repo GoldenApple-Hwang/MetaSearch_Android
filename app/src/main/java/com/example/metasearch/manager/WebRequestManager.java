@@ -5,12 +5,15 @@ import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 import android.util.Log;
 
 import com.example.metasearch.helper.HttpHelper;
+import com.example.metasearch.model.request.ChangeNameRequest;
+import com.example.metasearch.model.response.ChangeNameResponse;
 import com.example.metasearch.model.response.PhotoNameResponse;
 import com.example.metasearch.model.response.PhotoResponse;
 import com.example.metasearch.service.ApiService;
 import com.google.gson.Gson;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -232,5 +235,28 @@ public class WebRequestManager {
         }
     }
 
-    
+    public void changePersonName(String dbName, String oldName, String newName) {
+        ChangeNameRequest request = new ChangeNameRequest(dbName, oldName, newName);
+        webService.changeName(request).enqueue(new Callback<ChangeNameResponse>() {
+            @Override
+            public void onResponse(Call<ChangeNameResponse> call, Response<ChangeNameResponse> response) {
+                if (response.isSuccessful()) {
+                    // 성공적으로 이름 변경
+                    Log.d("Name Change", "Success: " + response.body().getMessage());
+                } else {
+                    // 서버에서 정상적으로 처리하지 못했을 때
+                    try {
+                        Log.e("Name Change", "Failed: " + response.errorBody().string());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            @Override
+            public void onFailure(Call<ChangeNameResponse> call, Throwable t) {
+                // 네트워크 문제 등으로 요청 자체가 실패
+                Log.e("Name Change", "Error: " + t.getMessage());
+            }
+        });
+    }
 }
