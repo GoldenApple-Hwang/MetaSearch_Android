@@ -39,8 +39,8 @@ public class MainActivity extends AppCompatActivity {
                 new AppBarConfiguration.Builder(
                         R.id.navigation_home, // 홈 화면(하단에 갤러리 모든 사진 출력, 상단에 인물 얼굴 출력)
                         R.id.navigation_search, // 사진 검색(자연어)
-                        R.id.navigation_graph, // 지식 그래프 출력
-                        R.id.navigation_like // 좋아요 한 사진 출력
+                        R.id.navigation_graph // 지식 그래프 출력
+//                        R.id.navigation_like // 좋아요 한 사진 출력
                         ).build();
 
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
