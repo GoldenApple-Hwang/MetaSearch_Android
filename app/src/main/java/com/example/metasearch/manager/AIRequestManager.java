@@ -39,8 +39,6 @@ public class AIRequestManager {
     private ApiService aiService;
     static final String TABLE_NAME = "Faces";
 
-
-
     private AIRequestManager(){
         //this.aiService = AIHttpService.getInstance(AIserver_BASE_URL);
         this.aiService = HttpHelper.getInstance(AIserver_BASE_URL).getRetrofit().create(ApiService.class);
@@ -57,6 +55,33 @@ public class AIRequestManager {
 
         }
         return aiImageUploader;
+    }
+
+    public CompletableFuture<Void> fristUploadImage(ApiService service,String DBName){
+        Log.d(TAG,"첫 번째 업로드");
+        RequestBody requestBody;
+        MultipartBody.Part imagePart;
+        CompletableFuture<Void> future = new CompletableFuture<>();
+
+        RequestBody firstBody = RequestBody.create(MediaType.parse("text/plain"),"first"); //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
+        RequestBody sourceBody = RequestBody.create(MediaType.parse("text/plain"),DBName); //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
+
+        Call<Void> call = service.upload_first(firstBody,sourceBody); //이미지 업로드 API 호출
+        call.enqueue(new Callback<Void>() { //비동기
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Log.e(TAG, "first upload 성공: " + response.message());
+                    future.complete(null);
+                }
+            }
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Log.e(TAG, "first upload  실패함" + t.getMessage());
+                future.complete(null);
+            }
+        });
+        return future;
     }
 
     public CompletableFuture<Void> completeUploadImage(DatabaseHelper databaseHelper,ApiService service,String DBName){
