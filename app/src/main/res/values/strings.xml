@@ -23,4 +23,28 @@
         예를 들어, \'아기가 바다에서 바나나와 아이스크림을 먹는 사진\' 이라면, \'3,아기,인물,바다,바다,바나나,과일,아이스크림,아이스크림\'처럼 공백 없이 총 한 줄로 리턴.
         맨 앞의 숫자는 entity와 relationship을 한 쌍으로 봤을 때 총 개수를 의미. entity와 relationship 전부 한글로 리턴.
         추출된 속성 쌍의 개수가 0이면, \'0\'을 리턴.</string>
+
+    <string name="explain_text_delete"><font color="#8D9CB5">※ 갤러리에서 삭제된 항목이 확인되었습니다.</font></string>
+    <string name="explain_text_add"><font color="#8D9CB5">※ 갤러리에서 새로운 항목이 확인되었습니다.</font></string>
+    <string name="explain_text_no_image"><font color="#b50101">※ 갤러리에 새로운 항목이 없습니다.</font></string>
+
+
+
+    <string name="formatted_text_add"><font color="#0060F9">이미지 분석이 완료될 시 </font></string>
+    <string name="formatted_text_delete"><font color="#0060F9">이미지 업데이트가 완료될 시</font></string>
+    <string name="formatted_text_no_image"><font color="#0060F9">이미지 분석을 원할 시</font></string>
+
+
+    <string name="formatted_text1"><font color="#0060F9">앱 알림으로 </font>알려드리겠습니다.</string>
+    <string name="formatted_text2"><font color="#0060F9">이미지를 추가</font>해주세요.</string>
+
+
+    <string name="title_text_add"><font color="#374F76">이미지 분석 중...</font></string>
+    <string name="title_text_delete"><font color="#374F76">이미지 업데이트 중...</font></string>
+
+    <string name="title_text_no_image"><font color="#374F76">분석할 이미지 없음</font></string>
+
+
+
+
 </resources>

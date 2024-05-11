@@ -38,4 +38,8 @@
     <color name="light_brown">#caaa9a</color>
     <color name="brown">#997a60</color>
     <color name="pastel_purple">#b597fb</color>
+    <color name="blue_highlight">#bcc6d6</color>
+    <color name="drack_blue">#2C4367</color>
+
+
 </resources>
