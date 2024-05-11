@@ -79,8 +79,8 @@ public class ImageServiceRequestManager {
             //ArrayList<String> safeDeletePaths = deletePaths != null ? deletePaths : new ArrayList<>();
             //ArrayList<String> safeAddImagePaths = addImagePaths != null ? addImagePaths : new ArrayList<>();
             if(dbBytes!=null){
-                aiRequestManager.fristUploadImage(aiService,DBName).thenRun(()->{
-                    aiRequestManager.uploadDBImage(aiService, dbBytes, DBName).thenRun(() -> { //콜백 설정함 //db 요청 끝나고 사진 분석 요청 보냄
+                aiRequestManager.fristUploadImage(DBName).thenRun(()->{
+                    aiRequestManager.uploadDBImage(dbBytes, DBName).thenRun(() -> { //콜백 설정함 //db 요청 끝나고 사진 분석 요청 보냄
                         try {
                             //추가나 삭제 이미지를 서버에 전송
                             request_image_AIServer(addImagePaths,deletePaths,DBName);
@@ -121,16 +121,16 @@ public class ImageServiceRequestManager {
 
             //AI 서버에 삭제 관련 이미지 이름 전송
 
-            aiRequestManager.uploadDeleteGalleryImage(databaseHelper,deleteImagePaths,aiService,DBName).thenRun(() -> { //콜백 설정함
+            aiRequestManager.uploadDeleteGalleryImage(databaseHelper,deleteImagePaths,DBName).thenRun(() -> { //콜백 설정함
 
                 //웹 서버에 추가 분석 이미지 전송
                 webRequestManager.uploadAddGalleryImage(webService, addImagePaths, DBName);
                 try {
                     //AI 서버에 추가 분석 이미지 전송
-                    aiRequestManager.uploadAddGalleryImage(addImagePaths, aiService, DBName).thenRun(() -> {
+                    aiRequestManager.uploadAddGalleryImage(addImagePaths,DBName).thenRun(() -> {
                         //콜백 설정
                         //모든 요청이 끝났다는 마지막 요청
-                        aiRequestManager.completeUploadImage(databaseHelper,aiService, DBName);
+                        aiRequestManager.completeUploadImage(databaseHelper,DBName);
                     });
                 } catch (IOException e) {
                     throw new RuntimeException(e);
@@ -142,10 +142,10 @@ public class ImageServiceRequestManager {
             //webRequestManager.uploadDeleteGalleryImage(webService,deleteImagePaths,DBName);
 
             //AI 서버에 삭제 관련 이미지 이름 전송
-            aiRequestManager.uploadDeleteGalleryImage(databaseHelper,deleteImagePaths,aiService, DBName).thenRun(() -> { //콜백 설정함
+            aiRequestManager.uploadDeleteGalleryImage(databaseHelper,deleteImagePaths,DBName).thenRun(() -> { //콜백 설정함
 
                 //AI 서버에 모든 요청이 마무리 되었다는 요청
-                aiRequestManager.completeUploadImage(databaseHelper,aiService,DBName);
+                aiRequestManager.completeUploadImage(databaseHelper,DBName);
                 Log.d(TAG,"모든 이미지 전송 완료");
             });
         }
@@ -156,11 +156,11 @@ public class ImageServiceRequestManager {
             webRequestManager.uploadAddGalleryImage(webService, addImagePaths, DBName);
 
             //AI 서버에 추가 분석 이미지 전송
-            aiRequestManager.uploadAddGalleryImage(addImagePaths, aiService, DBName).thenRun(() -> {
+            aiRequestManager.uploadAddGalleryImage(addImagePaths,DBName).thenRun(() -> {
                 //콜백 설정
 
                 //AI 서버에 모든 요청이 보내졌다는 마무리 요청
-                aiRequestManager.completeUploadImage(databaseHelper,aiService, DBName);
+                aiRequestManager.completeUploadImage(databaseHelper,DBName);
             });
         }
 
