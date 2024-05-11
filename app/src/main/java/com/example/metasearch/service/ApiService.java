@@ -60,10 +60,18 @@ public interface ApiService {
     @POST("android/upload_database")
     Call<Void> uploadDatabaseImage(@Part MultipartBody.Part filename, @Part("dbName")RequestBody dbName);
 
+    @Multipart
+    @POST("android/upload_first")
+    Call<Void> upload_first(@Part("first")RequestBody first,@Part("dbName")RequestBody dbName);
+
     //AI서버에 마지막 전송 알림 요청
     @Multipart
     @POST("android/upload_finish")
-    Call<UploadResponse> upload_finish(@Part("finish")RequestBody finish,@Part("dbName")RequestBody dbName,@Part("rowCount")RequestBody source);
+    Call<UploadResponse> upload_finish(@Part("finish")RequestBody finish,@Part("dbName")RequestBody dbName,@Part("rowCount")RequestBody rowCount);
+
+    @Multipart
+    @POST("android/upload_person_name")
+    Call<Void> upload_person_name(@Part("dbName")RequestBody dbName,@Part("oldName")RequestBody oldName,@Part("newName")RequestBody newName);
 
     //Web서버에 이미지 전송 요청
     @Multipart
