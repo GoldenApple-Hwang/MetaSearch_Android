@@ -49,14 +49,6 @@ public class PersonPhotosActivity extends AppCompatActivity
         loadImages(); // 리사이클러뷰에 관련 인물 사진 모두 출력
     }
     private void loadImages() {
-        // 얼굴 DB에는 사진 이름, 바이트 배열, 인물 이름이 저장 되어 있음
-        // 사용자가 이름을 재설정 하지 않은 경우, 사진 이름으로 검색
-//        if (userName.equals("")) {
-//            webRequestManager.sendPersonData(imageName, DatabaseUtils.getPersistentDeviceDatabaseName(this), this);
-//        } else { // 유저 이름으로 검색
-//            webRequestManager.sendPersonData(userName, DatabaseUtils.getPersistentDeviceDatabaseName(this), this);
-//        }
-        //
         webRequestManager.sendPersonData(imageName, DatabaseUtils.getPersistentDeviceDatabaseName(this), this);
     }
     private void setupRecyclerView() {
@@ -132,7 +124,6 @@ public class PersonPhotosActivity extends AppCompatActivity
                 .create()
                 .show();
     }
-
     private void updateUIWithMatchedUris(List<Uri> matchedUris) {
         if (imageViewModel == null) {
             imageViewModel = new ViewModelProvider(this).get(ImageViewModel.class);
@@ -145,7 +136,6 @@ public class PersonPhotosActivity extends AppCompatActivity
                 adapter.updateData(matchedUris);
             }
         } else {
-//            Toast.makeText(this, "No matched images found.", Toast.LENGTH_SHORT).show();
             StyleableToast.makeText(this, "관련 사진이 없습니다.", R.style.customToast).show();
         }
     }

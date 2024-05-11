@@ -118,4 +118,10 @@ public class HomeFragment extends Fragment implements ImageAdapter.OnImageClickL
         super.onDestroyView();
         binding = null;
     }
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadFaceImages(); // 항상 최신 데이터 로드
+        loadAllGalleryImages(); // 항상 최신 데이터 로드
+    }
 }
