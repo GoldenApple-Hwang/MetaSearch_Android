@@ -270,11 +270,15 @@ public class AIRequestManager {
                                 }
                             }
                         }
+                        future.complete(null);
+
                     }
                 }
                 @Override
                 public void onFailure(Call<UploadResponse> call, Throwable t) {
                     Log.e(TAG, "삭제 이미지 업로드 실패함" + t.getMessage());
+                    future.complete(null);
+
                 }
             });
         }
