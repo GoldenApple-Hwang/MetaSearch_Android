@@ -106,7 +106,6 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
                     Log.e("Response Error", "Failed to receive successful response: " + response.message());
                 }
             }
-
             @Override
             public void onFailure(@NonNull Call<PhotoNameResponse> call, @NonNull Throwable t) {
                 Log.e("Request Error", "Failed to send request to server", t);
@@ -282,6 +281,7 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
         binding = null;
         Neo4jDriverManager.closeDriver();
     }
+    // 자연어 검색 창에서 검색 결과로 출력된 사진 클릭 시, 써클 투 써치로 전환
     @Override
     public void onImageClick(Uri uri) {
         Intent intent = new Intent(requireContext(), CircleToSearchActivity.class);
