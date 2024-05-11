@@ -145,7 +145,7 @@ public class CircleToSearchActivity extends AppCompatActivity
             binding.spinKit.setVisibility(View.VISIBLE);
 
             // AI Server로 이미지와 원 리스트 전송
-            aiRequestManager.uploadCircleData(imageUri, circles, "source", this, this);
+            aiRequestManager.uploadCircleData(imageUri, circles, DatabaseUtils.getPersistentDeviceDatabaseName(this), this, this);
         } else {
             StyleableToast.makeText(this, "이미지 또는 원 정보가 없습니다. 드래그 해서 원을 그려주세요.", R.style.customToast).show();
         }
