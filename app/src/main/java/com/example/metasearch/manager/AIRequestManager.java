@@ -57,7 +57,7 @@ public class AIRequestManager {
         return aiImageUploader;
     }
 
-    public void uploadPersonName(ApiService service,String DBName,String oldName,String newName){
+    public void uploadPersonName(String DBName,String oldName,String newName){
         RequestBody requestBody;
         MultipartBody.Part imagePart;
         CompletableFuture<Void> future = new CompletableFuture<>();
@@ -66,7 +66,7 @@ public class AIRequestManager {
         RequestBody oldNameBody = RequestBody.create(MediaType.parse("text/plain"),oldName); //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
         RequestBody newNameBody = RequestBody.create(MediaType.parse("text/plain"),newName); //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
 
-        Call<Void> call = service.upload_person_name(sourceBody,oldNameBody,newNameBody); //이미지 업로드 API 호출
+        Call<Void> call = aiService.upload_person_name(sourceBody,oldNameBody,newNameBody); //이미지 업로드 API 호출
         call.enqueue(new Callback<Void>() { //비동기
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
@@ -83,7 +83,7 @@ public class AIRequestManager {
         });
     }
 
-    public CompletableFuture<Void> fristUploadImage(ApiService service,String DBName){
+    public CompletableFuture<Void> fristUploadImage(String DBName){
         Log.d(TAG,"첫 번째 업로드");
         RequestBody requestBody;
         MultipartBody.Part imagePart;
@@ -92,7 +92,7 @@ public class AIRequestManager {
         RequestBody firstBody = RequestBody.create(MediaType.parse("text/plain"),"first"); //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
         RequestBody sourceBody = RequestBody.create(MediaType.parse("text/plain"),DBName); //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
 
-        Call<Void> call = service.upload_first(firstBody,sourceBody); //이미지 업로드 API 호출
+        Call<Void> call = aiService.upload_first(firstBody,sourceBody); //이미지 업로드 API 호출
         call.enqueue(new Callback<Void>() { //비동기
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
@@ -110,7 +110,7 @@ public class AIRequestManager {
         return future;
     }
 
-    public CompletableFuture<Void> completeUploadImage(DatabaseHelper databaseHelper,ApiService service,String DBName){
+    public CompletableFuture<Void> completeUploadImage(DatabaseHelper databaseHelper,String DBName){
         List<CompletableFuture<Void>> futuresList = new ArrayList<>();
         CompletableFuture<Void> future = new CompletableFuture<>();
         futuresList.add(future);
@@ -127,7 +127,7 @@ public class AIRequestManager {
         RequestBody indexBody = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(index)); //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
 
 
-        Call<UploadResponse> call = service.upload_finish(finishBody,sourceBody,indexBody); //이미지 업로드 API 호출
+        Call<UploadResponse> call = aiService.upload_finish(finishBody,sourceBody,indexBody); //이미지 업로드 API 호출
 
         call.enqueue(new Callback<UploadResponse>() { //비동기
             @Override
@@ -166,7 +166,7 @@ public class AIRequestManager {
         return CompletableFuture.allOf(futuresList.toArray(new CompletableFuture[0]));
     }
     //추가된 이미지 관해 서버에 전송
-    public CompletableFuture<Void> uploadAddGalleryImage( ArrayList<String> imagePaths, ApiService service, String source) throws IOException {
+    public CompletableFuture<Void> uploadAddGalleryImage( ArrayList<String> imagePaths,String source) throws IOException {
         List<CompletableFuture<Void>> futuresList = new ArrayList<>();
         Log.d(TAG,"uploadAddGalleryImage 안에 들어옴");
         //List<CompletableFuture<Void>> futuresList = new ArrayList<>();
@@ -188,7 +188,7 @@ public class AIRequestManager {
             //이미지 출처 정보를 전송할 RequestBody 생성
             RequestBody sourceBody = RequestBody.create(MediaType.parse("text/plain"),source); //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
             //API 호출
-            Call<Void> call = service.uploadAddImage(imagePart,sourceBody); //이미지 업로드 API 호출
+            Call<Void> call = aiService.uploadAddImage(imagePart,sourceBody); //이미지 업로드 API 호출
             call.enqueue(new Callback<Void>() { //비동기
                 @Override
                 public void onResponse(Call<Void> call, Response<Void> response) {
@@ -228,7 +228,7 @@ public class AIRequestManager {
     }
 
     //삭제된 이미지 관해 서버에 전송
-    public CompletableFuture<Void> uploadDeleteGalleryImage(DatabaseHelper databaseHelper, ArrayList<String>deleteImagePaths, ApiService service, String source){
+    public CompletableFuture<Void> uploadDeleteGalleryImage(DatabaseHelper databaseHelper, ArrayList<String>deleteImagePaths,String source){
         List<CompletableFuture<Void>> futuresList = new ArrayList<>();
 
         RequestBody requestBody;
@@ -246,7 +246,7 @@ public class AIRequestManager {
             // RequestBody endIndicatorBody = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(isFinal)); //갤러리의 마지막 요청인지에 대한 정보 전달
 
             //API 호출
-            Call<UploadResponse> call = service.UploadDeleteImage(imagePart,sourceBody); //이미지 업로드 API 호출
+            Call<UploadResponse> call = aiService.UploadDeleteImage(imagePart,sourceBody); //이미지 업로드 API 호출
             call.enqueue(new Callback<UploadResponse>() { //비동기
                 @Override
                 public void onResponse(Call<UploadResponse> call, Response<UploadResponse> response) {
@@ -285,7 +285,7 @@ public class AIRequestManager {
     }
 
     //Database 이미지 서버에 전송
-    public CompletableFuture<Void> uploadDBImage(ApiService service, Map<String, byte[]> imagesList, String source){
+    public CompletableFuture<Void> uploadDBImage(Map<String, byte[]> imagesList, String source){
         //데이터베이스 서버 요청이 다 끝나면, 다 끝났다는 것을 반환함
         Log.d(TAG,"uploadDBImage 들어옴");
         // 모든 비동기 작업을 추적하기 위한 CompletableFuture 리스트 생성
@@ -301,7 +301,7 @@ public class AIRequestManager {
             RequestBody sourceBody = RequestBody.create(MediaType.parse("text/plain"),source);
 
             //API 호출
-            Call<Void> call = service.uploadDatabaseImage(imagePart,sourceBody); //이미지 업로드 API 호출
+            Call<Void> call = aiService.uploadDatabaseImage(imagePart,sourceBody); //이미지 업로드 API 호출
             call.enqueue(new Callback<Void>() { //비동기
                 @Override
                 public void onResponse(Call<Void> call, Response<Void> response) {
