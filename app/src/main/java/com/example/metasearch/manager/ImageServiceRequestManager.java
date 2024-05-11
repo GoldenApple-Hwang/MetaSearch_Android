@@ -1,7 +1,14 @@
 package com.example.metasearch.manager;
 
+import android.app.Activity;
+import android.app.Dialog;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.util.Log;
+import android.widget.TextView;
+
+import androidx.core.app.NotificationCompat;
 
 import com.example.metasearch.dao.DatabaseHelper;
 import com.example.metasearch.helper.DatabaseUtils;
@@ -9,9 +16,11 @@ import com.example.metasearch.service.ApiService;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Handler;
 
 public class ImageServiceRequestManager {
     private static final String TAG = "ImageUploader"; //로그에 표시될 태그
@@ -22,13 +31,29 @@ public class ImageServiceRequestManager {
     private AIRequestManager aiRequestManager;
     private WebRequestManager webRequestManager;
     private ApiService webService;
+    private ImageDialogManager imageDialogManager;
     private static ImageServiceRequestManager instance;
+    private Dialog image_dialog; //이미지 분석/삭제 관련 다이얼로그
+    private NotificationManager mNotificationManager; // 알림 매니저
+    private NotificationCompat.Builder notifyBuilder; // 알림 빌더
+    private Notification notificationChannel; //알림 채널
+    private int progressMax = 100;
+    private int progressCurrent = 0;
+    private boolean is_finish_analyze = false; //현재 모든 분석이 100% 되었는지 여부
+    private static final String CHANNEL_ID = "channelID"; //channel을 구분하기 위한 ID
+    private static final String COMPLETE_CHANNEL_ID = "completeChannelID"; //channel을 구분하기 위한 ID(완료)
+    private static final int NOTIFICATION_ID = 0; //Notificaiton에 대한 ID 생성
+    private Runnable notificationRunnable;
+    private Handler handler;
+    private boolean isCancelled = false; //작업을 중단하기 위한 플래그
 
     private ImageServiceRequestManager(Context context, DatabaseHelper databaseHelper) {
         this.context = context;
         this.databaseHelper = databaseHelper;
 //        this.imageAnalyzeListController = imageAnalyzeList;
         this.imageAnalyzeListController = ImageAnalyzeListManager.getInstance();
+        this.imageDialogManager = ImageDialogManager.getImageDialogManager(context); //이미지 다이얼로그 객체 생성
+
 
     } //생성자
 
@@ -38,6 +63,7 @@ public class ImageServiceRequestManager {
         }
         return instance;
     }
+
 
     public void getImagePathsAndUpload() throws IOException, ExecutionException, InterruptedException { // 갤러리 이미지 경로 / 데이터베이스의 모든 얼굴 byte 가져옴
         Log.d(TAG,"getImagePathsAndUpload 함수 들어옴");
@@ -60,9 +86,22 @@ public class ImageServiceRequestManager {
         }
         //갤러리 이미지 경로 리스트 또는 데이터베이스 바이트 리스트가 null이어도 일단은 전달
 //        uploadImage(imagePaths,dbImages,"pro"); //이미지를 각각의 파일로 업로드 하는 함수 호출
-        uploadImage(imagePaths,dbImages, DatabaseUtils.getPersistentDeviceDatabaseName(context)); //이미지를 각각의 파일로 업로드 하는 함수 호출
-    }
+//        uploadImage(imagePaths,dbImages, DatabaseUtils.getPersistentDeviceDatabaseName(context)); //이미지를 각각의 파일로 업로드 하는 함수 호출
+        uploadImage(imagePaths,dbImages, "fiafia"); //이미지를 각각의 파일로 업로드 하는 함수 호출
 
+    }
+//    public void show_image_dialog_notificaiton(Context context,boolean is_add){
+//        if (context instanceof Activity) {
+//            ((Activity) context).runOnUiThread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    image_dialog = imageDialogManager.getImage_dialog(is_add);
+//                    image_dialog.show();
+//
+//                }
+//            });
+//        }
+//    }
     //이미지를 업로드하는 함수
     public void uploadImage(ArrayList<String> imagesPaths, Map<String,byte[]> dbBytes,String DBName) throws IOException, ExecutionException, InterruptedException {
         Log.d(TAG,"UplaodImage 함수에 들어옴");
@@ -73,6 +112,16 @@ public class ImageServiceRequestManager {
 
         Log.d(TAG,"uploadImage deletePaths 사이즈 : "+deletePaths.size());
         Log.d(TAG,"uploadImage addPaths 사이즈 : "+addImagePaths.size());
+
+        if (!addImagePaths.isEmpty()){
+            imageDialogManager.show_image_dialog_notificaiton(context,true);
+        }
+        else if(!deletePaths.isEmpty()){ //delete가 있는 것
+            imageDialogManager.show_image_dialog_notificaiton(context,false);
+        }
+        else if(addImagePaths.isEmpty() && deletePaths.isEmpty()){
+            imageDialogManager.show_no_image_dialog_notification(context);
+        }
 
         //만약 삭제할 이미지나 추가 이미지가 있으면
         if (!deletePaths.isEmpty() || !addImagePaths.isEmpty()) {
