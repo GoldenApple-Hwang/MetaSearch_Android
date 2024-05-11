@@ -50,7 +50,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "( ID INTEGER PRIMARY KEY AUTOINCREMENT, " // 프라이머리 키 추가
                 + "NAME TEXT NOT NULL, "
                 + "PHONENUMBER TEXT, "
-                + "USERNAME TEXT, "
                 + "IMAGE BLOB, " // 이미지 컬럼 추가
                 + "IS_DELETE INTEGER DEFAULT 0);"; // IS_VERIFIED 컬럼 추가, BOOLEAN 대신 INTEGER 사용
         sqLiteDatabase.execSQL(createQuery);
@@ -104,7 +103,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("NAME", name);
-        values.put("USERNAME",""); //'인물1'과 같이 나타냄
         values.put("IMAGE", imageBytes); //이미지 바이트
         values.put("PHONENUMBER",""); //휴대전화 번호 ""(기본값)
         //values.put(DBHelper.COLUMN_IMAGE, imageBytes);
@@ -119,10 +117,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public boolean updateUserName(String beforeUserName, String afterUserName) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put("USERNAME", afterUserName); // 변경할 새로운 사용자 이름 설정
+        values.put("NAME", afterUserName); // 변경할 새로운 사용자 이름 설정
 
         // USERNAME 컬럼이 beforeUserName과 일치하는 행을 찾아서 update 실행
-        String selection = "USERNAME = ?";
+        String selection = "NAME = ?";
         String[] selectionArgs = { beforeUserName };
 
         int result = db.update(TABLE_NAME, values, selection, selectionArgs);
@@ -169,7 +167,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         String phoneNumber = "";
 
-        String query = "SELECT PHONENUMBER FROM " + TABLE_NAME + " WHERE USERNAME = ?";
+        String query = "SELECT PHONENUMBER FROM " + TABLE_NAME + " WHERE NAME = ?";
         Cursor cursor = db.rawQuery(query, new String[]{userName});
 
         if (cursor.moveToFirst()) {
@@ -186,11 +184,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public boolean updateUserNameAndPhoneNumber(String beforeUserName, String afterUserName, String phoneNumber) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put("USERNAME", afterUserName);
+        values.put("NAME", afterUserName);
         values.put("PHONENUMBER", phoneNumber);
 
         // USERNAME 컬럼이 beforeUserName과 일치하는 행을 찾아서 update 실행
-        String selection = "USERNAME = ?";
+        String selection = "NAME = ?";
         String[] selectionArgs = { beforeUserName };
 
         int result = db.update(TABLE_NAME, values, selection, selectionArgs);
@@ -238,7 +236,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE IS_DELETE = 0", null);
 
             int imageNameColumnIndex = cursor.getColumnIndex(COLUMN_NAME);
-            int usernameColumnIndex = cursor.getColumnIndex(COLUMN_USERNAME);
             int imageColumnIndex = cursor.getColumnIndex(COLUMN_IMAGE);
             int phoneColumnIndex = cursor.getColumnIndex(COLUMN_PHONENUMBER);
             int isDeleteColumnIndex = cursor.getColumnIndex("IS_DELETE");
@@ -246,20 +243,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             if (cursor.moveToFirst()) {
                 do {
                     String imageName = cursor.getString(imageNameColumnIndex);
-                    String username = cursor.getString(usernameColumnIndex);
                     byte[] imageData = cursor.getBlob(imageColumnIndex);
                     String phoneNumber = cursor.getString(phoneColumnIndex);
                     Integer isDelete = cursor.getInt(isDeleteColumnIndex);
 
                     // Ensure the required fields are not null
-                    if (imageName != null && username != null && imageData != null) {
-                        Person person = new Person(imageName, username, imageData);
+                    if (imageName != null && imageData != null) {
+                        Person person = new Person(imageName, imageData);
                         person.setPhone(phoneNumber);
                         person.setIsDelete(isDelete);
 
                         // Add person to the list
                         people.add(person);
-                        Log.d(TAG, "Loaded data for username: " + username);
                     } else {
                         Log.d(TAG, "Null value found for username or image data");
                     }

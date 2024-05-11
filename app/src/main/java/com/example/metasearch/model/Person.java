@@ -7,7 +7,7 @@ public class Person {
     private String phone; // 인물의 전화번호. 기본값은 "".
     private Integer isDelete; // 삭제된 인물인지 나타냄. 기본값은 1, 삭제되면 0
 
-    public Person(String imageName, String name, byte[] image) {
+    public Person(String imageName, byte[] image) {
         this.imageName = imageName;
         this.userName = userName != null ? userName : "";
         this.image = image;

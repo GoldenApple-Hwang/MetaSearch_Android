@@ -58,7 +58,7 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
     public void onBindViewHolder(PersonViewHolder holder, int position) {
         Person person = people.get(position);
 //        holder.nameView.setText(person.getUserName());
-        holder.nameView.setText(person.getUserName());
+        holder.nameView.setText(person.getImageName());
 
         // 바이트 배열을 Bitmap으로 변환
         Bitmap imageBitmap = BitmapFactory.decodeByteArray(person.getImage(), 0, person.getImage().length);

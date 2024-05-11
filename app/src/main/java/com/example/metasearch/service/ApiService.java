@@ -1,5 +1,7 @@
 package com.example.metasearch.service;
 
+import com.example.metasearch.model.request.ChangeNameRequest;
+import com.example.metasearch.model.response.ChangeNameResponse;
 import com.example.metasearch.model.response.CircleDetectionResponse;
 import com.example.metasearch.model.response.PhotoResponse;
 import com.example.metasearch.model.response.PhotoNameResponse;
@@ -43,6 +45,9 @@ public interface ApiService {
     // Web 서버에 인물 이름 or 사진 이름 전송 후 이미지 전송 요청(people search)
     @POST("personsearch")
     Call<List<String>> sendPersonData(@Body RequestBody body);
+    // Web 서버에 인물 데이터(인물 이름) 수정 요청
+    @POST("changename")
+    Call<ChangeNameResponse> changeName(@Body ChangeNameRequest request);
 
 
     //AI서버에 추가 이미지 분석 요청
