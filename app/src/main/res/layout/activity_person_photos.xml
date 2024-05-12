@@ -44,19 +44,19 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="32dp"
         android:text="관련 사진"
         android:textSize="20dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayoutContainer" />
+        app:layout_constraintTop_toBottomOf="@+id/editbtn" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewPerson"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginStart="2dp"
+        android:layout_marginStart="1dp"
         android:layout_marginTop="4dp"
-        android:layout_marginEnd="2dp"
+        android:layout_marginEnd="1dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -67,13 +67,12 @@
         android:id="@+id/editbtn"
         android:layout_width="wrap_content"
         android:layout_height="30dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
         android:background="@drawable/rounded_button"
-        android:text="정보 수정"
         android:onClick="showEditPersonDialog"
+        android:text="정보 수정"
         android:textColor="@color/light_pink"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayoutContainer" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
