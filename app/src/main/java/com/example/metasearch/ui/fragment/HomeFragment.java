@@ -3,6 +3,7 @@ package com.example.metasearch.ui.fragment;
 import static com.example.metasearch.manager.GalleryImageManager.getAllGalleryImagesUri;
 
 import com.example.metasearch.dao.DatabaseHelper;
+import com.example.metasearch.interfaces.Update;
 import com.example.metasearch.manager.ImageServiceRequestManager;
 import com.example.metasearch.model.Person;
 import com.example.metasearch.ui.activity.MainActivity;
@@ -31,7 +32,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-public class HomeFragment extends Fragment implements ImageAdapter.OnImageClickListener {
+public class HomeFragment extends Fragment
+        implements ImageAdapter.OnImageClickListener, Update {
     private FragmentHomeBinding binding;
     //데이터베이스 관리 객체 가져옴
     private DatabaseHelper databaseHelper;
@@ -56,19 +58,27 @@ public class HomeFragment extends Fragment implements ImageAdapter.OnImageClickL
         databaseHelper = DatabaseHelper.getInstance(getContext());
         imageServiceRequestManager = ImageServiceRequestManager.getInstance(getContext(),databaseHelper);
     }
+    public void startImageAnalysis() {
+        try {
+            //이미지 분석 시작
+            imageServiceRequestManager.getImagePathsAndUpload();
+        } catch (IOException | InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+    }
     private void setupListeners() {
         //이미지 분석 버튼 클릭 시에
-        binding.imageAnalyzeBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    //이미지 분석 시작
-                    imageServiceRequestManager.getImagePathsAndUpload();
-                } catch (IOException | InterruptedException | ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        });
+//        binding.imageAnalyzeBtn.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                try {
+//                    //이미지 분석 시작
+//                    imageServiceRequestManager.getImagePathsAndUpload();
+//                } catch (IOException | InterruptedException | ExecutionException e) {
+//                    throw new RuntimeException(e);
+//                }
+//            }
+//        });
         // 리사이클러뷰 스크롤에 따라 하단의 네비바 높이 조절
         binding.galleryRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -123,5 +133,9 @@ public class HomeFragment extends Fragment implements ImageAdapter.OnImageClickL
         super.onResume();
         loadFaceImages(); // 항상 최신 데이터 로드
         loadAllGalleryImages(); // 항상 최신 데이터 로드
+    }
+    @Override
+    public void performDataUpdate() {
+        startImageAnalysis();
     }
 }
