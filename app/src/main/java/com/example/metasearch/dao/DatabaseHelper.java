@@ -26,7 +26,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     static final String TABLE_NAME = "Faces";
     private static final String COLUMN_IMAGE = "IMAGE"; // 이미지 컬럼
     private static final String COLUMN_NAME = "NAME"; // 이미지 이름 컬럼
-    private static final String COLUMN_USERNAME = "USERNAME"; // 유저가 입력한 이름 컬럼
     private static final String COLUMN_PHONENUMBER = "PHONENUMBER"; // 전화번호 컬럼
     private static DatabaseHelper instance;
 
