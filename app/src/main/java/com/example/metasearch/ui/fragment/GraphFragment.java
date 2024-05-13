@@ -28,6 +28,8 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.metasearch.databinding.FragmentGraphBinding;
 import com.example.metasearch.helper.DatabaseUtils;
+import com.example.metasearch.ui.activity.CircleToSearchActivity;
+import com.example.metasearch.ui.activity.GraphDisplayActivity;
 import com.example.metasearch.ui.viewmodel.GraphViewModel;
 
 import java.util.ArrayList;
@@ -138,6 +140,15 @@ public class GraphFragment extends Fragment {
         imageViews.add(0, imageView);
         binding.imageContainer.addView(imageView, 0);
         existingUris.add(0, uri); // 새 URI를 리스트의 맨 앞에 추가
+
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(requireContext(), GraphDisplayActivity.class);
+                intent.putExtra("imageUri", uri.toString());
+                startActivity(intent);
+            }
+        });
 
         imageView.setOnLongClickListener(v -> {
             shareImage(uri);
