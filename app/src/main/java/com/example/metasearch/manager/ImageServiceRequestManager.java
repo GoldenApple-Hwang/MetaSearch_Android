@@ -85,10 +85,7 @@ public class ImageServiceRequestManager {
             Log.d(TAG,"imagesPath는 안 비어있음");
         }
         //갤러리 이미지 경로 리스트 또는 데이터베이스 바이트 리스트가 null이어도 일단은 전달
-//        uploadImage(imagePaths,dbImages,"pro"); //이미지를 각각의 파일로 업로드 하는 함수 호출
-//        uploadImage(imagePaths,dbImages, DatabaseUtils.getPersistentDeviceDatabaseName(context)); //이미지를 각각의 파일로 업로드 하는 함수 호출
-        uploadImage(imagePaths,dbImages, "fiafia"); //이미지를 각각의 파일로 업로드 하는 함수 호출
-
+        uploadImage(imagePaths, dbImages, DatabaseUtils.getPersistentDeviceDatabaseName(context)); //이미지를 각각의 파일로 업로드 하는 함수 호출
     }
 //    public void show_image_dialog_notificaiton(Context context,boolean is_add){
 //        if (context instanceof Activity) {
