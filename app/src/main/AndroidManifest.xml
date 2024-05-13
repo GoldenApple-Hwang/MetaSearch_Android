@@ -20,6 +20,7 @@
         <activity android:name="com.example.metasearch.ui.activity.PersonPhotosActivity" />
         <activity android:name="com.example.metasearch.ui.activity.CircleToSearchActivity" />
         <activity android:name="com.example.metasearch.ui.activity.ImageDisplayActivity" />
+        <activity android:name="com.example.metasearch.ui.activity.GraphDisplayActivity" />
         <activity
             android:name=".ui.activity.MainActivity"
             android:exported="true"
