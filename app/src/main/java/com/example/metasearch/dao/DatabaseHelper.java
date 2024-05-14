@@ -2,6 +2,7 @@ package com.example.metasearch.dao;
 
 import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.res.Resources;
@@ -161,16 +162,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         // 이미지 데이터가 담긴 HashMap 반환
         return imagesMap;
     }
-    // 특정 인물의 전화번호를 가져오는 메서드
-    public String getPhoneNumber(String userName) {
+    public void markPersonAsDeleted(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("IS_DELETE", 1); // Set isDelete to 1 to indicate logical deletion
+
+        // Perform the update on rows matching the specified ID
+        int result = db.update(TABLE_NAME, values, "ID = ?", new String[]{String.valueOf(id)});
+        db.close();
+    }
+    public String getPhoneNumberById(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
         String phoneNumber = "";
 
-        String query = "SELECT PHONENUMBER FROM " + TABLE_NAME + " WHERE NAME = ?";
-        Cursor cursor = db.rawQuery(query, new String[]{userName});
+        // 쿼리에서 ID를 기준으로 전화번호를 조회합니다.
+        String query = "SELECT " + COLUMN_PHONENUMBER + " FROM " + TABLE_NAME + " WHERE ID = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(id)});
 
         if (cursor.moveToFirst()) {
-            phoneNumber = cursor.getString(cursor.getColumnIndexOrThrow("PHONENUMBER"));
+            phoneNumber = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PHONENUMBER));
         }
 
         cursor.close();
@@ -178,52 +188,37 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return phoneNumber;
     }
+    public Person getPersonById(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_NAME, new String[]{COLUMN_NAME, COLUMN_IMAGE, COLUMN_PHONENUMBER}, "ID = ?", new String[]{String.valueOf(id)}, null, null, null);
+        Person person = null;
 
-    // 유저가 이름을 입력하면 USERNAME을 해당 이름으로 변경
-    public boolean updateUserNameAndPhoneNumber(String beforeUserName, String afterUserName, String phoneNumber) {
+        if (cursor.moveToFirst()) {
+            @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
+            @SuppressLint("Range") byte[] image = cursor.getBlob(cursor.getColumnIndex(COLUMN_IMAGE));
+            @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(COLUMN_PHONENUMBER));
+            person = new Person(id, name, image);
+            person.setPhone(phoneNumber);
+        }
+
+        cursor.close();
+        db.close();
+        return person;
+    }
+    public boolean updatePersonById(int id, String newName, String newPhoneNumber) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put("NAME", afterUserName);
-        values.put("PHONENUMBER", phoneNumber);
+        values.put(COLUMN_NAME, newName);
+        values.put(COLUMN_PHONENUMBER, newPhoneNumber);
 
-        // USERNAME 컬럼이 beforeUserName과 일치하는 행을 찾아서 update 실행
-        String selection = "NAME = ?";
-        String[] selectionArgs = { beforeUserName };
+        String selection = "ID = ?";
+        String[] selectionArgs = { Integer.toString(id) };
 
         int result = db.update(TABLE_NAME, values, selection, selectionArgs);
+        db.close();
 
-        db.close(); // 데이터베이스 사용 후 닫기
-
-        return result != -1; // 하나 이상의 행이 변경되었다면 true, 아니면 false 반환
+        return result > 0;
     }
-//    public List<Person> getAllPerson() {
-//        List<Person> people = new ArrayList<>();
-//        SQLiteDatabase db = this.getReadableDatabase();
-//        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
-//
-//        int imageNameColumnIndex = cursor.getColumnIndex("NAME");
-//        int usernameColumnIndex = cursor.getColumnIndex("USERNAME");
-//        int imageColumnIndex = cursor.getColumnIndex("IMAGE");
-//
-//        if (cursor.moveToFirst()) {
-//            do {
-//                String imageName = cursor.getString(imageNameColumnIndex); // 사진 이름
-//                String username = cursor.getString(usernameColumnIndex); // 인물 이름
-//                byte[] imageData = cursor.getBlob(imageColumnIndex); // 사진 데이터
-//                if (imageName != null && username != null && imageData != null) {
-//                    people.add(new Person(imageName,username,imageData));
-//                    Log.d(TAG, "Loaded byte data for username: " + username);
-//                } else {
-//                    Log.d(TAG, "Null value found for username or image data");
-//                }
-//            } while (cursor.moveToNext());
-//        } else {
-//            Log.d(TAG, "No data found in the database");
-//        }
-//        cursor.close();
-//        db.close();
-//        return people;
-//    }
     // 데이터베이스에서 모든 행의 정보(사진 이름, 사진 정보, 인물 이름)를 가져와서 Person 데이터 모델 형식으로 반환
     public List<Person> getAllPerson() {
         List<Person> people = new ArrayList<>();
@@ -234,6 +229,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             // Include a WHERE clause to return only rows with isDelete = 0
             cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE IS_DELETE = 0", null);
 
+            int idColumnIndex = cursor.getColumnIndex("ID");
             int imageNameColumnIndex = cursor.getColumnIndex(COLUMN_NAME);
             int imageColumnIndex = cursor.getColumnIndex(COLUMN_IMAGE);
             int phoneColumnIndex = cursor.getColumnIndex(COLUMN_PHONENUMBER);
@@ -241,6 +237,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             if (cursor.moveToFirst()) {
                 do {
+                    int id = cursor.getInt(idColumnIndex);
                     String imageName = cursor.getString(imageNameColumnIndex);
                     byte[] imageData = cursor.getBlob(imageColumnIndex);
                     String phoneNumber = cursor.getString(phoneColumnIndex);
@@ -248,7 +245,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
                     // Ensure the required fields are not null
                     if (imageName != null && imageData != null) {
-                        Person person = new Person(imageName, imageData);
+                        Person person = new Person(id, imageName, imageData);
                         person.setPhone(phoneNumber);
                         person.setIsDelete(isDelete);
 
