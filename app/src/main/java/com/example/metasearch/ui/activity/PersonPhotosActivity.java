@@ -21,6 +21,7 @@ import com.example.metasearch.helper.DatabaseUtils;
 import com.example.metasearch.manager.AIRequestManager;
 import com.example.metasearch.manager.GalleryImageManager;
 import com.example.metasearch.manager.WebRequestManager;
+import com.example.metasearch.model.Person;
 import com.example.metasearch.ui.adapter.ImageAdapter;
 import com.example.metasearch.ui.viewmodel.ImageViewModel;
 
@@ -36,6 +37,7 @@ public class PersonPhotosActivity extends AppCompatActivity
     private WebRequestManager webRequestManager;
     private AIRequestManager aiRequestManager;
     private ActivityPersonPhotosBinding binding;
+    private Integer id;
     private String imageName;
     private byte[] imageData;
     private DatabaseHelper databaseHelper;
@@ -74,8 +76,15 @@ public class PersonPhotosActivity extends AppCompatActivity
         aiRequestManager = AIRequestManager.getAiImageUploader();
         webRequestManager = WebRequestManager.getWebImageUploader();
         databaseHelper = DatabaseHelper.getInstance(this);
-        imageName = getIntent().getStringExtra("imageName");
-        imageData = getIntent().getByteArrayExtra("imageData");
+
+        id = getIntent().getIntExtra("id", -1);
+        if (id != -1) {
+            Person person = databaseHelper.getPersonById(id);
+            if (person != null) {
+                imageName = person.getImageName();
+                imageData = person.getImage();
+            }
+        }
     }
     // 인물 정보(이름, 전화번호) 수정 다이얼로그
     private void showEditPersonDialog() {
@@ -87,7 +96,7 @@ public class PersonPhotosActivity extends AppCompatActivity
         EditText editPhoneNumber = dialogView.findViewById(R.id.editPhoneNumber);
 
         editPersonName.setText(imageName);
-        editPhoneNumber.setText(databaseHelper.getPhoneNumber(imageName));
+        editPhoneNumber.setText(databaseHelper.getPhoneNumberById(id));
 
         builder.setView(dialogView)
                 .setTitle("인물 정보 수정")
@@ -98,7 +107,8 @@ public class PersonPhotosActivity extends AppCompatActivity
                     // 이름 및 전화번호 업데이트
                     if (!newPersonName.isEmpty()) {
                         // 얼굴 DB 업데이트
-                        boolean updateSuccess = databaseHelper.updateUserNameAndPhoneNumber(imageName, newPersonName, newPhoneNumber);
+//                        boolean updateSuccess = databaseHelper.updateUserNameAndPhoneNumber(imageName, newPersonName, newPhoneNumber);
+                        boolean updateSuccess = databaseHelper.updatePersonById(id, newPersonName, newPhoneNumber);
                         if (updateSuccess) {
                             // 웹 서버에 이름 변경 요청 보내기
                             webRequestManager.changePersonName(
@@ -152,6 +162,7 @@ public class PersonPhotosActivity extends AppCompatActivity
 
         updateUIWithMatchedUris(matchedUris);
     }
+
     // UI 업데이트
     @Override
     public void onPersonDataUploadSuccess(List<String> personImages) {
