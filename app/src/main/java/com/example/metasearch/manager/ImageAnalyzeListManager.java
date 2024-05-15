@@ -70,4 +70,11 @@ public class ImageAnalyzeListManager {
         return  addImagePaths;
     }
 
+    //네트워크 에러로 인해 분석되지 않은 이미지 경로를 분석된 이미지 리스트에서 삭재하는 함수
+    public void delete_fail_image_analyze(String imagePath){
+        //해당 이미지는 분석되지 않았다고 처리함
+        analyzed_image_list.remove(imagePath);
+
+    }
+
 }
