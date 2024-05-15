@@ -1,22 +1,20 @@
 package com.example.metasearch.manager;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.util.Log;
-import android.widget.TextView;
 
 import androidx.core.app.NotificationCompat;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
 
 import com.example.metasearch.dao.DatabaseHelper;
 import com.example.metasearch.helper.DatabaseUtils;
 import com.example.metasearch.service.ApiService;
 
-import java.io.File;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -31,7 +29,8 @@ public class ImageServiceRequestManager {
     private AIRequestManager aiRequestManager;
     private WebRequestManager webRequestManager;
     private ApiService webService;
-    private ImageDialogManager imageDialogManager;
+    private ImageDialogManager imageDialogManager; // 다이얼로그 매니저
+    private ImageNotificationManager imageNotificationManager; // 알림 매니저
     private static ImageServiceRequestManager instance;
     private Dialog image_dialog; //이미지 분석/삭제 관련 다이얼로그
     private NotificationManager mNotificationManager; // 알림 매니저
@@ -43,17 +42,15 @@ public class ImageServiceRequestManager {
     private static final String CHANNEL_ID = "channelID"; //channel을 구분하기 위한 ID
     private static final String COMPLETE_CHANNEL_ID = "completeChannelID"; //channel을 구분하기 위한 ID(완료)
     private static final int NOTIFICATION_ID = 0; //Notificaiton에 대한 ID 생성
-    private Runnable notificationRunnable;
-    private Handler handler;
-    private boolean isCancelled = false; //작업을 중단하기 위한 플래그
+
 
     private ImageServiceRequestManager(Context context, DatabaseHelper databaseHelper) {
         this.context = context;
         this.databaseHelper = databaseHelper;
 //        this.imageAnalyzeListController = imageAnalyzeList;
         this.imageAnalyzeListController = ImageAnalyzeListManager.getInstance();
-        this.imageDialogManager = ImageDialogManager.getImageDialogManager(context); //이미지 다이얼로그 객체 생성
-
+        this.imageDialogManager = ImageDialogManager.getImageDialogManager(context);
+        this.imageNotificationManager = ImageNotificationManager.getImageNotification(context);
 
     } //생성자
 
@@ -63,7 +60,6 @@ public class ImageServiceRequestManager {
         }
         return instance;
     }
-
 
     public void getImagePathsAndUpload() throws IOException, ExecutionException, InterruptedException { // 갤러리 이미지 경로 / 데이터베이스의 모든 얼굴 byte 가져옴
         Log.d(TAG,"getImagePathsAndUpload 함수 들어옴");
@@ -110,14 +106,26 @@ public class ImageServiceRequestManager {
         Log.d(TAG,"uploadImage deletePaths 사이즈 : "+deletePaths.size());
         Log.d(TAG,"uploadImage addPaths 사이즈 : "+addImagePaths.size());
 
-        if (!addImagePaths.isEmpty()){
+        if (!addImagePaths.isEmpty()){ //추가 분석할 것이 있다면
+            int size = 0;
+            // 다이얼로그 띄움
             imageDialogManager.show_image_dialog_notificaiton(context,true);
+            if (!deletePaths.isEmpty()){ // 만약 삭제 이미지가 있다면
+                // 삭제 이미지 사이즈를 size에 합침
+                size+=deletePaths.size();
+            }
+            // 알림 띄움
+            imageNotificationManager.showUpdateNotificationProgress(context, size+=addImagePaths.size()); //분석할 이미지의 개수를 size에 합침
+
         }
-        else if(!deletePaths.isEmpty()){ //delete가 있는 것
+        else if(!deletePaths.isEmpty()){ //삭제할 것이 있다면(추가 분석할 것은 없음)
+            // 다이얼로그 띄움
             imageDialogManager.show_image_dialog_notificaiton(context,false);
+            // 삭제만 있으면 알림 안 띄움 (이미지 분석을 기준으로 알림을 띄우는 것)
         }
-        else if(addImagePaths.isEmpty() && deletePaths.isEmpty()){
+        else if(addImagePaths.isEmpty() && deletePaths.isEmpty()){ // 추가/삭제 할 것이 없음
             imageDialogManager.show_no_image_dialog_notification(context);
+            // 분석이 없으면 알림할 필요없음
         }
 
         //만약 삭제할 이미지나 추가 이미지가 있으면
@@ -125,7 +133,7 @@ public class ImageServiceRequestManager {
             //ArrayList<String> safeDeletePaths = deletePaths != null ? deletePaths : new ArrayList<>();
             //ArrayList<String> safeAddImagePaths = addImagePaths != null ? addImagePaths : new ArrayList<>();
             if(dbBytes!=null){
-                aiRequestManager.fristUploadImage(DBName).thenRun(()->{
+                aiRequestManager.firstUploadImage(DBName).thenRun(()->{
                     aiRequestManager.uploadDBImage(dbBytes, DBName).thenRun(() -> { //콜백 설정함 //db 요청 끝나고 사진 분석 요청 보냄
                         try {
                             //추가나 삭제 이미지를 서버에 전송
@@ -176,7 +184,23 @@ public class ImageServiceRequestManager {
                     aiRequestManager.uploadAddGalleryImage(addImagePaths,DBName).thenRun(() -> {
                         //콜백 설정
                         //모든 요청이 끝났다는 마지막 요청
-                        aiRequestManager.completeUploadImage(databaseHelper,DBName);
+                        aiRequestManager.completeUploadImage(databaseHelper,DBName).thenRun(()->{
+                            try {
+                                // 해당 프로그래스 바 강제 100% 완료, runnable에서 삭제
+                                imageNotificationManager.cancelProceedProgressbar();
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+
+                            //완료 알림을 화면에 띄움
+                            //imageNotificationManager.showCompleteNotification(context);
+                            // 완료 알림을 화면에 띄움
+                            OneTimeWorkRequest notificationWork = new OneTimeWorkRequest.Builder(NotificationWorker.class)
+                                    .build();
+                            WorkManager.getInstance(context).enqueue(notificationWork);
+
+
+                        });
                     });
                 } catch (IOException e) {
                     throw new RuntimeException(e);
@@ -192,6 +216,7 @@ public class ImageServiceRequestManager {
 
                 //AI 서버에 모든 요청이 마무리 되었다는 요청
                 aiRequestManager.completeUploadImage(databaseHelper,DBName);
+                //삭제는 띄울 알람이 없음
                 Log.d(TAG,"모든 이미지 전송 완료");
             });
         }
@@ -206,7 +231,21 @@ public class ImageServiceRequestManager {
                 //콜백 설정
 
                 //AI 서버에 모든 요청이 보내졌다는 마무리 요청
-                aiRequestManager.completeUploadImage(databaseHelper,DBName);
+                aiRequestManager.completeUploadImage(databaseHelper,DBName).thenRun(()->{
+
+                    try {
+                        // 해당 프로그래스 바 강제 100% 종료, runnable에서 삭제
+                        imageNotificationManager.cancelProceedProgressbar();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                   // imageNotificationManager.showCompleteNotification(context);
+                    // 완료 알림을 화면에 띄움
+                    OneTimeWorkRequest notificationWork = new OneTimeWorkRequest.Builder(NotificationWorker.class)
+                            .build();
+                    WorkManager.getInstance(context).enqueue(notificationWork);
+
+                });
             });
         }
 
