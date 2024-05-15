@@ -31,6 +31,8 @@ import com.example.metasearch.databinding.FragmentHomeBinding;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class HomeFragment extends Fragment
         implements ImageAdapter.OnImageClickListener, Update {
@@ -59,13 +61,18 @@ public class HomeFragment extends Fragment
         imageServiceRequestManager = ImageServiceRequestManager.getInstance(getContext(),databaseHelper);
     }
     public void startImageAnalysis() {
-        try {
-            //이미지 분석 시작
-            imageServiceRequestManager.getImagePathsAndUpload();
-        } catch (IOException | InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
-        }
+        ExecutorService executor = Executors.newSingleThreadExecutor(); // 단일 스레드를 사용하는 ExecutorService 생성
+        executor.submit(() -> {
+            try {
+                // 이미지 분석 시작
+                imageServiceRequestManager.getImagePathsAndUpload();
+            } catch (IOException | InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        executor.shutdown(); // 작업을 시작한 후 ExecutorService를 종료합니다. 이는 현재 진행 중인 작업이 완료될 때까지 기다립니다.
     }
+
     private void setupListeners() {
         //이미지 분석 버튼 클릭 시에
 //        binding.imageAnalyzeBtn.setOnClickListener(new View.OnClickListener() {
