@@ -83,7 +83,7 @@ public class AIRequestManager {
         });
     }
 
-    public CompletableFuture<Void> fristUploadImage(String DBName){
+    public CompletableFuture<Void> firstUploadImage(String DBName){
         Log.d(TAG,"첫 번째 업로드");
         RequestBody requestBody;
         MultipartBody.Part imagePart;
@@ -289,7 +289,7 @@ public class AIRequestManager {
     }
 
     //Database 이미지 서버에 전송
-    public CompletableFuture<Void> uploadDBImage(Map<String, byte[]> imagesList, String source){
+    public CompletableFuture<Void> uploadDBImage(Map<String, byte[]> imagesList, String dbName){
         //데이터베이스 서버 요청이 다 끝나면, 다 끝났다는 것을 반환함
         Log.d(TAG,"uploadDBImage 들어옴");
         // 모든 비동기 작업을 추적하기 위한 CompletableFuture 리스트 생성
@@ -302,7 +302,7 @@ public class AIRequestManager {
             MultipartBody.Part imagePart = MultipartBody.Part.createFormData("faceImage",database_image_element.getKey(),requestBody);
 
             //이미지 출처 정보를 전송할 RequestBody 생성
-            RequestBody sourceBody = RequestBody.create(MediaType.parse("text/plain"),source);
+            RequestBody sourceBody = RequestBody.create(MediaType.parse("text/plain"),dbName);
 
             //API 호출
             Call<Void> call = aiService.uploadDatabaseImage(imagePart,sourceBody); //이미지 업로드 API 호출
