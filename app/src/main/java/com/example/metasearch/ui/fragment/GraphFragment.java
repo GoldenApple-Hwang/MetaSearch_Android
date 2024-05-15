@@ -69,7 +69,7 @@ public class GraphFragment extends Fragment {
 //        String dbName = "meet";
 //        binding.webView.loadUrl("http://113.198.85.4/graph/" + dbName );
         // 수정 후 코드
-        binding.webView.loadUrl("http://113.198.85.4/graph/" + DatabaseUtils.getPersistentDeviceDatabaseName(getContext()));
+        binding.webView.loadUrl("http://113.198.85.6/graph/" + DatabaseUtils.getPersistentDeviceDatabaseName(getContext()));
 
         return root;
     }
