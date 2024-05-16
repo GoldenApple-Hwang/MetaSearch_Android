@@ -58,7 +58,7 @@ import retrofit2.Response;
 public class SearchFragment extends Fragment
         implements ImageAdapter.OnImageClickListener, Update {
     private static final String OPENAI_URL = "https://api.openai.com/";
-    private static final String WEB_SERVER_URL = "http://113.198.85.4";
+    private static final String WEB_SERVER_URL = "http://113.198.85.6";
     private ImageViewModel imageViewModel;
     private final Neo4jDatabaseManager Neo4jDatabaseManager = new Neo4jDatabaseManager();
     private FragmentSearchBinding binding;
