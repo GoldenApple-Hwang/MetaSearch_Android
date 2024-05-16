@@ -30,7 +30,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 
 public class WebRequestManager {
-    private static final String Webserver_BASE_URL = "http://113.198.85.4"; // web 서버의 기본 url
+    private static final String Webserver_BASE_URL = "http://113.198.85.6"; // web 서버의 기본 url
     private static WebRequestManager webImageUploader;
     private Retrofit webRetrofit;
     private ApiService webService;
