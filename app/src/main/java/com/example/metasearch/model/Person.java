@@ -12,6 +12,7 @@ public class Person {
         this.id = id;
         this.imageName = imageName;
         this.image = image;
+        this.inputName = "";
         this.phone = "";
         this.isDelete = 0;
     }
