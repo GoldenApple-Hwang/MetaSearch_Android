@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">MetaSearch</string>
-    <string name="title_home">MetaSearch</string>
+    <string name="app_name">Visualize Me</string>
+    <string name="title_home">Visualize Me</string>
     <string name="title_refresh"> </string>
     <string name="title_search">검색</string>
     <string name="title_graph">그래프</string>
