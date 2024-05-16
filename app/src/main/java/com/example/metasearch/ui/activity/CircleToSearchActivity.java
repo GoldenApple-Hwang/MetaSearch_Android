@@ -1,8 +1,11 @@
 package com.example.metasearch.ui.activity;
 
+import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
+
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -206,17 +209,24 @@ public class CircleToSearchActivity extends AppCompatActivity
     @Override
     public void onCircleUploadSuccess(List<String> detectedObjects) {
         runOnUiThread(() -> {
-            MenuItem searchItem = binding.circleMenu.getMenu().findItem(R.id.search);
-            searchItem.setEnabled(true); // 검색 버튼 활성화
-            binding.spinKit.setVisibility(View.GONE); // 로딩 아이콘 숨김
-            if (detectedObjects.isEmpty()) {
-                StyleableToast.makeText(this, "No objects detected.", R.style.customToast).show();
-            } else {
-                // Web Server로 이미지 분석 결과 전송
-                webRequestManager.sendDetectedObjectsToAnotherServer(detectedObjects, DatabaseUtils.getPersistentDeviceDatabaseName(this), this);
+            try {
+                MenuItem searchItem = binding.circleMenu.getMenu().findItem(R.id.search);
+                searchItem.setEnabled(true); // 검색 버튼 활성화
+                binding.spinKit.setVisibility(View.GONE); // 로딩 아이콘 숨김
+                if (detectedObjects.isEmpty()) {
+                    StyleableToast.makeText(this, "분석된 객체가 없습니다.", R.style.customToast).show();
+                } else {
+                    // Web Server로 이미지 분석 결과 전송
+                    webRequestManager.sendDetectedObjectsToAnotherServer(detectedObjects, DatabaseUtils.getPersistentDeviceDatabaseName(this), this);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error updating UI: ", e);
+                StyleableToast.makeText(this, "분석된 객체가 없습니다.", R.style.customToast).show();
+//                StyleableToast.makeText(this, "Error in processing: " + e.getMessage(), R.style.customToast).show();
             }
         });
     }
+
     @Override
     public void onCircleUploadFailure(String message) {
         runOnUiThread(() -> {
