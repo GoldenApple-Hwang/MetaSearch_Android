@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -96,6 +97,19 @@ public class SearchFragment extends Fragment
                         activity.showBottomNavigationView();
                     }
                 }
+            }
+        });
+
+        binding.searchText.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                // 엔터 키가 눌렸는지 확인
+                if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN) {
+                    // 검색 실행 코드
+                    retrieve();
+                    return true; // 이벤트 처리 완료
+                }
+                return false; // 다른 키 이벤트는 기본 동작 수행
             }
         });
     }
