@@ -43,9 +43,9 @@
         android:id="@+id/galleryRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginStart="1dp"
+        android:layout_marginStart="3dp"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="1dp"
+        android:layout_marginEnd="3dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
@@ -64,7 +64,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
-        android:id="@+id/imageView3"
+        android:id="@+id/rankingBtn"
         android:layout_width="18dp"
         android:layout_height="21dp"
         android:layout_marginTop="16dp"
