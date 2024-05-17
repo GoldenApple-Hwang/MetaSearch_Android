@@ -19,7 +19,7 @@
     <style name="CustomAlertDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
         <item name="colorAccent">@color/rose</item> <!-- Accent Color -->
         <item name="android:textColorPrimary">@color/rose</item> <!-- Primary Text Color -->
-        <item name="android:background">@color/white</item> <!-- 다이얼로그 배경 -->
-        <item name="android:windowBackground">@color/white</item> <!-- 다이얼로그 창 배경 -->
+        <item name="android:background">@color/light_grey</item> <!-- 다이얼로그 배경 -->
+        <item name="android:windowBackground">@drawable/dialog_background</item> <!-- 다이얼로그 창 배경 -->
     </style>
 </resources>
