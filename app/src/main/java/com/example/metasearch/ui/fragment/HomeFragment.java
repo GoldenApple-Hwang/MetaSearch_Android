@@ -110,7 +110,7 @@ public class HomeFragment extends Fragment
             Log.d("HomeFragment", "No face images found.");
             return;
         }
-
+        Log.d("inputName", people.toString());
         PersonAdapter adapter = new PersonAdapter(people, this, getContext());
         LinearLayoutManager layoutManager = new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false);
         binding.personRecyclerViewHorizon.setLayoutManager(layoutManager);
