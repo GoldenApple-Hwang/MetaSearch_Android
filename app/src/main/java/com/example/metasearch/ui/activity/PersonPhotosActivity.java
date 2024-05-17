@@ -118,7 +118,9 @@ public class PersonPhotosActivity extends AppCompatActivity
                         .setMessage("이미 존재하는 이름 입니다. 그래도 저장하시겠습니까?")
                         .setPositiveButton("예", (dialogInterface, i) -> {
                             updatePersonInfo(newPersonName, newPhoneNumber);
+//                            webRequestManager.changePersonName(DatabaseUtils.getPersistentDeviceDatabaseName(this), inputName, newPersonName);
                             dialog.dismiss();
+//                            inputName = newPersonName;
                         })
                         .setNegativeButton("아니요", (dialogInterface, i) -> {
                             // 사용자가 'No'를 선택했을 때 아무 것도 하지 않음
