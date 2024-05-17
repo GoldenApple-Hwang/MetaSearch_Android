@@ -29,8 +29,10 @@ import com.example.metasearch.interfaces.Update;
 import com.example.metasearch.manager.GalleryImageManager;
 import com.example.metasearch.manager.Neo4jDatabaseManager;
 import com.example.metasearch.manager.Neo4jDriverManager;
+import com.example.metasearch.manager.WebRequestManager;
 import com.example.metasearch.model.request.NLQueryRequest;
 import com.example.metasearch.model.response.PhotoNameResponse;
+import com.example.metasearch.model.response.PhotoResponse;
 import com.example.metasearch.service.ApiService;
 import com.example.metasearch.model.Choice;
 import com.example.metasearch.model.Message;
@@ -58,6 +60,7 @@ import retrofit2.Response;
 
 public class SearchFragment extends Fragment
         implements ImageAdapter.OnImageClickListener, Update {
+    private WebRequestManager webRequestManager;
     private static final String OPENAI_URL = "https://api.openai.com/";
     private static final String WEB_SERVER_URL = "http://113.198.85.6";
     private ImageViewModel imageViewModel;
@@ -73,7 +76,7 @@ public class SearchFragment extends Fragment
         View root = binding.getRoot();
 
         imageViewModel.getImageUris().observe(getViewLifecycleOwner(), this::updateRecyclerView);
-
+        webRequestManager = WebRequestManager.getWebImageUploader(); // 인스턴스 생성
         setupRecyclerView();
         setupListeners();
         setupAutoCompleteTextView();
@@ -110,45 +113,6 @@ public class SearchFragment extends Fragment
                     return true; // 이벤트 처리 완료
                 }
                 return false; // 다른 키 이벤트는 기본 동작 수행
-            }
-        });
-    }
-    private void sendQueryToServer(String dbName, String query) {
-        ApiService service = HttpHelper.getInstance(WEB_SERVER_URL).create(ApiService.class);
-        Gson gson = new Gson();
-
-        NLQueryRequest nlQueryRequest = new NLQueryRequest(dbName, query);
-        Map<String, String> jsonMap = new HashMap<>();
-        jsonMap.put("dbName", nlQueryRequest.getDbName());
-        jsonMap.put("query", nlQueryRequest.getQuery());
-
-        String jsonObject = gson.toJson(jsonMap);
-        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonObject);
-
-        Call<PhotoNameResponse> call = service.sendCypherQuery(requestBody);
-        call.enqueue(new Callback<PhotoNameResponse>() {
-            @Override
-            public void onResponse(@NonNull Call<PhotoNameResponse> call, @NonNull Response<PhotoNameResponse> response) {
-                if (response.isSuccessful()) {
-                    PhotoNameResponse photoNameResponse = response.body();
-                    if (photoNameResponse != null && photoNameResponse.getPhotoName() != null) {
-                        Log.d("PhotoNames", photoNameResponse.getPhotoName().toString());
-
-                        List<Uri> matchedUris = findMatchedUris(photoNameResponse.getPhotoName(), requireContext());
-
-                        updateUIWithMatchedUris(matchedUris);
-
-                    } else {
-                        Log.e("Response Error", "Received null response body or empty photos list");
-                    }
-                } else {
-                    Log.e("Response Error", "Failed to receive successful response: " + response.message());
-                }
-            }
-            @Override
-            public void onFailure(@NonNull Call<PhotoNameResponse> call, @NonNull Throwable t) {
-                updateUIWithMatchedUris(new ArrayList<>());
-                Log.e("Request Error", "Failed to send request to server", t);
             }
         });
     }
@@ -214,7 +178,6 @@ public class SearchFragment extends Fragment
                                     relationships.add(parts[i + 1].trim()); // 공백 제거
                                 }
                             }
-
                             // test
                             System.out.println(entities);
                             System.out.println(relationships);
@@ -235,7 +198,19 @@ public class SearchFragment extends Fragment
                     binding.query.post(() -> binding.query.setText(neo4jQuery));
 
                     // 웹 서버에 쿼리 전송
-                    sendQueryToServer(DatabaseUtils.getPersistentDeviceDatabaseName(getContext()), neo4jQuery);
+                    webRequestManager.sendQueryToServer(DatabaseUtils.getPersistentDeviceDatabaseName(getContext()), neo4jQuery , new WebRequestManager.WebServerQueryCallbacks() {
+                        @Override
+                        public void onWebServerQuerySuccess(PhotoNameResponse photoNameResponse) {
+                            List<Uri> matchedUris = findMatchedUris(photoNameResponse.getPhotoName(), requireContext());
+
+                            updateUIWithMatchedUris(matchedUris);
+                        }
+
+                        @Override
+                        public void onWebServerQueryFailure() {
+                            updateUIWithMatchedUris(new ArrayList<>());
+                        }
+                    });
                 } else {
                     Log.e("OpenAI Error", "Error fetching response");
                 }
