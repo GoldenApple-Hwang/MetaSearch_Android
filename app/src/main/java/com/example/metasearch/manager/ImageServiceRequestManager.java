@@ -1,12 +1,10 @@
 package com.example.metasearch.manager;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.util.Log;
-import android.widget.TextView;
 
 import androidx.core.app.NotificationCompat;
 
@@ -14,9 +12,7 @@ import com.example.metasearch.dao.DatabaseHelper;
 import com.example.metasearch.helper.DatabaseUtils;
 import com.example.metasearch.service.ApiService;
 
-import java.io.File;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -51,7 +47,7 @@ public class ImageServiceRequestManager {
         this.context = context;
         this.databaseHelper = databaseHelper;
 //        this.imageAnalyzeListController = imageAnalyzeList;
-        this.imageAnalyzeListController = ImageAnalyzeListManager.getInstance();
+        this.imageAnalyzeListController = ImageAnalyzeListManager.getInstance(context);
         this.imageDialogManager = ImageDialogManager.getImageDialogManager(context); //이미지 다이얼로그 객체 생성
 
 
