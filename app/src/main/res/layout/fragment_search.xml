@@ -18,6 +18,8 @@
         android:hint="사진 검색"
         android:inputType="textMultiLine"
         android:maxLines="1"
+        android:textSize="16dp"
+
         android:minLines="1"
         android:textColor="@color/black"
         android:textColorHint="@color/rose"
@@ -36,7 +38,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/query" />
+        app:layout_constraintTop_toBottomOf="@+id/query"
+        app:layout_constraintVertical_bias="1.0" />
 
     <com.github.ybq.android.spinkit.SpinKitView
         android:id="@+id/spin_kit"
