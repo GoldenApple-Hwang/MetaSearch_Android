@@ -7,6 +7,7 @@ import com.example.metasearch.dao.DatabaseHelper;
 import com.example.metasearch.interfaces.Update;
 import com.example.metasearch.manager.ImageServiceRequestManager;
 import com.example.metasearch.model.Person;
+import com.example.metasearch.ui.activity.ImageDisplayActivity;
 import com.example.metasearch.ui.activity.MainActivity;
 import com.example.metasearch.ui.adapter.PersonAdapter;
 
@@ -148,10 +149,15 @@ public class HomeFragment extends Fragment
         binding.personRecyclerViewHorizon.setLayoutManager(layoutManager);
         binding.personRecyclerViewHorizon.setAdapter(adapter);
     }
-    // 하단의 갤러리 사진 클릭 시, 써클 투 써치로 전환
+//    @Override
+//    public void onImageClick(Uri uri) {
+//        Intent intent = new Intent(requireContext(), CircleToSearchActivity.class);
+//        intent.putExtra("imageUri", uri.toString());
+//        startActivity(intent);
+//    }
     @Override
     public void onImageClick(Uri uri) {
-        Intent intent = new Intent(requireContext(), CircleToSearchActivity.class);
+        Intent intent = new Intent(requireContext(), ImageDisplayActivity.class);
         intent.putExtra("imageUri", uri.toString());
         startActivity(intent);
     }

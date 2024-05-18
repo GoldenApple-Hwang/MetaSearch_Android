@@ -39,6 +39,7 @@ import com.example.metasearch.model.Message;
 import com.example.metasearch.model.request.OpenAIRequest;
 import com.example.metasearch.model.response.OpenAIResponse;
 import com.example.metasearch.ui.activity.CircleToSearchActivity;
+import com.example.metasearch.ui.activity.ImageDisplayActivity;
 import com.example.metasearch.ui.activity.MainActivity;
 import com.example.metasearch.ui.adapter.CustomArrayAdapter;
 import com.example.metasearch.ui.adapter.ImageAdapter;
@@ -314,7 +315,7 @@ public class SearchFragment extends Fragment
     // 자연어 검색 창에서 검색 결과로 출력된 사진 클릭 시, 써클 투 써치로 전환
     @Override
     public void onImageClick(Uri uri) {
-        Intent intent = new Intent(requireContext(), CircleToSearchActivity.class);
+        Intent intent = new Intent(requireContext(), ImageDisplayActivity.class);
         intent.putExtra("imageUri", uri.toString());
         startActivity(intent);
     }

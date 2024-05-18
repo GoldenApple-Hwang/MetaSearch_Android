@@ -53,10 +53,8 @@
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/circleMenu"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
         android:layout_marginBottom="13dp"
         android:background="@drawable/rounded_menu"
         app:itemIconTint="@drawable/bottom_nav_colors"
