@@ -9,8 +9,8 @@ android {
 
     defaultConfig {
         applicationId = "com.example.metasearch"
-        minSdk = 33
-//        minSdk = 31
+//        minSdk = 33
+        minSdk = 30
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"

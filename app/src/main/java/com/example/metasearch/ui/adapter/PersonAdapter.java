@@ -51,10 +51,11 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
             nameView = view.findViewById(R.id.name);
         }
     }
-    private void showDeletePersonDialog(int personId) {
+    private void showDeletePersonDialog(String name, int personId) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.CustomAlertDialogTheme);
         builder.setTitle("인물 리스트 수정");
-        builder.setMessage("이 인물을 '내가 아는 사람들'에서 삭제하시겠습니까?");
+
+        builder.setMessage(name + "님을 '내가 아는 사람들'에서 삭제하시겠습니까?");
         builder.setPositiveButton("삭제", (dialog, which) -> {
             // 데이터 삭제 로직 실행
             deletePerson(personId);
@@ -78,7 +79,7 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
     public void onBindViewHolder(PersonViewHolder holder, int position) {
         Person person = people.get(position);
 //        holder.nameView.setText(person.getUserName());
-        holder.nameView.setText(person.getImageName());
+        holder.nameView.setText(person.getInputName());
 
         // 바이트 배열을 Bitmap으로 변환
         Bitmap imageBitmap = BitmapFactory.decodeByteArray(person.getImage(), 0, person.getImage().length);
@@ -95,7 +96,7 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
         });
 
         holder.imageView.setOnLongClickListener(v -> {
-            showDeletePersonDialog(person.getId());
+            showDeletePersonDialog(person.getInputName(), person.getId());
             return true; // 롱 클릭 이벤트 처리 완료
         });
     }

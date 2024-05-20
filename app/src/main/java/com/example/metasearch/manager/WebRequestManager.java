@@ -2,10 +2,16 @@ package com.example.metasearch.manager;
 
 import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
+import static com.example.metasearch.manager.GalleryImageManager.findMatchedUris;
+
+import android.net.Uri;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
 
 import com.example.metasearch.helper.HttpHelper;
 import com.example.metasearch.model.request.ChangeNameRequest;
+import com.example.metasearch.model.request.NLQueryRequest;
 import com.example.metasearch.model.response.ChangeNameResponse;
 import com.example.metasearch.model.response.PhotoNameResponse;
 import com.example.metasearch.model.response.PhotoResponse;
@@ -132,6 +138,7 @@ public class WebRequestManager {
         void onPersonDataUploadSuccess(List<String> photoNameResponse);
         void onPersonDataUploadFailure(String message);
     }
+
     // Web Server로 인물 이름 or 사진 이름 전송
     public void sendPersonData(String personData, String dbName, WebServerPersonDataUploadCallbacks callbacks) {
         // Gson 인스턴스 생성
@@ -256,6 +263,38 @@ public class WebRequestManager {
             public void onFailure(Call<ChangeNameResponse> call, Throwable t) {
                 // 네트워크 문제 등으로 요청 자체가 실패
                 Log.e("Name Change", "Error: " + t.getMessage());
+            }
+        });
+    }
+    public interface WebServerQueryCallbacks {
+        void onWebServerQuerySuccess(PhotoNameResponse photoNameResponse);
+        void onWebServerQueryFailure();
+    }
+    public void sendQueryToServer(String dbName, String query, WebServerQueryCallbacks callbacks) {
+        Gson gson = new Gson();
+        String jsonObject = gson.toJson(new NLQueryRequest(dbName, query));
+        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonObject);
+
+        Call<PhotoNameResponse> call = webService.sendCypherQuery(requestBody);
+        call.enqueue(new Callback<PhotoNameResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<PhotoNameResponse> call, @NonNull Response<PhotoNameResponse> response) {
+                if (response.isSuccessful()) {
+                    PhotoNameResponse photoNameResponse = response.body();
+                    if (photoNameResponse != null && photoNameResponse.getPhotoName() != null) {
+                        Log.d("PhotoNames", photoNameResponse.getPhotoName().toString());
+                        callbacks.onWebServerQuerySuccess(photoNameResponse);
+                    } else {
+                        Log.e("Response Error", "Received null response body or empty photos list");
+                    }
+                } else {
+                    Log.e("Response Error", "Failed to receive successful response: " + response.message());
+                }
+            }
+            @Override
+            public void onFailure(@NonNull Call<PhotoNameResponse> call, @NonNull Throwable t) {
+                callbacks.onWebServerQueryFailure();
+                Log.e("Request Error", "Failed to send request to server", t);
             }
         });
     }

@@ -48,9 +48,10 @@ public class ImageServiceRequestManager {
         this.context = context;
         this.databaseHelper = databaseHelper;
 //        this.imageAnalyzeListController = imageAnalyzeList;
-        this.imageAnalyzeListController = ImageAnalyzeListManager.getInstance();
-        this.imageDialogManager = ImageDialogManager.getImageDialogManager(context);
-        this.imageNotificationManager = ImageNotificationManager.getImageNotification(context);
+
+        this.imageAnalyzeListController = ImageAnalyzeListManager.getInstance(context);
+        this.imageDialogManager = ImageDialogManager.getImageDialogManager(context); //이미지 다이얼로그 객체 생성
+        
 
     } //생성자
 
