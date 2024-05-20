@@ -210,40 +210,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Collections.sort(persons, (p1, p2) -> Long.compare(p2.getTotalDuration(), p1.getTotalDuration()));
         return persons;
     }
-    //    public List<Person> getPersonsByCallDuration() {
-//        List<Person> persons = new ArrayList<>();
-//        SQLiteDatabase db = this.getReadableDatabase();
-//
-//        Cursor personCursor = db.query(TABLE_NAME, new String[]{"ID", "NAME", "INPUTNAME", "PHONENUMBER", "IMAGE"}, "IS_DELETE = 0", null, null, null, null);
-//
-//        if (personCursor.moveToFirst()) {
-//            do {
-//                @SuppressLint("Range") int id = personCursor.getInt(personCursor.getColumnIndex("ID"));
-//                @SuppressLint("Range") String name = personCursor.getString(personCursor.getColumnIndex("NAME"));
-//                @SuppressLint("Range") String inputName = personCursor.getString(personCursor.getColumnIndex("INPUTNAME"));
-//                @SuppressLint("Range") String phoneNumber = personCursor.getString(personCursor.getColumnIndex("PHONENUMBER"));
-//                @SuppressLint("Range") byte[] image = personCursor.getBlob(personCursor.getColumnIndex("IMAGE"));
-//
-//                // 해당 전화번호의 통화 시간을 CallLog에서 집계
-//                long totalDuration = getTotalCallDurationForNumber(phoneNumber);
-//
-//                // Person 객체를 생성하고 리스트에 추가
-//                Person person = new Person(id, name, image);
-//                person.setInputName(inputName);
-//                person.setPhone(phoneNumber);
-//                person.setTotalDuration(totalDuration);
-//                persons.add(person);
-//
-//            } while (personCursor.moveToNext());
-//        }
-//        personCursor.close();
-//        db.close();
-//
-//        // 통화 시간으로 리스트 정렬
-//        Collections.sort(persons, (p1, p2) -> Long.compare(p2.getTotalDuration(), p1.getTotalDuration()));
-//
-//        return persons;
-//    }
     @SuppressLint("Range")
     private long getTotalCallDurationForNumber(String phoneNumber) {
         long totalDuration = 0;
