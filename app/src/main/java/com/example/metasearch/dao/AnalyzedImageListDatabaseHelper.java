@@ -1,10 +1,14 @@
 package com.example.metasearch.dao;
 
+import static androidx.fragment.app.FragmentManager.TAG;
+
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.SQLException;
+import android.util.Log;
 
 public class AnalyzedImageListDatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "image_analyzer.db";
@@ -43,19 +47,26 @@ public class AnalyzedImageListDatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    @SuppressLint("RestrictedApi")
     public void addImagePath(String imagePath) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_IMAGE_PATH, imagePath);
 
         try {
-            db.insertOrThrow(TABLE_NAME, null, values);
+            long result = db.insertOrThrow(TABLE_NAME, null, values);
+            if (result == -1) {
+                Log.e(TAG, "Failed to insert image path: " + imagePath);
+            } else {
+                Log.d(TAG, "Image path inserted successfully: " + imagePath);
+            }
         } catch (SQLException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Error adding image path: " + imagePath, e);
         } finally {
             db.close();
         }
     }
+
 
     public void removeImagePath(String imagePath) {
         SQLiteDatabase db = this.getWritableDatabase();
