@@ -15,11 +15,11 @@
             <TextView
                 android:padding="8dp"
                 android:background="@drawable/table_cell_background"
-                android:text="나와의 통화 시간" />
+                android:text="사진의 개수" />
             <TextView
                 android:padding="8dp"
                 android:background="@drawable/table_cell_background"
-                android:text="사진의 개수" />
+                android:text="나와의 통화 시간" />
         </TableRow>
     </TableLayout>
 </ScrollView>

@@ -10,9 +10,12 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.example.metasearch.helper.HttpHelper;
+import com.example.metasearch.model.Person;
 import com.example.metasearch.model.request.ChangeNameRequest;
 import com.example.metasearch.model.request.NLQueryRequest;
+import com.example.metasearch.model.request.PersonFrequencyRequest;
 import com.example.metasearch.model.response.ChangeNameResponse;
+import com.example.metasearch.model.response.PersonFrequencyResponse;
 import com.example.metasearch.model.response.PhotoNameResponse;
 import com.example.metasearch.model.response.PhotoResponse;
 import com.example.metasearch.service.ApiService;
@@ -26,6 +29,7 @@ import java.util.Map;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -137,6 +141,32 @@ public class WebRequestManager {
     public interface WebServerPersonDataUploadCallbacks {
         void onPersonDataUploadSuccess(List<String> photoNameResponse);
         void onPersonDataUploadFailure(String message);
+    }
+    public interface WebServerPersonFrequencyUploadCallbacks {
+        void onPersonFrequencyUploadSuccess(PersonFrequencyResponse responses);
+        void onPersonFrequencyUploadFailure(String message);
+    }
+
+    // Web Server에 인물 빈도 수 요청
+    public void getPersonFrequency(String dbName, List<Person> people, WebServerPersonFrequencyUploadCallbacks callbacks) {
+        List<String> personNames = people.stream().map(Person::getInputName).collect(Collectors.toList());
+        PersonFrequencyRequest request = new PersonFrequencyRequest(dbName, personNames);
+        Call<PersonFrequencyResponse> call = webService.getPersonFrequency(request);
+        call.enqueue(new Callback<PersonFrequencyResponse>() {
+            @Override
+            public void onResponse(Call<PersonFrequencyResponse> call, Response<PersonFrequencyResponse> response) {
+                if (response.isSuccessful()) {
+                    callbacks.onPersonFrequencyUploadSuccess(response.body());
+                } else {
+                    callbacks.onPersonFrequencyUploadFailure("Response from server was not successful.");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<PersonFrequencyResponse> call, Throwable t) {
+                callbacks.onPersonFrequencyUploadFailure("Failed to retrieve data from server: " + t.getMessage());
+            }
+        });
     }
 
     // Web Server로 인물 이름 or 사진 이름 전송
@@ -298,4 +328,6 @@ public class WebRequestManager {
             }
         });
     }
+
+
 }
