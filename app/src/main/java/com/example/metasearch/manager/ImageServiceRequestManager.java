@@ -76,6 +76,8 @@ public class ImageServiceRequestManager {
         Map<String,byte[]> dbImages = databaseHelper.getAllImages(); //데이터베이스에서 이미지를 byte로 로드
 
         Log.d(TAG,"imagePaths의 사이즈 : "+imagePaths.size());
+        Log.d(TAG,"데이터베이스 이미지 수: " + (dbImages != null ? dbImages.size() : "null"));
+
 
         if(!imagePaths.isEmpty()){
             Log.d(TAG,"imagesPath는 안 비어있음");
@@ -122,6 +124,7 @@ public class ImageServiceRequestManager {
             //ArrayList<String> safeAddImagePaths = addImagePaths != null ? addImagePaths : new ArrayList<>();
             if(dbBytes!=null){
                 aiRequestManager.fristUploadImage(DBName).thenRun(()->{
+                    Log.d(TAG, "Before calling uploadDBImage");
                     aiRequestManager.uploadDBImage(dbBytes, DBName).thenRun(() -> { //콜백 설정함 //db 요청 끝나고 사진 분석 요청 보냄
                         try {
                             //추가나 삭제 이미지를 서버에 전송
