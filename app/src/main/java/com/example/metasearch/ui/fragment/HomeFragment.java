@@ -117,7 +117,7 @@ public class HomeFragment extends Fragment
         if (!persons.isEmpty()) {
             webRequestManager.getPersonFrequency(DatabaseUtils.getPersistentDeviceDatabaseName(getContext()), persons, this);
         } else {
-            StyleableToast.makeText(getContext(), "인물 정보가 없습니다.", R.style.customToast).show();
+            StyleableToast.makeText(getContext(), "인물 정보가 없습니다. 전화번호를 등록해주세요.", R.style.customToast).show();
         }
 
         dialog.show(); // 다이얼로그를 먼저 표시하고, 데이터가 로드되면 업데이트
