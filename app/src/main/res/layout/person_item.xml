@@ -9,12 +9,12 @@
     android:layout_marginEnd="7dp">
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/face"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
+        android:layout_width="65dp"
+        android:layout_height="65dp"
         android:src="@drawable/ic_launcher_foreground"
         app:civ_border_overlay="false"
-        app:civ_border_width="6dp"
-        app:civ_border_color="@color/pink_grey"
+        app:civ_border_width="7dp"
+        app:civ_border_color="@color/light_pink"
         />
     <TextView
         android:id="@+id/name"

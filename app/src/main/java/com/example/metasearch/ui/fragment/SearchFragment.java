@@ -26,35 +26,26 @@ import com.example.metasearch.databinding.FragmentSearchBinding;
 import com.example.metasearch.helper.DatabaseUtils;
 import com.example.metasearch.helper.HttpHelper;
 import com.example.metasearch.interfaces.Update;
-import com.example.metasearch.manager.GalleryImageManager;
 import com.example.metasearch.manager.Neo4jDatabaseManager;
 import com.example.metasearch.manager.Neo4jDriverManager;
 import com.example.metasearch.manager.WebRequestManager;
-import com.example.metasearch.model.request.NLQueryRequest;
-import com.example.metasearch.model.response.PhotoNameResponse;
-import com.example.metasearch.model.response.PhotoResponse;
-import com.example.metasearch.service.ApiService;
 import com.example.metasearch.model.Choice;
 import com.example.metasearch.model.Message;
 import com.example.metasearch.model.request.OpenAIRequest;
 import com.example.metasearch.model.response.OpenAIResponse;
-import com.example.metasearch.ui.activity.CircleToSearchActivity;
+import com.example.metasearch.model.response.PhotoNameResponse;
+import com.example.metasearch.service.ApiService;
 import com.example.metasearch.ui.activity.ImageDisplayActivity;
 import com.example.metasearch.ui.activity.MainActivity;
 import com.example.metasearch.ui.adapter.CustomArrayAdapter;
 import com.example.metasearch.ui.adapter.ImageAdapter;
 import com.example.metasearch.ui.viewmodel.ImageViewModel;
-import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import io.github.muddz.styleabletoast.StyleableToast;
-import okhttp3.MediaType;
-import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -63,7 +54,6 @@ public class SearchFragment extends Fragment
         implements ImageAdapter.OnImageClickListener, Update {
     private WebRequestManager webRequestManager;
     private static final String OPENAI_URL = "https://api.openai.com/";
-    private static final String WEB_SERVER_URL = "http://113.198.85.6";
     private ImageViewModel imageViewModel;
     private final Neo4jDatabaseManager Neo4jDatabaseManager = new Neo4jDatabaseManager();
     private FragmentSearchBinding binding;

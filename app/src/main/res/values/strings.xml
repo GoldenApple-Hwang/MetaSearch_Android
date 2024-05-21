@@ -52,6 +52,7 @@
         \'전화 시간\'은 해당 인물과의 총 통화 시간을 나타냅니다. 각 지표별로 독립적인 랭킹을 매긴 후,
         이를 합산하여 최종 순위를 결정하였습니다.
     </string>
+    <string name="ranking_description_text_simple">랭킹은 인물의 사진 빈도수와 통화 시간을 기준으로 계산됩니다.</string>
 
 
 </resources>
