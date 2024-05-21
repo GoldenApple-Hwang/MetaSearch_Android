@@ -13,8 +13,8 @@
         android:layout_height="65dp"
         android:src="@drawable/ic_launcher_foreground"
         app:civ_border_overlay="false"
-        app:civ_border_width="7dp"
-        app:civ_border_color="@color/light_pink"
+        app:civ_border_width="0.5dp"
+        app:civ_border_color="@color/semi_transparent_black_50"
         />
     <TextView
         android:id="@+id/name"

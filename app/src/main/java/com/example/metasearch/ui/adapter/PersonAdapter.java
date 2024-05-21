@@ -55,7 +55,7 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
         AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.CustomAlertDialogTheme);
         builder.setTitle("인물 리스트 수정");
 
-        builder.setMessage(name + "님을 '내가 아는 사람들'에서 삭제하시겠습니까?");
+        builder.setMessage("'" + name + "'님을 '내가 아는 사람들'에서 삭제하시겠습니까?");
         builder.setPositiveButton("삭제", (dialog, which) -> {
             // 데이터 삭제 로직 실행
             deletePerson(personId);

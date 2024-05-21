@@ -10,7 +10,7 @@
         android:title="@string/title_graph" />
     <item
         android:id="@+id/search"
-        android:icon="@drawable/icon_search"
+        android:icon="@drawable/icon_search2"
         android:title="@string/title_search" />
     <item
         android:id="@+id/share"
