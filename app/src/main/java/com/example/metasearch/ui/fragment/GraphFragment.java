@@ -28,7 +28,6 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.metasearch.databinding.FragmentGraphBinding;
 import com.example.metasearch.helper.DatabaseUtils;
-import com.example.metasearch.ui.activity.CircleToSearchActivity;
 import com.example.metasearch.ui.activity.GraphDisplayActivity;
 import com.example.metasearch.ui.viewmodel.GraphViewModel;
 
@@ -69,7 +68,7 @@ public class GraphFragment extends Fragment {
 //        String dbName = "meet";
 //        binding.webView.loadUrl("http://113.198.85.4/graph/" + dbName );
         // 수정 후 코드
-        binding.webView.loadUrl("http://113.198.85.4/graph/" + DatabaseUtils.getPersistentDeviceDatabaseName(getContext()));
+        binding.webView.loadUrl("http://113.198.85.6/graph/" + DatabaseUtils.getPersistentDeviceDatabaseName(getContext()));
 
         return root;
     }

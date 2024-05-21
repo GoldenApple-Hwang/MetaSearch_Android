@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.util.Base64;
 import android.util.Log;
 
+import com.example.metasearch.dao.AnalyzedImageListDatabaseHelper;
 import com.example.metasearch.dao.DatabaseHelper;
 import com.example.metasearch.helper.HttpHelper;
 import com.example.metasearch.model.Circle;
@@ -39,56 +40,34 @@ public class AIRequestManager {
     private Retrofit aiRetrofit;
     private ApiService aiService;
     static final String TABLE_NAME = "Faces";
+    private Context context;
 
-    private AIRequestManager(){
+    private AIRequestManager(Context context){
         //this.aiService = AIHttpService.getInstance(AIserver_BASE_URL);
         this.aiService = HttpHelper.getInstance(AIserver_BASE_URL).getRetrofit().create(ApiService.class);
-        this.imageAnalyzeListManager = ImageAnalyzeListManager.getInstance();
+
+        this.imageAnalyzeListManager = ImageAnalyzeListManager.getInstance(context);
+        this.context = context;
+
     }
 
     public ApiService getAiService(){
         return aiService;
     }
 
-    public static AIRequestManager getAiImageUploader(){
+    public static AIRequestManager getAiImageUploader(Context context){
         Log.d(TAG,"AIImageUploaderController 함수 들어옴 객체 생성 or 반환");
         if(aiImageUploader == null){
-            aiImageUploader = new AIRequestManager();
+            aiImageUploader = new AIRequestManager(context);
 
         }
         return aiImageUploader;
     }
 
-    public void uploadPersonName(String DBName,String oldName,String newName){
-        RequestBody requestBody;
-        MultipartBody.Part imagePart;
-        CompletableFuture<Void> future = new CompletableFuture<>();
-
-        RequestBody sourceBody = RequestBody.create(MediaType.parse("text/plain"),DBName); //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
-        RequestBody oldNameBody = RequestBody.create(MediaType.parse("text/plain"),oldName); //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
-        RequestBody newNameBody = RequestBody.create(MediaType.parse("text/plain"),newName); //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
-
-        Call<Void> call = aiService.upload_person_name(sourceBody,oldNameBody,newNameBody); //이미지 업로드 API 호출
-        call.enqueue(new Callback<Void>() { //비동기
-            @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
-                if (response.isSuccessful()) {
-                    Log.e(TAG, "first upload 성공: " + response.message());
-                    future.complete(null);
-                }
-            }
-            @Override
-            public void onFailure(Call<Void> call, Throwable t) {
-                Log.e(TAG, "first upload  실패함" + t.getMessage());
-                future.complete(null);
-            }
-        });
-    }
-
-    public CompletableFuture<Void> fristUploadImage(String DBName){
+    // 이미지 분석을 시작한다는 첫 번째 요청
+    // 서버에서 해당 db의 faces 폴더를 삭제해도록 함
+    public CompletableFuture<Void> firstUploadImage(String DBName){
         Log.d(TAG,"첫 번째 업로드");
-        RequestBody requestBody;
-        MultipartBody.Part imagePart;
         CompletableFuture<Void> future = new CompletableFuture<>();
 
         RequestBody firstBody = RequestBody.create(MediaType.parse("text/plain"),"first"); //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
@@ -112,13 +91,9 @@ public class AIRequestManager {
         return future;
     }
 
+    // 이미지 분석이 완료되었다는 마지막 요청
     public CompletableFuture<Void> completeUploadImage(DatabaseHelper databaseHelper,String DBName){
-        List<CompletableFuture<Void>> futuresList = new ArrayList<>();
         CompletableFuture<Void> future = new CompletableFuture<>();
-        futuresList.add(future);
-
-        RequestBody requestBody;
-        MultipartBody.Part imagePart;
 
         int index = databaseHelper.getRowCount(TABLE_NAME);
 
@@ -135,7 +110,7 @@ public class AIRequestManager {
             @Override
             public void onResponse(Call<UploadResponse> call, Response<UploadResponse> response) {
                 if (response.isSuccessful()) {
-                    Log.e(TAG, "Image upload 성공: " + response.message());
+                    Log.e(TAG, "마지막 요청 성공: " + response.message());
                     if(response.body() != null) {
                         for (UploadResponse.ImageData imageData : response.body().getImages()) {
                             boolean isFaceExit = imageData.getIsExit(); //추출된 이미지가 있다는 것
@@ -160,13 +135,14 @@ public class AIRequestManager {
             }
             @Override
             public void onFailure(Call<UploadResponse> call, Throwable t) {
-                Log.e(TAG, "추가 이미지 업로드 실패함" + t.getMessage());
+                Log.e(TAG, "마지막 요청 실패" + t.getMessage());
                 future.complete(null);
 
             }
         });
-        return CompletableFuture.allOf(futuresList.toArray(new CompletableFuture[0]));
+        return future;
     }
+
     //추가된 이미지 관해 서버에 전송
     public CompletableFuture<Void> uploadAddGalleryImage( ArrayList<String> imagePaths,String source) throws IOException {
         List<CompletableFuture<Void>> futuresList = new ArrayList<>();
@@ -195,26 +171,7 @@ public class AIRequestManager {
                 @Override
                 public void onResponse(Call<Void> call, Response<Void> response) {
                     if (response.isSuccessful()) {
-                        Log.e(TAG, "Image upload 성공: " + response.message());
-                        // 서버로부터 받은 응답 처리
-//                        if(response.body() != null) {
-//                            for (UploadResponse.ImageData imageData : response.body().getImages()) {
-//                                boolean isFaceExit = imageData.getIsExit(); //추출된 이미지가 있다는 것
-//                                if (isFaceExit) {
-//                                    //Log.d(TAG,"추출한 얼굴 이미지 있음");
-//                                    Log.d(TAG, "추가 이미지에 대한 응답 받음 / 추가할 얼굴 있음");
-//                                    String imageName = imageData.getImageName();
-//                                    String imageBytes = imageData.getImageBytes();
-//                                    // 여기서 바이트 배열로 변환 후 이미지 처리를 할 수 있음
-//                                    byte[] decodedString = Base64.decode(imageBytes, Base64.DEFAULT);
-//                                    Log.d(TAG, "imageName : " + imageName);
-//                                    databaseHelper.insertImage(imageName, decodedString);
-//                                } else {
-//                                    Log.d(TAG, "추가 이미지에 대한 응답 받음 / 추가할 얼굴 없음");
-//                                    //Log.e(TAG, "이미지 업로드 성공, 추출된 이미지 없음" + response.message());
-//                                }
-//                            }
-//                        }
+                        Log.e(TAG, "AI 서버 Image upload 성공: " + response.message());
                         future.complete(null);
                     }
                 }
@@ -303,7 +260,7 @@ public class AIRequestManager {
     }
 
     //Database 이미지 서버에 전송
-    public CompletableFuture<Void> uploadDBImage(Map<String, byte[]> imagesList, String source){
+    public CompletableFuture<Void> uploadDBImage(Map<String, byte[]> imagesList, String dbName){
         //데이터베이스 서버 요청이 다 끝나면, 다 끝났다는 것을 반환함
         Log.d(TAG,"uploadDBImage 들어옴");
         // 모든 비동기 작업을 추적하기 위한 CompletableFuture 리스트 생성
@@ -316,7 +273,7 @@ public class AIRequestManager {
             MultipartBody.Part imagePart = MultipartBody.Part.createFormData("faceImage",database_image_element.getKey(),requestBody);
 
             //이미지 출처 정보를 전송할 RequestBody 생성
-            RequestBody sourceBody = RequestBody.create(MediaType.parse("text/plain"),source);
+            RequestBody sourceBody = RequestBody.create(MediaType.parse("text/plain"),dbName);
 
             //API 호출
             Call<Void> call = aiService.uploadDatabaseImage(imagePart,sourceBody); //이미지 업로드 API 호출

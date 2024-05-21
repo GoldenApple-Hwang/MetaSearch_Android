@@ -2,13 +2,23 @@ package com.example.metasearch.manager;
 
 import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
+import static com.example.metasearch.manager.GalleryImageManager.findMatchedUris;
+
+import android.net.Uri;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.example.metasearch.helper.HttpHelper;
+import com.example.metasearch.model.Person;
 import com.example.metasearch.model.request.ChangeNameRequest;
+import com.example.metasearch.model.request.NLQueryRequest;
+import com.example.metasearch.model.request.PersonFrequencyRequest;
 import com.example.metasearch.model.response.ChangeNameResponse;
+import com.example.metasearch.model.response.PersonFrequencyResponse;
 import com.example.metasearch.model.response.PhotoNameResponse;
 import com.example.metasearch.model.response.PhotoResponse;
+import com.example.metasearch.model.response.TripleResponse;
 import com.example.metasearch.service.ApiService;
 import com.google.gson.Gson;
 
@@ -20,6 +30,7 @@ import java.util.Map;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -30,7 +41,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 
 public class WebRequestManager {
-    private static final String Webserver_BASE_URL = "http://113.198.85.4"; // web 서버의 기본 url
+    private static final String Webserver_BASE_URL = "http://113.198.85.6"; // web 서버의 기본 url
     private static WebRequestManager webImageUploader;
     private Retrofit webRetrofit;
     private ApiService webService;
@@ -132,6 +143,33 @@ public class WebRequestManager {
         void onPersonDataUploadSuccess(List<String> photoNameResponse);
         void onPersonDataUploadFailure(String message);
     }
+    public interface WebServerPersonFrequencyUploadCallbacks {
+        void onPersonFrequencyUploadSuccess(PersonFrequencyResponse responses);
+        void onPersonFrequencyUploadFailure(String message);
+    }
+
+    // Web Server에 인물 빈도 수 요청
+    public void getPersonFrequency(String dbName, List<Person> people, WebServerPersonFrequencyUploadCallbacks callbacks) {
+        List<String> personNames = people.stream().map(Person::getInputName).collect(Collectors.toList());
+        PersonFrequencyRequest request = new PersonFrequencyRequest(dbName, personNames);
+        Call<PersonFrequencyResponse> call = webService.getPersonFrequency(request);
+        call.enqueue(new Callback<PersonFrequencyResponse>() {
+            @Override
+            public void onResponse(Call<PersonFrequencyResponse> call, Response<PersonFrequencyResponse> response) {
+                if (response.isSuccessful()) {
+                    callbacks.onPersonFrequencyUploadSuccess(response.body());
+                } else {
+                    callbacks.onPersonFrequencyUploadFailure("Response from server was not successful.");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<PersonFrequencyResponse> call, Throwable t) {
+                callbacks.onPersonFrequencyUploadFailure("Failed to retrieve data from server: " + t.getMessage());
+            }
+        });
+    }
+
     // Web Server로 인물 이름 or 사진 이름 전송
     public void sendPersonData(String personData, String dbName, WebServerPersonDataUploadCallbacks callbacks) {
         // Gson 인스턴스 생성
@@ -259,4 +297,60 @@ public class WebRequestManager {
             }
         });
     }
+    public interface WebServerQueryCallbacks {
+        void onWebServerQuerySuccess(PhotoNameResponse photoNameResponse);
+        void onWebServerQueryFailure();
+    }
+    public void sendQueryToServer(String dbName, String query, WebServerQueryCallbacks callbacks) {
+        Gson gson = new Gson();
+        String jsonObject = gson.toJson(new NLQueryRequest(dbName, query));
+        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonObject);
+
+        Call<PhotoNameResponse> call = webService.sendCypherQuery(requestBody);
+        call.enqueue(new Callback<PhotoNameResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<PhotoNameResponse> call, @NonNull Response<PhotoNameResponse> response) {
+                if (response.isSuccessful()) {
+                    PhotoNameResponse photoNameResponse = response.body();
+                    if (photoNameResponse != null && photoNameResponse.getPhotoName() != null) {
+                        Log.d("PhotoNames", photoNameResponse.getPhotoName().toString());
+                        callbacks.onWebServerQuerySuccess(photoNameResponse);
+                    } else {
+                        Log.e("Response Error", "Received null response body or empty photos list");
+                    }
+                } else {
+                    Log.e("Response Error", "Failed to receive successful response: " + response.message());
+                }
+            }
+            @Override
+            public void onFailure(@NonNull Call<PhotoNameResponse> call, @NonNull Throwable t) {
+                callbacks.onWebServerQueryFailure();
+                Log.e("Request Error", "Failed to send request to server", t);
+            }
+        });
+    }
+
+    public void fetchTripleData(String dbName, String photoName, Callback<TripleResponse> callback) {
+        Call<TripleResponse> call = webService.fetchTripleData(dbName, photoName);
+        call.enqueue(new Callback<TripleResponse>() {
+            @Override
+            public void onResponse(Call<TripleResponse> call, Response<TripleResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    // 성공적으로 데이터를 받아옴
+                    callback.onResponse(call, response);
+                } else {
+                    // 서버로부터 성공적인 응답을 받았지만, 응답 내용에 문제가 있을 때
+                    Log.e(TAG, "Error fetching triple data: " + response.message());
+                    callback.onFailure(call, new IOException("Response unsuccessful: " + response.message()));
+                }
+            }
+            @Override
+            public void onFailure(Call<TripleResponse> call, Throwable t) {
+                // 네트워크 문제 등 요청 자체에 실패했을 때
+                Log.e(TAG, "Failure fetching triple data", t);
+                callback.onFailure(call, t);
+            }
+        });
+    }
+
 }

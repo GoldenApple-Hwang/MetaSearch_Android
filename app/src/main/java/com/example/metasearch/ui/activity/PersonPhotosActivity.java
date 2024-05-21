@@ -39,6 +39,7 @@ public class PersonPhotosActivity extends AppCompatActivity
     private ActivityPersonPhotosBinding binding;
     private Integer id;
     private String imageName;
+    private String inputName;
     private byte[] imageData;
     private DatabaseHelper databaseHelper;
     @Override
@@ -51,7 +52,7 @@ public class PersonPhotosActivity extends AppCompatActivity
         loadImages(); // 리사이클러뷰에 관련 인물 사진 모두 출력
     }
     private void loadImages() {
-        webRequestManager.sendPersonData(imageName, DatabaseUtils.getPersistentDeviceDatabaseName(this), this);
+        webRequestManager.sendPersonData(inputName, DatabaseUtils.getPersistentDeviceDatabaseName(this), this);
     }
     private void setupRecyclerView() {
         ImageAdapter adapter = new ImageAdapter(new ArrayList<>(), this, this);
@@ -62,7 +63,7 @@ public class PersonPhotosActivity extends AppCompatActivity
         binding = ActivityPersonPhotosBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         // 화면 상단에 인물 이름 출력
-        binding.personName.setText(imageName);
+        binding.personName.setText(inputName);
         // 바이트 배열을 Bitmap으로 변환
         Bitmap imageBitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
 
@@ -73,7 +74,7 @@ public class PersonPhotosActivity extends AppCompatActivity
         binding.editbtn.setOnClickListener(v -> showEditPersonDialog());
     }
     private void init() {
-        aiRequestManager = AIRequestManager.getAiImageUploader();
+        aiRequestManager = AIRequestManager.getAiImageUploader(this);
         webRequestManager = WebRequestManager.getWebImageUploader();
         databaseHelper = DatabaseHelper.getInstance(this);
 
@@ -82,11 +83,11 @@ public class PersonPhotosActivity extends AppCompatActivity
             Person person = databaseHelper.getPersonById(id);
             if (person != null) {
                 imageName = person.getImageName();
+                inputName = person.getInputName();
                 imageData = person.getImage();
             }
         }
     }
-    // 인물 정보(이름, 전화번호) 수정 다이얼로그
     private void showEditPersonDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomAlertDialogTheme);
         LayoutInflater inflater = getLayoutInflater();
@@ -95,45 +96,55 @@ public class PersonPhotosActivity extends AppCompatActivity
         EditText editPersonName = dialogView.findViewById(R.id.editPersonName);
         EditText editPhoneNumber = dialogView.findViewById(R.id.editPhoneNumber);
 
-        editPersonName.setText(imageName);
+        editPersonName.setText(inputName);
         editPhoneNumber.setText(databaseHelper.getPhoneNumberById(id));
 
         builder.setView(dialogView)
                 .setTitle("인물 정보 수정")
-                .setPositiveButton("저장", (dialog, which) -> {
-                    String newPersonName = editPersonName.getText().toString();
-                    String newPhoneNumber = editPhoneNumber.getText().toString();
+                .setPositiveButton("저장", null) // 일단 리스너를 null로 설정
+                .setNegativeButton("취소", (dialog, which) -> dialog.dismiss());
 
-                    // 이름 및 전화번호 업데이트
-                    if (!newPersonName.isEmpty()) {
-                        // 얼굴 DB 업데이트
-//                        boolean updateSuccess = databaseHelper.updateUserNameAndPhoneNumber(imageName, newPersonName, newPhoneNumber);
-                        boolean updateSuccess = databaseHelper.updatePersonById(id, newPersonName, newPhoneNumber);
-                        if (updateSuccess) {
-                            // 웹 서버에 이름 변경 요청 보내기
-                            webRequestManager.changePersonName(
-                                    DatabaseUtils.getPersistentDeviceDatabaseName(this),
-                                    imageName, // 현재 이름
-                                    newPersonName
-                            );
-                            // AI 서버에 이름 변경 요청 보내기
-                            aiRequestManager.uploadPersonName(
-                                    DatabaseUtils.getPersistentDeviceDatabaseName(this),
-                                    imageName, // 현재 이름
-                                    newPersonName);
+        AlertDialog dialog = builder.create();
+        dialog.show();
 
-                            imageName = newPersonName;
-                            binding.personName.setText(newPersonName);
-                            StyleableToast.makeText(this, "인물 정보 수정 완료", R.style.customToast);
-                        } else {
-                            StyleableToast.makeText(this, "Failed to update info.", R.style.customToast).show();
-                        }
-                    }
-                })
-                .setNegativeButton("취소", (dialog, which) -> dialog.dismiss())
-                .create()
-                .show();
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String newPersonName = editPersonName.getText().toString();
+            String newPhoneNumber = editPhoneNumber.getText().toString();
+
+            if (!newPersonName.isEmpty() && databaseHelper.isNameExists(newPersonName) && !newPersonName.equals(inputName)) {
+                // 이름 중복 경고
+                new AlertDialog.Builder(this, R.style.CustomAlertDialogTheme)
+                        .setTitle("이름 중복")
+                        .setMessage("이미 존재하는 이름 입니다. 그래도 저장하시겠습니까?")
+                        .setPositiveButton("예", (dialogInterface, i) -> {
+                            updatePersonInfo(newPersonName, newPhoneNumber);
+//                            webRequestManager.changePersonName(DatabaseUtils.getPersistentDeviceDatabaseName(this), inputName, newPersonName);
+                            dialog.dismiss();
+//                            inputName = newPersonName;
+                        })
+                        .setNegativeButton("아니요", (dialogInterface, i) -> {
+                            // 사용자가 'No'를 선택했을 때 아무 것도 하지 않음
+                        })
+                        .show();
+            } else {
+                // 이름 중복이 없거나 입력하지 않은 경우
+                updatePersonInfo(newPersonName, newPhoneNumber);
+                dialog.dismiss();
+            }
+        });
     }
+    private void updatePersonInfo(String newName, String newPhone) {
+        boolean updateSuccess = databaseHelper.updatePersonById(id, newName, newPhone);
+        if (updateSuccess) {
+            StyleableToast.makeText(this, "인물 정보가 저장되었습니다.", R.style.customToast).show();
+            webRequestManager.changePersonName(DatabaseUtils.getPersistentDeviceDatabaseName(this), inputName, newName);
+            inputName = newName;
+            binding.personName.setText(newName);
+        } else {
+            StyleableToast.makeText(this, "인물 정보 업데이트를 종료합니다.", R.style.customToast).show();
+        }
+    }
+
     private void updateUIWithMatchedUris(List<Uri> matchedUris) {
         if (imageViewModel == null) {
             imageViewModel = new ViewModelProvider(this).get(ImageViewModel.class);

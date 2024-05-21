@@ -7,10 +7,12 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.provider.CallLog;
 import android.util.Log;
 
 import com.example.metasearch.model.Person;
@@ -19,13 +21,18 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
+    private Context context;
     static final String TABLE_NAME = "Faces";
+    private static final int DATABASE_VERSION = 2; // 데이터베이스 버전 번호 증가
     private static final String COLUMN_IMAGE = "IMAGE"; // 이미지 컬럼
+    private static final String COLUMN_INPUTNAME = "INPUTNAME"; // 인물 이름 컬럼
     private static final String COLUMN_NAME = "NAME"; // 이미지 이름 컬럼
     private static final String COLUMN_PHONENUMBER = "PHONENUMBER"; // 전화번호 컬럼
     private static DatabaseHelper instance;
@@ -39,9 +46,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
     // 싱글톤으로 만들기 위해 private으로 변경
     private DatabaseHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version){
-        super(context, name, factory, version);
+        super(context, name, factory, DATABASE_VERSION);
+        this.context = context;
         Log.d(TAG,"DataBaseHelper 생성자 호출");
     }
+//    public static DatabaseHelper getInstance(Context context) {
+//        if (instance == null) {
+//            instance = new DatabaseHelper(context.getApplicationContext(), "FACEIMAGE.db", null, 1);
+//        }
+//        return instance;
+//    }
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase){
@@ -49,6 +63,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String createQuery = "CREATE TABLE " + TABLE_NAME +
                 "( ID INTEGER PRIMARY KEY AUTOINCREMENT, " // 프라이머리 키 추가
                 + "NAME TEXT NOT NULL, "
+                + "INPUTNAME TEXT, " // 인물 이름(기본 값은 인물1, 인물2, ...)
                 + "PHONENUMBER TEXT, "
                 + "IMAGE BLOB, " // 이미지 컬럼 추가
                 + "IS_DELETE INTEGER DEFAULT 0);"; // IS_VERIFIED 컬럼 추가, BOOLEAN 대신 INTEGER 사용
@@ -58,9 +73,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion){
         Log.d(TAG, "Table onUpgrade");
-        // 테이블 재정의하기 위해 현재의 테이블 삭제
-//        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
-//        onCreate(sqLiteDatabase); // 새로운 테이블 생성
+
+        if (oldVersion < 2) {  // 예전 버전이 2보다 작을 때 업그레이드 로직 실행
+            sqLiteDatabase.execSQL("ALTER TABLE " + TABLE_NAME + " ADD COLUMN INPUTNAME TEXT;");
+        }
     }
 
     // 테이블의 행의 개수를 반환하는 함수
@@ -74,13 +90,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return rowCount;
     }
 
-    public static byte[] getBytes(Bitmap bitmap){ // 이미지를 바이트 배열로 변환하는 예시 코드
+    public static byte[] getBytes(Bitmap bitmap) { // 이미지를 바이트 배열로 변환하는 예시 코드
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 0, stream);
         return stream.toByteArray();
     }
 
-    public static Bitmap getImage(byte[] image){ // 바이트 배열을 Bitmap으로 변환하는 예시 코드
+    public static Bitmap getImage(byte[] image) { // 바이트 배열을 Bitmap으로 변환하는 예시 코드
         return BitmapFactory.decodeByteArray(image, 0, image.length);
     }
 
@@ -97,13 +113,58 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         inputStream.close();
         return outputStream.toByteArray();
     }
+    public boolean isNameExists(String newName) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_NAME, new String[]{"ID"}, "INPUTNAME = ?", new String[]{newName}, null, null, null);
+        boolean exists = cursor.getCount() > 0;
+        cursor.close();
+        db.close();
+        return exists;
+    }
+
+    //이미지 이름과 input이름이 서로 다르면 해쉬맵에 추가하여 반환함
+    public Map<String, String> getMismatchedImageInputNames() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Map<String, String> mismatchMap = new HashMap<>();
+
+        Cursor cursor = null;
+        try {
+            // 모든 행을 조회합니다.
+            String query = "SELECT NAME, INPUTNAME FROM "+TABLE_NAME;
+            cursor = db.rawQuery(query, null);
+
+            if (cursor.moveToFirst()) {
+                do {
+                    @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex("NAME"));
+                    @SuppressLint("Range") String inputName = cursor.getString(cursor.getColumnIndex("INPUTNAME"));
+
+                    // IMAGE와 INPUTNAME이 다른 경우 맵에 추가합니다.
+                    if (!name.equals(inputName)) {
+                        mismatchMap.put(name, inputName);
+                    }
+                } while (cursor.moveToNext());
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+            db.close();
+        }
+
+        return mismatchMap;
+    }
+
+
     public boolean insertImage(String name ,byte[] imageBytes) {
         Log.d(TAG,"이미지 추가함");
         //userNum +=1; //한 명 추가
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("NAME", name);
-        values.put("IMAGE", imageBytes); //이미지 바이트
+        values.put("INPUTNAME", name); // 인물 이름(기본 값은 인물1, 인물2, ...)
+        values.put("IMAGE", imageBytes); // 이미지 바이트
         values.put("PHONENUMBER",""); //휴대전화 번호 ""(기본값)
         //values.put(DBHelper.COLUMN_IMAGE, imageBytes);
         long result = db.insert(TABLE_NAME, null, values);
@@ -162,6 +223,73 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         // 이미지 데이터가 담긴 HashMap 반환
         return imagesMap;
     }
+    public List<Person> getPersonsByCallDuration() {
+        List<Person> persons = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        // 전화번호가 있는 인물만 선택
+        String selection = "PHONENUMBER <> '' AND IS_DELETE = 0";  // PHONENUMBER가 비어 있지 않고, 삭제되지 않은 인물
+        Cursor personCursor = db.query(TABLE_NAME, new String[]{"ID", "NAME", "INPUTNAME", "PHONENUMBER", "IMAGE"}, selection, null, null, null, null);
+
+        if (personCursor.moveToFirst()) {
+            do {
+                @SuppressLint("Range") int id = personCursor.getInt(personCursor.getColumnIndex("ID"));
+                @SuppressLint("Range") String name = personCursor.getString(personCursor.getColumnIndex("NAME"));
+                @SuppressLint("Range") String inputName = personCursor.getString(personCursor.getColumnIndex("INPUTNAME"));
+                @SuppressLint("Range") String phoneNumber = personCursor.getString(personCursor.getColumnIndex("PHONENUMBER"));
+                @SuppressLint("Range") byte[] image = personCursor.getBlob(personCursor.getColumnIndex("IMAGE"));
+
+                long totalDuration = getTotalCallDurationForNumber(phoneNumber);
+                Person person = new Person(id, name, image);
+                person.setInputName(inputName);
+                person.setPhone(phoneNumber);
+                person.setTotalDuration(totalDuration);
+                persons.add(person);
+            } while (personCursor.moveToNext());
+        }
+        personCursor.close();
+        db.close();
+        // 통화 시간으로 리스트 정렬
+        Collections.sort(persons, (p1, p2) -> Long.compare(p2.getTotalDuration(), p1.getTotalDuration()));
+        return persons;
+    }
+    @SuppressLint("Range")
+    private long getTotalCallDurationForNumber(String phoneNumber) {
+        long totalDuration = 0;
+        Cursor cursor = context.getContentResolver().query(
+                CallLog.Calls.CONTENT_URI,
+                new String[]{CallLog.Calls.DURATION},
+                CallLog.Calls.NUMBER + " = ?",
+                new String[]{phoneNumber},
+                null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                totalDuration += cursor.getLong(cursor.getColumnIndex(CallLog.Calls.DURATION));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return totalDuration;
+    }
+    public List<String> getAllPhoneNumbers() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        List<String> phoneNumbers = new ArrayList<>();
+        Cursor cursor = db.query(TABLE_NAME, new String[]{COLUMN_PHONENUMBER}, null, null, null, null, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(COLUMN_PHONENUMBER));
+                if (!phoneNumber.isEmpty()) {
+                    phoneNumbers.add(phoneNumber);
+                }
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+
+        return phoneNumbers;
+    }
+    // 실제 삭제는 아님
     public void markPersonAsDeleted(int id) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -190,14 +318,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
     public Person getPersonById(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_NAME, new String[]{COLUMN_NAME, COLUMN_IMAGE, COLUMN_PHONENUMBER}, "ID = ?", new String[]{String.valueOf(id)}, null, null, null);
+        Cursor cursor = db.query(TABLE_NAME, new String[]{COLUMN_NAME, COLUMN_INPUTNAME, COLUMN_IMAGE, COLUMN_PHONENUMBER}, "ID = ?", new String[]{String.valueOf(id)}, null, null, null);
         Person person = null;
 
         if (cursor.moveToFirst()) {
             @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
+            @SuppressLint("Range") String inputName = cursor.getString(cursor.getColumnIndex(COLUMN_INPUTNAME));
             @SuppressLint("Range") byte[] image = cursor.getBlob(cursor.getColumnIndex(COLUMN_IMAGE));
             @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(COLUMN_PHONENUMBER));
             person = new Person(id, name, image);
+            person.setInputName(inputName);
             person.setPhone(phoneNumber);
         }
 
@@ -208,7 +338,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public boolean updatePersonById(int id, String newName, String newPhoneNumber) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(COLUMN_NAME, newName);
+        values.put(COLUMN_INPUTNAME, newName);
         values.put(COLUMN_PHONENUMBER, newPhoneNumber);
 
         String selection = "ID = ?";
@@ -219,56 +349,85 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return result > 0;
     }
-    // 데이터베이스에서 모든 행의 정보(사진 이름, 사진 정보, 인물 이름)를 가져와서 Person 데이터 모델 형식으로 반환
     public List<Person> getAllPerson() {
         List<Person> people = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = null;
-
-        try {
-            // Include a WHERE clause to return only rows with isDelete = 0
-            cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE IS_DELETE = 0", null);
-
-            int idColumnIndex = cursor.getColumnIndex("ID");
-            int imageNameColumnIndex = cursor.getColumnIndex(COLUMN_NAME);
-            int imageColumnIndex = cursor.getColumnIndex(COLUMN_IMAGE);
-            int phoneColumnIndex = cursor.getColumnIndex(COLUMN_PHONENUMBER);
-            int isDeleteColumnIndex = cursor.getColumnIndex("IS_DELETE");
-
-            if (cursor.moveToFirst()) {
-                do {
-                    int id = cursor.getInt(idColumnIndex);
-                    String imageName = cursor.getString(imageNameColumnIndex);
-                    byte[] imageData = cursor.getBlob(imageColumnIndex);
-                    String phoneNumber = cursor.getString(phoneColumnIndex);
-                    Integer isDelete = cursor.getInt(isDeleteColumnIndex);
-
-                    // Ensure the required fields are not null
-                    if (imageName != null && imageData != null) {
-                        Person person = new Person(id, imageName, imageData);
-                        person.setPhone(phoneNumber);
-                        person.setIsDelete(isDelete);
-
-                        // Add person to the list
-                        people.add(person);
-                    } else {
-                        Log.d(TAG, "Null value found for username or image data");
-                    }
-                } while (cursor.moveToNext());
-            } else {
-                Log.d(TAG, "No data found in the database");
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Error fetching all persons: " + e.getMessage());
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-            db.close();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE IS_DELETE = 0", null);
+        HashSet<String> seenNames = new HashSet<>(); // 중복 이름 추적을 위한 HashSet
+        if (cursor.moveToFirst()) {
+            do {
+                @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex("ID"));
+                @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
+                @SuppressLint("Range") String inputName = cursor.getString(cursor.getColumnIndex(COLUMN_INPUTNAME));
+                @SuppressLint("Range") byte[] image = cursor.getBlob(cursor.getColumnIndex(COLUMN_IMAGE));
+                @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(COLUMN_PHONENUMBER));
+                // inputName(사용자가 새로 입력한 이름)이 비어있지 않으면 사용하고, 그렇지 않으면 name 사용
+//                String displayName = inputName.isEmpty() ? name : inputName;
+//                String displayName = inputName.equals("") ? name : inputName;
+                if (!seenNames.contains(inputName)) { // 이미 처리한 이름이 아니면 추가
+                    Person person = new Person(id, name, image);
+                    person.setInputName(inputName);
+                    person.setPhone(phoneNumber);
+                    people.add(person);
+                    seenNames.add(inputName); // 처리된 이름을 추가
+                }
+            } while (cursor.moveToNext());
         }
-
+        cursor.close();
+        db.close();
         return people;
     }
+    // 데이터베이스에서 모든 행의 정보(사진 이름, 사진 정보, 인물 이름)를 가져와서 Person 데이터 모델 형식으로 반환
+//    public List<Person> getAllPerson() {
+//        List<Person> people = new ArrayList<>();
+//        SQLiteDatabase db = this.getReadableDatabase();
+//        Cursor cursor = null;
+//
+//        try {
+//            // Include a WHERE clause to return only rows with isDelete = 0
+//            cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE IS_DELETE = 0", null);
+//
+//            int idColumnIndex = cursor.getColumnIndex("ID");
+//            int imageNameColumnIndex = cursor.getColumnIndex(COLUMN_NAME);
+//            int inputNameColumnIndex = cursor.getColumnIndex(COLUMN_INPUTNAME);
+//            int imageColumnIndex = cursor.getColumnIndex(COLUMN_IMAGE);
+//            int phoneColumnIndex = cursor.getColumnIndex(COLUMN_PHONENUMBER);
+//            int isDeleteColumnIndex = cursor.getColumnIndex("IS_DELETE");
+//
+//            if (cursor.moveToFirst()) {
+//                do {
+//                    int id = cursor.getInt(idColumnIndex);
+//                    String imageName = cursor.getString(imageNameColumnIndex);
+//                    byte[] imageData = cursor.getBlob(imageColumnIndex);
+//                    String phoneNumber = cursor.getString(phoneColumnIndex);
+//                    Integer isDelete = cursor.getInt(isDeleteColumnIndex);
+//
+//                    // Ensure the required fields are not null
+//                    if (imageName != null && imageData != null) {
+//                        Person person = new Person(id, imageName, imageData);
+//                        person.setPhone(phoneNumber);
+//                        person.setIsDelete(isDelete);
+//
+//                        // Add person to the list
+//                        people.add(person);
+//                    } else {
+//                        Log.d(TAG, "Null value found for username or image data");
+//                    }
+//                } while (cursor.moveToNext());
+//            } else {
+//                Log.d(TAG, "No data found in the database");
+//            }
+//        } catch (Exception e) {
+//            Log.e(TAG, "Error fetching all persons: " + e.getMessage());
+//        } finally {
+//            if (cursor != null) {
+//                cursor.close();
+//            }
+//            db.close();
+//        }
+//
+//        return people;
+//    }
 
 
 

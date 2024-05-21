@@ -5,34 +5,24 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_marginHorizontal="2dp"
     android:orientation="vertical"
-    android:layout_marginStart="13dp"
-    android:layout_marginEnd="13dp">
-
-<!--    <de.hdodenhof.circleimageview.CircleImageView-->
-<!--        android:id="@+id/face"-->
-<!--        android:layout_width="90dp"-->
-<!--        android:layout_height="90dp"-->
-<!--        android:src="@drawable/ic_launcher_foreground"-->
-<!--        app:civ_border_overlay="false"-->
-<!--        app:civ_border_width="5dp"-->
-<!--        android:padding="3dp"-->
-<!--        app:civ_border_color="@color/blue_grey"-->
-<!--        />-->
+    android:layout_marginStart="14dp"
+    android:layout_marginEnd="7dp">
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/face"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
+        android:layout_width="65dp"
+        android:layout_height="65dp"
         android:src="@drawable/ic_launcher_foreground"
         app:civ_border_overlay="false"
-        app:civ_border_width="6dp"
-        app:civ_border_color="@color/pink_grey"
+        app:civ_border_width="7dp"
+        app:civ_border_color="@color/light_pink"
         />
     <TextView
         android:id="@+id/name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
         android:text="외계인"
         android:textColor="@color/grey"
-        android:textSize="16sp"
+        android:textSize="12sp"
         android:gravity="center"/>
 </LinearLayout>
