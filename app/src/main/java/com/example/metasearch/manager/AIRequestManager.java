@@ -36,6 +36,7 @@ import retrofit2.Retrofit;
 public class AIRequestManager {
     private static final String AIserver_BASE_URL = "http://113.198.85.5"; // ai 서버의 기본 url
     private static AIRequestManager aiImageUploader;
+    private ImageAnalyzeListManager imageAnalyzeListManager;
     private Retrofit aiRetrofit;
     private ApiService aiService;
     static final String TABLE_NAME = "Faces";
@@ -44,7 +45,10 @@ public class AIRequestManager {
     private AIRequestManager(Context context){
         //this.aiService = AIHttpService.getInstance(AIserver_BASE_URL);
         this.aiService = HttpHelper.getInstance(AIserver_BASE_URL).getRetrofit().create(ApiService.class);
+
+        this.imageAnalyzeListManager = ImageAnalyzeListManager.getInstance(context);
         this.context = context;
+
     }
 
     public ApiService getAiService(){
@@ -173,15 +177,23 @@ public class AIRequestManager {
                 }
                 @Override
                 public void onFailure(Call<Void> call, Throwable t) {
-                    Log.e(TAG, "추가 이미지 업로드 실패함" + t.getMessage());
+                    if (t instanceof IOException) {
+                        // 네트워크 관련 예외 처리 (예: timeout)
+                        Log.e(TAG, "네트워크 문제 또는 서버에서 timeout 발생: " + t.getMessage());
+                        Log.d(TAG, "오류로 인해 분석 취소되는 이미지 이름 : " + imageFile.getName());
+                        //해당 이미지 처리 x로 설정
+                        imageAnalyzeListManager.delete_fail_image_analyze(imageFile.getName());
+                    } else {
+                        // 그 외 예외 처리
+                        Log.e(TAG, "알 수 없는 예외 발생: " + t.getMessage());
+                        Log.d(TAG, "오류로 인해 분석 취소되는 이미지 이름 : " + imageFile.getName());
+                        imageAnalyzeListManager.delete_fail_image_analyze(imageFile.getName());
 
-                    //추가 업로드 실패 시에 해당 이미지는 분석 처리 되지 않은 것으로 처리해야함
-                    AnalyzedImageListDatabaseHelper dbHelper = AnalyzedImageListDatabaseHelper.getInstance(context);
-                    //데이터베이스에서 해당 이미지 경로 삭제함
-                    dbHelper.removeImagePath(addImagePath);
-
-                    future.complete(null);
+                    }
+                    future.complete(null); // 예외를 future에 설정하여 예외 상황을 알림
                 }
+//                    Log.e(TAG, "추가 이미지 업로드 실패함" + t.getMessage());
+//                    //future.completeExceptionally(t); // 작업 실패 시 future에 예외를 설정
             });
         }
         return CompletableFuture.allOf(futuresList.toArray(new CompletableFuture[0]));
@@ -238,7 +250,6 @@ public class AIRequestManager {
                 public void onFailure(Call<UploadResponse> call, Throwable t) {
                     Log.e(TAG, "삭제 이미지 업로드 실패함" + t.getMessage());
                     future.complete(null);
-
                 }
             });
         }
