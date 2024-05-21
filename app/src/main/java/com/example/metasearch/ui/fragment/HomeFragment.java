@@ -5,6 +5,7 @@ import static com.example.metasearch.manager.GalleryImageManager.getAllGalleryIm
 import com.example.metasearch.R;
 import com.example.metasearch.dao.DatabaseHelper;
 import com.example.metasearch.helper.DatabaseUtils;
+import com.example.metasearch.interfaces.ImageAnalysisCompleteListener;
 import com.example.metasearch.interfaces.Update;
 import com.example.metasearch.manager.ImageServiceRequestManager;
 import com.example.metasearch.manager.WebRequestManager;
@@ -49,7 +50,7 @@ import java.util.concurrent.Executors;
 import io.github.muddz.styleabletoast.StyleableToast;
 
 public class HomeFragment extends Fragment
-        implements ImageAdapter.OnImageClickListener, Update,
+        implements ImageAdapter.OnImageClickListener, Update, ImageAnalysisCompleteListener,
         WebRequestManager.WebServerPersonFrequencyUploadCallbacks {
     private FragmentHomeBinding binding;
     private DatabaseHelper databaseHelper;
@@ -75,6 +76,7 @@ public class HomeFragment extends Fragment
         // `requireContext()`를 사용하는 대신 `getContext()` 사용
         databaseHelper = DatabaseHelper.getInstance(getContext());
         imageServiceRequestManager = ImageServiceRequestManager.getInstance(getContext(),databaseHelper);
+        imageServiceRequestManager.setImageAnalysisCompleteListener(this);
         webRequestManager = WebRequestManager.getWebImageUploader();
     }
     public void startImageAnalysis() {
@@ -234,4 +236,10 @@ public class HomeFragment extends Fragment
         startImageAnalysis();
     }
 
+    @Override
+    public void onImageAnalysisComplete() {
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(this::loadFaceImages);
+        }
+    }
 }

@@ -15,6 +15,7 @@ import androidx.work.WorkManager;
 import com.example.metasearch.dao.AnalyzedImageListDatabaseHelper;
 import com.example.metasearch.dao.DatabaseHelper;
 import com.example.metasearch.helper.DatabaseUtils;
+import com.example.metasearch.interfaces.ImageAnalysisCompleteListener;
 import com.example.metasearch.service.ApiService;
 
 import java.io.IOException;
@@ -24,6 +25,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.Handler;
 
 public class ImageServiceRequestManager {
+    private ImageAnalysisCompleteListener listener;
     private static final String TAG = "ImageUploader"; //로그에 표시될 태그
     private Context context; //Context 객체
     private DatabaseHelper databaseHelper; //sqlite 데이터베이스 접근 객체
@@ -68,7 +70,9 @@ public class ImageServiceRequestManager {
         }
         return instance;
     }
-
+    public void setImageAnalysisCompleteListener(ImageAnalysisCompleteListener listener) {
+        this.listener = listener;
+    }
     public void getImagePathsAndUpload() throws IOException, ExecutionException, InterruptedException { // 갤러리 이미지 경로 / 데이터베이스의 모든 얼굴 byte 가져옴
         Log.d(TAG,"getImagePathsAndUpload 함수 들어옴");
         //aiRetrofit = AIHttpService.getInstance(AIserver_BASE_URL).getRetrofit();
@@ -211,6 +215,8 @@ public class ImageServiceRequestManager {
 
                             //마지막 알림을 위한 설정 및 처리 함수
                             informCompleteImageAnalyze();
+
+                            ///
                         });
                     });
                 } catch (IOException e) {
@@ -246,6 +252,9 @@ public class ImageServiceRequestManager {
                     //이미지 이름과 input 이름이 다른 것을 확인하여 neo4j서버에 csv 이름 변경을 요청함
                     requestChangeName();
                     informCompleteImageAnalyze();
+
+                    // 이미지 분석 완료 후 홈 화면 업데이트 하여 인물 출력하는 코드 작성
+                    completeAnalysis();
                 });
             });
         }
@@ -253,7 +262,12 @@ public class ImageServiceRequestManager {
         //추가 이미지 경로 리스트, 삭제 이미지 경로 리스트 초기화
         imageAnalyzeListController.clearAddDeleteImageList();
     }
-
+    // 이미지 분석이 완료된 후 호출
+    public void completeAnalysis() {
+        if (listener != null) {
+            listener.onImageAnalysisComplete();
+        }
+    }
     // 이미지 이름과 input 이름이 다른 것들이 들어있는 해쉬맵 함수를 순회하며 neo4j서버에서 csv를 변경하도록 요청함
     public void requestChangeName() {
         Map<String,String> misMatchMap = databaseHelper.getMismatchedImageInputNames();
@@ -281,6 +295,8 @@ public class ImageServiceRequestManager {
         OneTimeWorkRequest notificationWork = new OneTimeWorkRequest.Builder(NotificationWorker.class)
                 .build();
         WorkManager.getInstance(context).enqueue(notificationWork);
+
+
 
     }
 
