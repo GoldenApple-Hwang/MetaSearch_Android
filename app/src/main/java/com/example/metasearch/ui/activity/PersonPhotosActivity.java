@@ -74,7 +74,7 @@ public class PersonPhotosActivity extends AppCompatActivity
         binding.editbtn.setOnClickListener(v -> showEditPersonDialog());
     }
     private void init() {
-        aiRequestManager = AIRequestManager.getAiImageUploader();
+        aiRequestManager = AIRequestManager.getAiImageUploader(this);
         webRequestManager = WebRequestManager.getWebImageUploader();
         databaseHelper = DatabaseHelper.getInstance(this);
 
