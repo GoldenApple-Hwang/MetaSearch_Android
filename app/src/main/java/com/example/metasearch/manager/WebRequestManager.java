@@ -18,6 +18,7 @@ import com.example.metasearch.model.response.ChangeNameResponse;
 import com.example.metasearch.model.response.PersonFrequencyResponse;
 import com.example.metasearch.model.response.PhotoNameResponse;
 import com.example.metasearch.model.response.PhotoResponse;
+import com.example.metasearch.model.response.TripleResponse;
 import com.example.metasearch.service.ApiService;
 import com.google.gson.Gson;
 
@@ -329,5 +330,27 @@ public class WebRequestManager {
         });
     }
 
+    public void fetchTripleData(String dbName, String photoName, Callback<TripleResponse> callback) {
+        Call<TripleResponse> call = webService.fetchTripleData(dbName, photoName);
+        call.enqueue(new Callback<TripleResponse>() {
+            @Override
+            public void onResponse(Call<TripleResponse> call, Response<TripleResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    // 성공적으로 데이터를 받아옴
+                    callback.onResponse(call, response);
+                } else {
+                    // 서버로부터 성공적인 응답을 받았지만, 응답 내용에 문제가 있을 때
+                    Log.e(TAG, "Error fetching triple data: " + response.message());
+                    callback.onFailure(call, new IOException("Response unsuccessful: " + response.message()));
+                }
+            }
+            @Override
+            public void onFailure(Call<TripleResponse> call, Throwable t) {
+                // 네트워크 문제 등 요청 자체에 실패했을 때
+                Log.e(TAG, "Failure fetching triple data", t);
+                callback.onFailure(call, t);
+            }
+        });
+    }
 
 }

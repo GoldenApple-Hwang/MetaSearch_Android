@@ -2,24 +2,70 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <TableLayout
-        android:id="@+id/tableLayout"
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:padding="16dp">
-        <TableRow>
-            <TextView
-                android:padding="8dp"
-                android:background="@drawable/table_cell_background"
-                android:text="인물 이름" />
-            <TextView
-                android:padding="8dp"
-                android:background="@drawable/table_cell_background"
-                android:text="사진의 개수" />
-            <TextView
-                android:padding="8dp"
-                android:background="@drawable/table_cell_background"
-                android:text="나와의 통화 시간" />
-        </TableRow>
-    </TableLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/ranking_description_title"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/ranking_description_text_simple"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            android:layout_marginBottom="16dp"/>
+
+        <TableLayout
+            android:id="@+id/tableLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TableRow>
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:padding="8dp"
+                    android:background="@drawable/table_cell_background"
+                    android:text="랭킹"
+                    android:gravity="center"/>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:padding="8dp"
+                    android:background="@drawable/table_cell_background"
+                    android:text="인물 이름"
+                    android:gravity="center"/>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:padding="8dp"
+                    android:background="@drawable/table_cell_background"
+                    android:text="사진 개수"
+                    android:gravity="center"/>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:padding="8dp"
+                    android:background="@drawable/table_cell_background"
+                    android:text="통화 시간"
+                    android:gravity="center"/>
+            </TableRow>
+
+        </TableLayout>
+    </LinearLayout>
 </ScrollView>

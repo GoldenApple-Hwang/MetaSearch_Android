@@ -20,6 +20,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +29,7 @@ import android.widget.TableRow;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -124,7 +126,7 @@ public class HomeFragment extends Fragment
         if (!persons.isEmpty()) {
             webRequestManager.getPersonFrequency(DatabaseUtils.getPersistentDeviceDatabaseName(getContext()), persons, this);
         } else {
-            StyleableToast.makeText(getContext(), "인물 정보가 없습니다.", R.style.customToast).show();
+            StyleableToast.makeText(getContext(), "인물 정보가 없습니다. 전화번호를 등록해주세요.", R.style.customToast).show();
         }
 
         dialog.show(); // 다이얼로그를 먼저 표시하고, 데이터가 로드되면 업데이트
@@ -133,31 +135,52 @@ public class HomeFragment extends Fragment
     public void onPersonFrequencyUploadSuccess(PersonFrequencyResponse response) {
         TableLayout table = dialog.findViewById(R.id.tableLayout);
 
-        // 통화 시간 데이터를 표시하기 위해 Person 객체와 통화 시간을 매핑
         Map<String, Long> callDurations = new HashMap<>();
         for (Person person : databaseHelper.getPersonsByCallDuration()) {
             callDurations.put(person.getInputName(), person.getTotalDuration());
         }
-
+        int rank = 1;
         for (PersonFrequencyResponse.Frequency freq : response.getFrequencies()) {
             TableRow row = new TableRow(getContext());
+
+            TextView rankText = new TextView(getContext());
+            rankText.setLayoutParams(new TableRow.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            rankText.setGravity(Gravity.CENTER);
+            rankText.setText(String.valueOf(rank++));
+            rankText.setPadding(8, 8, 8, 8);
+            rankText.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.table_cell_background));
+
             TextView nameText = new TextView(getContext());
+            nameText.setLayoutParams(new TableRow.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            nameText.setGravity(Gravity.CENTER);
             nameText.setText(freq.getPersonName());
+            nameText.setPadding(8, 8, 8, 8);
+            nameText.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.table_cell_background));
+
 
             TextView freqText = new TextView(getContext());
+            freqText.setLayoutParams(new TableRow.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            freqText.setGravity(Gravity.CENTER);
             freqText.setText(String.valueOf(freq.getFrequency()));
+            freqText.setPadding(8, 8, 8, 8);
+            freqText.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.table_cell_background));
 
             TextView durationText = new TextView(getContext());
-            // 통화 시간을 가져와서 표시
+            durationText.setLayoutParams(new TableRow.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            durationText.setGravity(Gravity.CENTER);
             Long duration = callDurations.getOrDefault(freq.getPersonName(), 0L);
             durationText.setText(formatDuration(duration));
+            durationText.setPadding(8, 8, 8, 8);
+            durationText.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.table_cell_background));
 
+            row.addView(rankText);
             row.addView(nameText);
             row.addView(freqText);
             row.addView(durationText);
             table.addView(row);
         }
     }
+
     @Override
     public void onPersonFrequencyUploadFailure(String message) {
         Log.e("HomeFragment", "Data fetch failed: " + message);
