@@ -4,9 +4,12 @@ import static com.example.metasearch.manager.GalleryImageManager.getAllGalleryIm
 
 import com.example.metasearch.R;
 import com.example.metasearch.dao.DatabaseHelper;
+import com.example.metasearch.helper.DatabaseUtils;
 import com.example.metasearch.interfaces.Update;
 import com.example.metasearch.manager.ImageServiceRequestManager;
+import com.example.metasearch.manager.WebRequestManager;
 import com.example.metasearch.model.Person;
+import com.example.metasearch.model.response.PersonFrequencyResponse;
 import com.example.metasearch.ui.activity.ImageDisplayActivity;
 import com.example.metasearch.ui.activity.MainActivity;
 import com.example.metasearch.ui.adapter.PersonAdapter;
@@ -31,22 +34,27 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.metasearch.ui.adapter.ImageAdapter;
-import com.example.metasearch.ui.activity.CircleToSearchActivity;
 import com.example.metasearch.databinding.FragmentHomeBinding;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import io.github.muddz.styleabletoast.StyleableToast;
+
 public class HomeFragment extends Fragment
-        implements ImageAdapter.OnImageClickListener, Update {
+        implements ImageAdapter.OnImageClickListener, Update,
+        WebRequestManager.WebServerPersonFrequencyUploadCallbacks {
     private FragmentHomeBinding binding;
-    //데이터베이스 관리 객체 가져옴
     private DatabaseHelper databaseHelper;
     //이미지 분석 요청 관리 객체 가져옴
     private ImageServiceRequestManager imageServiceRequestManager;
+    private WebRequestManager webRequestManager;
+    private Dialog dialog; // 인물 랭킹 다이얼로그
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -65,6 +73,7 @@ public class HomeFragment extends Fragment
         // `requireContext()`를 사용하는 대신 `getContext()` 사용
         databaseHelper = DatabaseHelper.getInstance(getContext());
         imageServiceRequestManager = ImageServiceRequestManager.getInstance(getContext(),databaseHelper);
+        webRequestManager = WebRequestManager.getWebImageUploader();
     }
     public void startImageAnalysis() {
         ExecutorService executor = Executors.newSingleThreadExecutor(); // 단일 스레드를 사용하는 ExecutorService 생성
@@ -98,44 +107,68 @@ public class HomeFragment extends Fragment
             }
         });
         // 화면 상단의 정보 아이콘 클릭 시 랭킹 다이얼로그 출력
-        binding.rankingBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // 다이얼로그 생성
-                Dialog dialog = new Dialog(requireContext(), R.style.CustomAlertDialogTheme);
-                dialog.setContentView(R.layout.dialog_ranking_table);
-                dialog.setTitle("정보");
+        binding.rankingBtn.setOnClickListener(v -> showRankingDialog());
+    }
+    private void showRankingDialog() {
+        /*
+         * 웹 서버에서 데이터(인물 빈도수) 받아와 출력
+         * 인물 정보는 인물 데이터베이스에서 가져와 출력
+         */
+        dialog = new Dialog(requireContext(), R.style.CustomAlertDialogTheme);
+        dialog.setContentView(R.layout.dialog_ranking_table);
+        dialog.setTitle("랭킹");
 
-                /*
-                * 테이블 데이터를 동적으로 추가하는 테스트 코드
-                * 추후 웹 서버에서 데이터 받아와서 출력해야 함
-                * 인물 정보는 인물 데이터베이스에서 가져와야 함
-                                                  */
-                TableLayout table = dialog.findViewById(R.id.tableLayout);
-                for (int i = 0; i < 10; i++) {
-                    TableRow row = new TableRow(HomeFragment.this.getContext());
-                    row.setLayoutParams(new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT));
+        // 데이터베이스에서 인물 정보(전화번호가 저장된 인물 리스트)를 가져오고, 웹 서버에 빈도수 데이터 요청
+        List<Person> persons = databaseHelper.getPersonsByCallDuration();
+        Log.d("CALL",persons.toString());
+        if (!persons.isEmpty()) {
+            webRequestManager.getPersonFrequency(DatabaseUtils.getPersistentDeviceDatabaseName(getContext()), persons, this);
+        } else {
+            StyleableToast.makeText(getContext(), "인물 정보가 없습니다.", R.style.customToast).show();
+        }
 
-                    TextView text1 = new TextView(HomeFragment.this.getContext());
-                    text1.setText("행 " + i);
-                    text1.setPadding(8, 8, 8, 8);
+        dialog.show(); // 다이얼로그를 먼저 표시하고, 데이터가 로드되면 업데이트
+    }
+    @Override
+    public void onPersonFrequencyUploadSuccess(PersonFrequencyResponse response) {
+        TableLayout table = dialog.findViewById(R.id.tableLayout);
 
-                    TextView text2 = new TextView(HomeFragment.this.getContext());
-                    text2.setText("데이터 " + i);
-                    text2.setPadding(8, 8, 8, 8);
-                    TextView text3 = new TextView(HomeFragment.this.getContext());
-                    text3.setText("데이터 " + i);
-                    text3.setPadding(8, 8, 8, 8);
+        // 통화 시간 데이터를 표시하기 위해 Person 객체와 통화 시간을 매핑
+        Map<String, Long> callDurations = new HashMap<>();
+        for (Person person : databaseHelper.getPersonsByCallDuration()) {
+            callDurations.put(person.getInputName(), person.getTotalDuration());
+        }
 
-                    row.addView(text1);
-                    row.addView(text2);
-                    row.addView(text3);
-                    table.addView(row);
-                }
+        for (PersonFrequencyResponse.Frequency freq : response.getFrequencies()) {
+            TableRow row = new TableRow(getContext());
+            TextView nameText = new TextView(getContext());
+            nameText.setText(freq.getPersonName());
 
-                dialog.show();
-            }
-        });
+            TextView freqText = new TextView(getContext());
+            freqText.setText(String.valueOf(freq.getFrequency()));
+
+            TextView durationText = new TextView(getContext());
+            // 통화 시간을 가져와서 표시
+            Long duration = callDurations.getOrDefault(freq.getPersonName(), 0L);
+            durationText.setText(formatDuration(duration));
+
+            row.addView(nameText);
+            row.addView(freqText);
+            row.addView(durationText);
+            table.addView(row);
+        }
+    }
+    @Override
+    public void onPersonFrequencyUploadFailure(String message) {
+        Log.e("HomeFragment", "Data fetch failed: " + message);
+        StyleableToast.makeText(getContext(), "데이터 불러오기 실패: " + message, R.style.customToast).show();
+    }
+    private String formatDuration(Long durationInSeconds) {
+        long hours = durationInSeconds / 3600;
+        long minutes = (durationInSeconds % 3600) / 60;
+        long seconds = durationInSeconds % 60;
+
+        return String.format("%02d:%02d:%02d", hours, minutes, seconds);
     }
     public void loadAllGalleryImages() {
         // 갤러리의 모든 사진을 출력하는 세로 방향 RecyclerView 세팅
@@ -156,12 +189,6 @@ public class HomeFragment extends Fragment
         binding.personRecyclerViewHorizon.setLayoutManager(layoutManager);
         binding.personRecyclerViewHorizon.setAdapter(adapter);
     }
-//    @Override
-//    public void onImageClick(Uri uri) {
-//        Intent intent = new Intent(requireContext(), CircleToSearchActivity.class);
-//        intent.putExtra("imageUri", uri.toString());
-//        startActivity(intent);
-//    }
     @Override
     public void onImageClick(Uri uri) {
         Intent intent = new Intent(requireContext(), ImageDisplayActivity.class);
@@ -183,4 +210,5 @@ public class HomeFragment extends Fragment
     public void performDataUpdate() {
         startImageAnalysis();
     }
+
 }

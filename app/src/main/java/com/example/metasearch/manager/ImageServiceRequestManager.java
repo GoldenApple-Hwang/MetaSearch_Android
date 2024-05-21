@@ -84,6 +84,8 @@ public class ImageServiceRequestManager {
         Map<String,byte[]> dbImages = databaseHelper.getAllImages(); //데이터베이스에서 이미지를 byte로 로드
 
         Log.d(TAG,"imagePaths의 사이즈 : "+imagePaths.size());
+        Log.d(TAG,"데이터베이스 이미지 수: " + (dbImages != null ? dbImages.size() : "null"));
+
 
         if(!imagePaths.isEmpty()){
             Log.d(TAG,"imagesPath는 안 비어있음");
@@ -148,6 +150,7 @@ public class ImageServiceRequestManager {
             //ArrayList<String> safeDeletePaths = deletePaths != null ? deletePaths : new ArrayList<>();
             //ArrayList<String> safeAddImagePaths = addImagePaths != null ? addImagePaths : new ArrayList<>();
             if(dbBytes!=null){
+
                 //이미지 분석이 시작된다는 첫 번째 요청 실행 ( db의 faces 삭제)
                 aiRequestManager.firstUploadImage(DBName).thenRun(()->{
                     //db의 faces에 얼굴 업로드
