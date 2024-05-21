@@ -7,6 +7,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
@@ -49,6 +50,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         this.context = context;
         Log.d(TAG,"DataBaseHelper 생성자 호출");
     }
+//    public static DatabaseHelper getInstance(Context context) {
+//        if (instance == null) {
+//            instance = new DatabaseHelper(context.getApplicationContext(), "FACEIMAGE.db", null, 1);
+//        }
+//        return instance;
+//    }
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase){
@@ -114,6 +121,42 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return exists;
     }
+
+    //이미지 이름과 input이름이 서로 다르면 해쉬맵에 추가하여 반환함
+    public Map<String, String> getMismatchedImageInputNames() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Map<String, String> mismatchMap = new HashMap<>();
+
+        Cursor cursor = null;
+        try {
+            // 모든 행을 조회합니다.
+            String query = "SELECT NAME, INPUTNAME FROM "+TABLE_NAME;
+            cursor = db.rawQuery(query, null);
+
+            if (cursor.moveToFirst()) {
+                do {
+                    @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex("NAME"));
+                    @SuppressLint("Range") String inputName = cursor.getString(cursor.getColumnIndex("INPUTNAME"));
+
+                    // IMAGE와 INPUTNAME이 다른 경우 맵에 추가합니다.
+                    if (!name.equals(inputName)) {
+                        mismatchMap.put(name, inputName);
+                    }
+                } while (cursor.moveToNext());
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+            db.close();
+        }
+
+        return mismatchMap;
+    }
+
+
     public boolean insertImage(String name ,byte[] imageBytes) {
         Log.d(TAG,"이미지 추가함");
         //userNum +=1; //한 명 추가

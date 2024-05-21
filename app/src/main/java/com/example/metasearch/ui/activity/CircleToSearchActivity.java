@@ -2,6 +2,7 @@ package com.example.metasearch.ui.activity;
 
 import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -49,13 +50,14 @@ public class CircleToSearchActivity extends AppCompatActivity
     private ImageViewModel imageViewModel;
     private AIRequestManager aiRequestManager;
     private WebRequestManager webRequestManager;
+    private Context context;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         StyleableToast.makeText(this, "드래그 해서 원을 그려주세요.", R.style.customToast).show();
         setupUI();
         setupListeners();
-        aiRequestManager = AIRequestManager.getAiImageUploader();
+        aiRequestManager = AIRequestManager.getAiImageUploader(this);
         webRequestManager = WebRequestManager.getWebImageUploader();
     }
     private void setupUI() {

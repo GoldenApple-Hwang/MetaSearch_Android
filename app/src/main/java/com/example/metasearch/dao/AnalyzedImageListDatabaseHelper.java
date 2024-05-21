@@ -5,10 +5,13 @@ import static androidx.fragment.app.FragmentManager.TAG;
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.SQLException;
 import android.util.Log;
+
+import java.util.ArrayList;
 
 public class AnalyzedImageListDatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "image_analyzer.db";
@@ -27,11 +30,19 @@ public class AnalyzedImageListDatabaseHelper extends SQLiteOpenHelper {
         }
         return instance;
     }
-
-    // 생성자를 private으로 설정하여 외부에서 인스턴스화 방지
     private AnalyzedImageListDatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
+
+//    public static AnalyzedImageListDatabaseHelper getInstance(Context context) {
+//        if (instance == null) {
+//            instance = new AnalyzedImageListDatabaseHelper(context.getApplicationContext());
+//        }
+//        return instance;
+//    }
+
+    // 생성자를 private으로 설정하여 외부에서 인스턴스화 방지
+
 
     @Override
     public void onCreate(SQLiteDatabase db) {
@@ -77,5 +88,25 @@ public class AnalyzedImageListDatabaseHelper extends SQLiteOpenHelper {
         } finally {
             db.close();
         }
+    }
+    public ArrayList<String> loadAnalyzedImages() {
+        ArrayList<String> analyzed_image_list = new ArrayList<>();
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = null;
+        try {
+            cursor = db.query(TABLE_NAME, new String[]{COLUMN_IMAGE_PATH}, null, null, null, null, null);
+            if (cursor == null) {
+                return new ArrayList<>(); // 또는 적절한 예외 처리
+            }
+            analyzed_image_list = new ArrayList<>();
+            while (cursor.moveToNext()) {
+                analyzed_image_list.add(cursor.getString(0));
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+        return analyzed_image_list;
     }
 }

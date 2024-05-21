@@ -41,6 +41,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import io.github.muddz.styleabletoast.StyleableToast;
 
@@ -74,13 +76,18 @@ public class HomeFragment extends Fragment
         webRequestManager = WebRequestManager.getWebImageUploader();
     }
     public void startImageAnalysis() {
-        try {
-            //이미지 분석 시작
-            imageServiceRequestManager.getImagePathsAndUpload();
-        } catch (IOException | InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
-        }
+        ExecutorService executor = Executors.newSingleThreadExecutor(); // 단일 스레드를 사용하는 ExecutorService 생성
+        executor.submit(() -> {
+            try {
+                // 이미지 분석 시작
+                imageServiceRequestManager.getImagePathsAndUpload();
+            } catch (IOException | InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        executor.shutdown(); // 작업을 시작한 후 ExecutorService를 종료합니다. 이는 현재 진행 중인 작업이 완료될 때까지 기다립니다.
     }
+
     private void setupListeners() {
         // 리사이클러뷰 스크롤에 따라 하단의 네비바 높이 조절
         binding.galleryRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
