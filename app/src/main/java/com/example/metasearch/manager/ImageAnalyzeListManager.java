@@ -157,6 +157,8 @@ public class ImageAnalyzeListManager {
     public void delete_fail_image_analyze(String imagePath){
         //해당 이미지는 분석되지 않았다고 처리함
         analyzed_image_list.remove(imagePath);
+        //database에서도 삭제함
+        analyzedImageListDatabaseHelper.removeImagePath(imagePath);
 
     }
 
