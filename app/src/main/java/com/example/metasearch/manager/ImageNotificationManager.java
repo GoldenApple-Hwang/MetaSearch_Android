@@ -5,6 +5,7 @@ import static android.content.Context.NOTIFICATION_SERVICE;
 
 import static java.lang.Thread.sleep;
 
+import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -39,6 +40,7 @@ public class ImageNotificationManager {
     private static ImageNotificationManager instance;
     private Handler handler; //ui 관리 handler
     private Runnable notificationRunnable; // 알림 진행 중 runnable
+    private boolean isCompleteNotification = false;
     private ImageNotificationManager(Context context){
         mNotificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
         //업데이트 알람 생성
@@ -60,11 +62,6 @@ public class ImageNotificationManager {
             //Manager을 이용하여 Channel 생성
             mNotificationManager.createNotificationChannel(notificationChannel);
 
-//            notifyBuilder = new NotificationCompat.Builder(context, CHNANNEL_ID)
-//                    .setContentTitle("이미지 분석 중...") //알림 제목 설정
-//                    .setContentText("이미지 분석이 시작됩니다.") //알림 내용 설정
-//                    .setSmallIcon(R.drawable.baseline_image_search_24) //알림 아이콘 설정
-//                    .setProgress(progressMax, progressCurrent, false);
         }
     }
 
@@ -123,6 +120,17 @@ public class ImageNotificationManager {
         }
         return notifyBuilder;
     }
+//    public void show_notificaiton(Context context,int imageListSize){
+//        if (context instanceof Activity) {
+//            ((Activity) context).runOnUiThread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    showUpdateNotificationProgress(context,imageListSize);
+//
+//                }
+//            });
+//        }
+//    }
 
     // 진행 중인 알림창 띄우기
     public void showUpdateNotificationProgress(Context context, int imageListSize){
@@ -132,6 +140,7 @@ public class ImageNotificationManager {
 
         //handler를 사용하여 비동기적으로 알림 업데이트
         handler = new Handler(Looper.getMainLooper());
+
         notificationRunnable = new Runnable() {
             int currentProgress = 0;
 
@@ -188,28 +197,34 @@ public class ImageNotificationManager {
         // 새로운 알림 띄우기
         notifyBuilder = settingBuilder(context,COMPLETE_CHANNEL_ID);
 
-        //알림을 클릭하면 MainActivity로 이동하게 된다.
-        // MainActivity로 이동하는 Intent 생성
-        Intent intent = new Intent(context, MainActivity.class);
-        // 사용자가 알림을 클릭했을 때 기존에 있던 액티비티 스택 위에 새 액티비티를 띄우도록 설정
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        // PendingIntent 생성
-        // 안드로이드 12 (API 수준 31) 이상에서는 FLAG_IMMUTABLE 또는 FLAG_MUTABLE을 명시적으로 지정해야 합니다.
-        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            flags |= PendingIntent.FLAG_IMMUTABLE; // FLAG_MUTABLE을 사용할 필요가 있는 경우에는 이를 FLAG_IMMUTABLE 대신 사용하세요.
-        }
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, flags);
-
-        // 알림 빌더에 PendingIntent 설정
-        notifyBuilder.setContentIntent(pendingIntent);
+//        //알림을 클릭하면 MainActivity로 이동하게 된다.
+//        // MainActivity로 이동하는 Intent 생성
+//        Intent intent = new Intent(context, MainActivity.class);
+//        // 사용자가 알림을 클릭했을 때 기존에 있던 액티비티 스택 위에 새 액티비티를 띄우도록 설정
+//        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//        // PendingIntent 생성
+//        // 안드로이드 12 (API 수준 31) 이상에서는 FLAG_IMMUTABLE 또는 FLAG_MUTABLE을 명시적으로 지정해야 합니다.
+//        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+//            flags |= PendingIntent.FLAG_IMMUTABLE; // FLAG_MUTABLE을 사용할 필요가 있는 경우에는 이를 FLAG_IMMUTABLE 대신 사용하세요.
+//        }
+//        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, flags);
+//
+//        // 알림 빌더에 PendingIntent 설정
+//        notifyBuilder.setContentIntent(pendingIntent);
 
         // 알림 발송
         mNotificationManager.notify(NOTIFICATION_ID, notifyBuilder.build());
+        isCompleteNotification = true;
 //        OneTimeWorkRequest notificationWork = new OneTimeWorkRequest.Builder(NotificationWorker.class)
 //                .build();
 //        WorkManager.getInstance(context).enqueue(notificationWork);
 
+    }
+
+    //현재 화면에 완료 알람이 띄워져있는지 확인하는 함수
+    public boolean getIsCompleteNotification(){
+        return this.isCompleteNotification;
     }
 
     //진행 중이던 프로그래스 바 강제 100%로 종료시키는 함수
