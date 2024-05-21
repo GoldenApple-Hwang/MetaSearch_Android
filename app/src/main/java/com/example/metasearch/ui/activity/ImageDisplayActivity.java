@@ -149,7 +149,9 @@ public class ImageDisplayActivity extends AppCompatActivity {
     }
 
     private void startGraphActivity() {
-        // 그래프 화면으로 이동
+        Intent intent = new Intent(this, GraphDisplayActivity.class);
+        intent.putExtra("imageUri", imageUriString);
+        startActivity(intent);
     }
     private void startCircleToSearchActivity() {
         Intent intent = new Intent(this, CircleToSearchActivity.class);
