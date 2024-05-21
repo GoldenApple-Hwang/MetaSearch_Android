@@ -20,6 +20,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +29,7 @@ import android.widget.TableRow;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -126,34 +128,52 @@ public class HomeFragment extends Fragment
     public void onPersonFrequencyUploadSuccess(PersonFrequencyResponse response) {
         TableLayout table = dialog.findViewById(R.id.tableLayout);
 
-        // 통화 시간 데이터를 표시하기 위해 Person 객체와 통화 시간을 매핑
         Map<String, Long> callDurations = new HashMap<>();
         for (Person person : databaseHelper.getPersonsByCallDuration()) {
             callDurations.put(person.getInputName(), person.getTotalDuration());
         }
-        int rank = 1; // 랭킹을 1부터 시작
+        int rank = 1;
         for (PersonFrequencyResponse.Frequency freq : response.getFrequencies()) {
             TableRow row = new TableRow(getContext());
+
             TextView rankText = new TextView(getContext());
-            rankText.setText(String.valueOf(rank++)); // 랭킹 번호 설정
+            rankText.setLayoutParams(new TableRow.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            rankText.setGravity(Gravity.CENTER);
+            rankText.setText(String.valueOf(rank++));
+            rankText.setPadding(8, 8, 8, 8);
+            rankText.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.table_cell_background));
 
             TextView nameText = new TextView(getContext());
+            nameText.setLayoutParams(new TableRow.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            nameText.setGravity(Gravity.CENTER);
             nameText.setText(freq.getPersonName());
+            nameText.setPadding(8, 8, 8, 8);
+            nameText.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.table_cell_background));
+
 
             TextView freqText = new TextView(getContext());
+            freqText.setLayoutParams(new TableRow.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            freqText.setGravity(Gravity.CENTER);
             freqText.setText(String.valueOf(freq.getFrequency()));
+            freqText.setPadding(8, 8, 8, 8);
+            freqText.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.table_cell_background));
 
             TextView durationText = new TextView(getContext());
-            // 통화 시간을 가져와서 표시
+            durationText.setLayoutParams(new TableRow.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            durationText.setGravity(Gravity.CENTER);
             Long duration = callDurations.getOrDefault(freq.getPersonName(), 0L);
             durationText.setText(formatDuration(duration));
+            durationText.setPadding(8, 8, 8, 8);
+            durationText.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.table_cell_background));
 
+            row.addView(rankText);
             row.addView(nameText);
             row.addView(freqText);
             row.addView(durationText);
             table.addView(row);
         }
     }
+
     @Override
     public void onPersonFrequencyUploadFailure(String message) {
         Log.e("HomeFragment", "Data fetch failed: " + message);
@@ -169,7 +189,7 @@ public class HomeFragment extends Fragment
     public void loadAllGalleryImages() {
         // 갤러리의 모든 사진을 출력하는 세로 방향 RecyclerView 세팅
         ImageAdapter adapter = new ImageAdapter(getAllGalleryImagesUri(requireContext()), requireContext(), this);
-        GridLayoutManager layoutManager = new GridLayoutManager(requireContext(), 5);
+        GridLayoutManager layoutManager = new GridLayoutManager(requireContext(), 3);
         binding.galleryRecyclerView.setAdapter(adapter) ;
         binding.galleryRecyclerView.setLayoutManager(layoutManager);
     }
