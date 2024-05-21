@@ -131,9 +131,12 @@ public class HomeFragment extends Fragment
         for (Person person : databaseHelper.getPersonsByCallDuration()) {
             callDurations.put(person.getInputName(), person.getTotalDuration());
         }
-
+        int rank = 1; // 랭킹을 1부터 시작
         for (PersonFrequencyResponse.Frequency freq : response.getFrequencies()) {
             TableRow row = new TableRow(getContext());
+            TextView rankText = new TextView(getContext());
+            rankText.setText(String.valueOf(rank++)); // 랭킹 번호 설정
+
             TextView nameText = new TextView(getContext());
             nameText.setText(freq.getPersonName());
 
