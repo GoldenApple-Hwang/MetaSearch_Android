@@ -7,6 +7,7 @@ import com.example.metasearch.model.response.CircleDetectionResponse;
 import com.example.metasearch.model.response.PersonFrequencyResponse;
 import com.example.metasearch.model.response.PhotoResponse;
 import com.example.metasearch.model.response.PhotoNameResponse;
+import com.example.metasearch.model.response.TripleResponse;
 import com.example.metasearch.model.response.UploadResponse;
 import com.example.metasearch.model.request.OpenAIRequest;
 import com.example.metasearch.model.response.OpenAIResponse;
@@ -55,6 +56,10 @@ public interface ApiService {
     // Web 서버에 인물 빈도수 요청
     @POST("/api/peoplefrequency")
     Call<PersonFrequencyResponse> getPersonFrequency(@Body PersonFrequencyRequest request);
+    // Web 서버에 사진 속성(이미지 설명 출력에 필요) 요청
+    @GET("/api/photoTripleData/{dbName}/{photoName}")
+    Call<TripleResponse> fetchTripleData(@Path("dbName") String dbName, @Path("photoName") String photoName);
+
 
 
     //AI서버에 추가 이미지 분석 요청
