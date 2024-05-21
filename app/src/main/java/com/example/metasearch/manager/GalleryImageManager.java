@@ -28,29 +28,55 @@ public class GalleryImageManager {
         }
         return imagePaths;
     }
-
-    // 갤러리에서 모든 이미지의 URI를 가져오는 메서드
     public static List<Uri> getAllGalleryImagesUri(Context context) {
         List<Uri> imageUris = new ArrayList<>();
+        Uri uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+
+        // MIME 타입을 필터링하여 JPEG 및 PNG 이미지만 조회
         String[] projection = {MediaStore.Images.Media._ID};
+        String selection = MediaStore.Images.Media.MIME_TYPE + "=? OR " + MediaStore.Images.Media.MIME_TYPE + "=?";
+        String[] selectionArgs = new String[] {"image/jpeg", "image/png"};
+
         Cursor cursor = context.getContentResolver().query(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                uri,
                 projection,
-                null,
-                null,
+                selection,
+                selectionArgs,
                 null
         );
         if (cursor != null) {
             int idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID);
             while (cursor.moveToNext()) {
                 long id = cursor.getLong(idColumn);
-                Uri uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
-                imageUris.add(uri);
+                Uri imageUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
+                imageUris.add(imageUri);
             }
             cursor.close();
         }
         return imageUris;
     }
+    // 갤러리에서 모든 이미지의 URI를 가져오는 메서드
+//    public static List<Uri> getAllGalleryImagesUri(Context context) {
+//        List<Uri> imageUris = new ArrayList<>();
+//        String[] projection = {MediaStore.Images.Media._ID};
+//        Cursor cursor = context.getContentResolver().query(
+//                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+//                projection,
+//                null,
+//                null,
+//                null
+//        );
+//        if (cursor != null) {
+//            int idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID);
+//            while (cursor.moveToNext()) {
+//                long id = cursor.getLong(idColumn);
+//                Uri uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
+//                imageUris.add(uri);
+//            }
+//            cursor.close();
+//        }
+//        return imageUris;
+//    }
     // 갤러리에서 모든 이미지의 URI와 파일 이름을 매핑하여 가져오는 메서드
     public static Map<String, Uri> getAllGalleryImagesUriWithName(Context context) {
         Map<String, Uri> images = new HashMap<>();
@@ -110,5 +136,19 @@ public class GalleryImageManager {
         }
         // 일치하는 사진이 없을 경우 null 반환
         return null;
+    }
+    // 갤러리에서 URI에 해당하는 파일 이름을 찾는 메서드
+    public static String getFileNameFromUri(Context context, Uri imageUri) {
+        String fileName = null;
+        String[] projection = {MediaStore.Images.Media.DISPLAY_NAME};
+        try (Cursor cursor = context.getContentResolver().query(imageUri, projection, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME);
+                fileName = cursor.getString(columnIndex);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return fileName;
     }
 }
