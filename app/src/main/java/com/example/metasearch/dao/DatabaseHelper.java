@@ -354,6 +354,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE IS_DELETE = 0", null);
         HashSet<String> seenNames = new HashSet<>(); // 중복 이름 추적을 위한 HashSet
+        Person myPerson = null; // '나' 인물을 저장할 변수
+
         if (cursor.moveToFirst()) {
             do {
                 @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex("ID"));
@@ -361,10 +363,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 @SuppressLint("Range") String inputName = cursor.getString(cursor.getColumnIndex(COLUMN_INPUTNAME));
                 @SuppressLint("Range") byte[] image = cursor.getBlob(cursor.getColumnIndex(COLUMN_IMAGE));
                 @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(COLUMN_PHONENUMBER));
-                // inputName(사용자가 새로 입력한 이름)이 비어있지 않으면 사용하고, 그렇지 않으면 name 사용
-//                String displayName = inputName.isEmpty() ? name : inputName;
-//                String displayName = inputName.equals("") ? name : inputName;
-                if (!seenNames.contains(inputName)) { // 이미 처리한 이름이 아니면 추가
+
+                // '나'라는 이름을 가진 사람을 먼저 찾아 저장
+                if (inputName.equals("나") && myPerson == null) {
+                    myPerson = new Person(id, name, image);
+                    myPerson.setInputName(inputName);
+                    myPerson.setPhone(phoneNumber);
+                } else if (!seenNames.contains(inputName)) { // 이미 처리한 이름이 아니면 추가
                     Person person = new Person(id, name, image);
                     person.setInputName(inputName);
                     person.setPhone(phoneNumber);
@@ -375,62 +380,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         cursor.close();
         db.close();
+
+        // '나' 인물이 있으면 목록의 맨 앞에 추가
+        if (myPerson != null) {
+            people.add(0, myPerson);
+        }
         return people;
     }
-    // 데이터베이스에서 모든 행의 정보(사진 이름, 사진 정보, 인물 이름)를 가져와서 Person 데이터 모델 형식으로 반환
-//    public List<Person> getAllPerson() {
-//        List<Person> people = new ArrayList<>();
-//        SQLiteDatabase db = this.getReadableDatabase();
-//        Cursor cursor = null;
-//
-//        try {
-//            // Include a WHERE clause to return only rows with isDelete = 0
-//            cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE IS_DELETE = 0", null);
-//
-//            int idColumnIndex = cursor.getColumnIndex("ID");
-//            int imageNameColumnIndex = cursor.getColumnIndex(COLUMN_NAME);
-//            int inputNameColumnIndex = cursor.getColumnIndex(COLUMN_INPUTNAME);
-//            int imageColumnIndex = cursor.getColumnIndex(COLUMN_IMAGE);
-//            int phoneColumnIndex = cursor.getColumnIndex(COLUMN_PHONENUMBER);
-//            int isDeleteColumnIndex = cursor.getColumnIndex("IS_DELETE");
-//
-//            if (cursor.moveToFirst()) {
-//                do {
-//                    int id = cursor.getInt(idColumnIndex);
-//                    String imageName = cursor.getString(imageNameColumnIndex);
-//                    byte[] imageData = cursor.getBlob(imageColumnIndex);
-//                    String phoneNumber = cursor.getString(phoneColumnIndex);
-//                    Integer isDelete = cursor.getInt(isDeleteColumnIndex);
-//
-//                    // Ensure the required fields are not null
-//                    if (imageName != null && imageData != null) {
-//                        Person person = new Person(id, imageName, imageData);
-//                        person.setPhone(phoneNumber);
-//                        person.setIsDelete(isDelete);
-//
-//                        // Add person to the list
-//                        people.add(person);
-//                    } else {
-//                        Log.d(TAG, "Null value found for username or image data");
-//                    }
-//                } while (cursor.moveToNext());
-//            } else {
-//                Log.d(TAG, "No data found in the database");
-//            }
-//        } catch (Exception e) {
-//            Log.e(TAG, "Error fetching all persons: " + e.getMessage());
-//        } finally {
-//            if (cursor != null) {
-//                cursor.close();
-//            }
-//            db.close();
-//        }
-//
-//        return people;
-//    }
-
-
-
     public ArrayList<byte[]> getImageData(){
         ArrayList<byte[]> images = new ArrayList<>();
         SQLiteDatabase db = this.getWritableDatabase();
