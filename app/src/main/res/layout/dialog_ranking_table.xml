@@ -4,6 +4,7 @@
     android:layout_height="match_parent">
 
     <LinearLayout
+
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -26,46 +27,39 @@
         <TableLayout
             android:id="@+id/tableLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:stretchColumns="*"
+            android:padding="16dp">
 
-            <TableRow>
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:padding="8dp"
-                    android:background="@drawable/table_cell_background"
-                    android:text="랭킹"
-                    android:gravity="center"/>
+<!--            <TableRow-->
+<!--                android:background="@color/light_pink"-->
+<!--                android:padding="8dp">-->
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:padding="8dp"
-                    android:background="@drawable/table_cell_background"
-                    android:text="인물 이름"
-                    android:gravity="center"/>
+<!--                <TextView-->
+<!--                    android:text="Rank"-->
+<!--                    android:gravity="center"-->
+<!--                    android:padding="8dp"-->
+<!--                    android:textAppearance="@style/TextAppearance.AppCompat.Medium" />-->
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:padding="8dp"
-                    android:background="@drawable/table_cell_background"
-                    android:text="사진 개수"
-                    android:gravity="center"/>
+<!--                <TextView-->
+<!--                    android:text="Name"-->
+<!--                    android:gravity="center"-->
+<!--                    android:padding="8dp"-->
+<!--                    android:textAppearance="@style/TextAppearance.AppCompat.Medium" />-->
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:padding="8dp"
-                    android:background="@drawable/table_cell_background"
-                    android:text="통화 시간"
-                    android:gravity="center"/>
-            </TableRow>
+<!--                <TextView-->
+<!--                    android:text="Frequency"-->
+<!--                    android:gravity="center"-->
+<!--                    android:padding="8dp"-->
+<!--                    android:textAppearance="@style/TextAppearance.AppCompat.Medium" />-->
 
+<!--                <TextView-->
+<!--                    android:text="Duration"-->
+<!--                    android:gravity="center"-->
+<!--                    android:padding="8dp"-->
+<!--                    android:textAppearance="@style/TextAppearance.AppCompat.Medium" />-->
+<!--            </TableRow>-->
+            <!-- Data rows would be added dynamically -->
         </TableLayout>
     </LinearLayout>
 </ScrollView>

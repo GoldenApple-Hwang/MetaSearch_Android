@@ -18,6 +18,7 @@ import com.example.metasearch.ui.adapter.PersonAdapter;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -40,8 +41,10 @@ import com.example.metasearch.ui.adapter.ImageAdapter;
 import com.example.metasearch.databinding.FragmentHomeBinding;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -133,55 +136,6 @@ public class HomeFragment extends Fragment
 
         dialog.show(); // 다이얼로그를 먼저 표시하고, 데이터가 로드되면 업데이트
     }
-    @Override
-    public void onPersonFrequencyUploadSuccess(PersonFrequencyResponse response) {
-        TableLayout table = dialog.findViewById(R.id.tableLayout);
-
-        Map<String, Long> callDurations = new HashMap<>();
-        for (Person person : databaseHelper.getPersonsByCallDuration()) {
-            callDurations.put(person.getInputName(), person.getTotalDuration());
-        }
-        int rank = 1;
-        for (PersonFrequencyResponse.Frequency freq : response.getFrequencies()) {
-            TableRow row = new TableRow(getContext());
-
-            TextView rankText = new TextView(getContext());
-            rankText.setLayoutParams(new TableRow.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-            rankText.setGravity(Gravity.CENTER);
-            rankText.setText(String.valueOf(rank++));
-            rankText.setPadding(8, 8, 8, 8);
-            rankText.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.table_cell_background));
-
-            TextView nameText = new TextView(getContext());
-            nameText.setLayoutParams(new TableRow.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-            nameText.setGravity(Gravity.CENTER);
-            nameText.setText(freq.getPersonName());
-            nameText.setPadding(8, 8, 8, 8);
-            nameText.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.table_cell_background));
-
-
-            TextView freqText = new TextView(getContext());
-            freqText.setLayoutParams(new TableRow.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-            freqText.setGravity(Gravity.CENTER);
-            freqText.setText(String.valueOf(freq.getFrequency()));
-            freqText.setPadding(8, 8, 8, 8);
-            freqText.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.table_cell_background));
-
-            TextView durationText = new TextView(getContext());
-            durationText.setLayoutParams(new TableRow.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-            durationText.setGravity(Gravity.CENTER);
-            Long duration = callDurations.getOrDefault(freq.getPersonName(), 0L);
-            durationText.setText(formatDuration(duration));
-            durationText.setPadding(8, 8, 8, 8);
-            durationText.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.table_cell_background));
-
-            row.addView(rankText);
-            row.addView(nameText);
-            row.addView(freqText);
-            row.addView(durationText);
-            table.addView(row);
-        }
-    }
 
     @Override
     public void onPersonFrequencyUploadFailure(String message) {
@@ -213,6 +167,93 @@ public class HomeFragment extends Fragment
         LinearLayoutManager layoutManager = new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false);
         binding.personRecyclerViewHorizon.setLayoutManager(layoutManager);
         binding.personRecyclerViewHorizon.setAdapter(adapter);
+    }
+    @Override
+    public void onPersonFrequencyUploadSuccess(PersonFrequencyResponse response) {
+        Map<String, Integer> frequencies = new HashMap<>();
+        for (PersonFrequencyResponse.Frequency freq : response.getFrequencies()) {
+            frequencies.put(freq.getPersonName(), freq.getFrequency());
+        }
+
+        List<Person> persons = databaseHelper.getPersonsByCallDuration();
+        Map<String, Long> callDurations = new HashMap<>();
+        for (Person person : persons) {
+            callDurations.put(person.getInputName(), person.getTotalDuration());
+        }
+
+        // Find max values for normalization
+        double maxCallDuration = Collections.max(callDurations.values());
+        double maxFrequency = Collections.max(frequencies.values());
+
+        // Calculate combined scores
+        Map<String, Double> scores = new HashMap<>();
+        for (Person person : persons) {
+            double normalizedCallDuration = maxCallDuration != 0 ? callDurations.get(person.getInputName()) / maxCallDuration : 0;
+            double normalizedFrequency = maxFrequency != 0 ? frequencies.getOrDefault(person.getInputName(), 0) / maxFrequency : 0;
+            double score = (normalizedCallDuration + normalizedFrequency) / 2; // Assuming equal weighting
+            scores.put(person.getInputName(), score);
+        }
+
+        // Sort persons based on scores in descending order
+        Collections.sort(persons, (p1, p2) -> scores.get(p2.getInputName()).compareTo(scores.get(p1.getInputName())));
+
+        // Update UI
+        updateRankingTable(persons, scores, frequencies, callDurations);
+    }
+
+    private void updateRankingTable(List<Person> persons, Map<String, Double> scores, Map<String, Integer> frequencies, Map<String, Long> callDurations) {
+        TableLayout table = dialog.findViewById(R.id.tableLayout);
+        table.removeAllViews(); // Clear existing views
+
+        // Adding a header row
+        TableRow header = new TableRow(getContext());
+        addTableCell(header, "이름", true);
+        addTableCell(header, "사진", true);
+        addTableCell(header, "통화", true);
+        addTableCell(header, "친밀도", true);
+        table.addView(header);
+
+        // Adding data rows
+        for (Person person : persons) {
+            TableRow row = new TableRow(getContext());
+            row.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+
+            TextView nameView = new TextView(getContext());
+            nameView.setText(person.getInputName());
+            nameView.setGravity(Gravity.CENTER);
+
+            TextView frequencyView = new TextView(getContext());
+            frequencyView.setText(String.valueOf(frequencies.getOrDefault(person.getInputName(), 0)));
+            frequencyView.setGravity(Gravity.CENTER);
+
+            TextView durationView = new TextView(getContext());
+            Long durationInSeconds = callDurations.getOrDefault(person.getInputName(), 0L);
+            durationView.setText(formatDuration(durationInSeconds));
+            durationView.setGravity(Gravity.CENTER);
+
+            TextView scoreView = new TextView(getContext());
+            scoreView.setText(String.format(Locale.US, "%.2f", scores.get(person.getInputName())));
+            scoreView.setGravity(Gravity.CENTER);
+
+            // Adding views to the row
+            row.addView(nameView);
+            row.addView(frequencyView);
+            row.addView(durationView);
+            row.addView(scoreView);
+
+            table.addView(row);
+        }
+    }
+    private void addTableCell(TableRow row, String text, boolean isHeader) {
+        TextView tv = new TextView(getContext());
+        tv.setText(text);
+        tv.setGravity(Gravity.CENTER);
+        tv.setPadding(5, 10, 5, 10);
+        if (isHeader) {
+            tv.setTypeface(null, Typeface.BOLD);
+            tv.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.pink_grey)); // Set a different background color for header
+        }
+        row.addView(tv);
     }
     @Override
     public void onImageClick(Uri uri) {
