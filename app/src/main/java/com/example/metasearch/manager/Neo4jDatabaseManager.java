@@ -29,16 +29,16 @@ public class Neo4jDatabaseManager {
     public String createCypherQuery(List<String> entities, List<String> relationships, int count) {
         StringBuilder query = new StringBuilder("MATCH ");
         for (int i = 0; i < count; i++) {
-            query.append("(photo)-[:").append(relationships.get(i)).append("]->(entity {name: \"").append(entities.get(i)).append("\"})");
+//            query.append("(photo)-[:").append(relationships.get(i)).append("]->(entity {name: \"").append(entities.get(i)).append("\"})");
+            query.append("(photo)-[:").append(relationships.get(i)).append("]->(a").append(i).append(":Entity {name: \"").append(entities.get(i)).append("\"})");
             if (i < count - 1) {
-                query.append(", ");
+                query.append(", \n");
             }
         }
-        query.append(" RETURN photo.name AS PhotoName");
+        query.append("\n RETURN photo.name AS PhotoName");
         // 반환 형식
-        // MATCH
-        // (photo)-[:RELATIONSHIP_1]->(entity {name: "ENTITY_1"}),
-        // (photo)-[:RELATIONSHIP_2]->(entity {name: "ENTITY_2"})
+        // MATCH (photo)-[:RELATIONSHIP_1]->(a1:Entity {name: "ENTITY_1"}),
+        // (photo)-[:RELATIONSHIP_2]->(a2:Entity {name: "ENTITY_2"})
         // RETURN photo.name AS PhotoName
         return query.toString();
     }

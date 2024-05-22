@@ -9,8 +9,8 @@ android {
 
     defaultConfig {
         applicationId = "com.example.metasearch"
-        minSdk = 33
-//        minSdk = 31
+//        minSdk = 33
+        minSdk = 30
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -47,6 +47,8 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.9.2")
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.0")
 
+    implementation("androidx.work:work-runtime:2.9.0")
+
     //neo4j dependency
     implementation("org.neo4j.driver:neo4j-java-driver:4.4.0")
     //fragment dependency
@@ -79,4 +81,6 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    implementation("androidx.work:work-runtime:2.9.0")
+
 }

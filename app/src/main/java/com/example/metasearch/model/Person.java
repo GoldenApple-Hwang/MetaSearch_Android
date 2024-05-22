@@ -1,23 +1,30 @@
 package com.example.metasearch.model;
 
 public class Person {
+    private int id; // 고유 ID
     private String imageName; // 사진 이름
-    private String userName; // 사용자가 입력한 이름
+    private String inputName; // 사용자가 입력한(수정한) 인물 이름
     private byte[] image; // 홈 화면 상단에 작게 표시되는 얼굴 이미지를 위한 데이터
     private String phone; // 인물의 전화번호. 기본값은 "".
     private Integer isDelete; // 삭제된 인물인지 나타냄. 기본값은 1, 삭제되면 0
-
-    public Person(String imageName, String name, byte[] image) {
+    private long totalDuration; // 총 통화 시간
+    public Person(int id, String imageName, byte[] image) {
+        this.id = id;
         this.imageName = imageName;
-        this.userName = userName != null ? userName : "";
         this.image = image;
+        this.inputName = "";
         this.phone = "";
         this.isDelete = 0;
     }
-    public String getImageName() { return imageName; }
-    public String getUserName() {
-        return userName;
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
+    public String getInputName() {
+        return inputName;
     }
+    public void setInputName(String inputName) {
+        this.inputName = inputName;
+    }
+    public String getImageName() { return imageName; }
     public byte[] getImage() {
         return image;
     }
@@ -25,9 +32,6 @@ public class Person {
     public Integer getIsDelete() { return isDelete; }
     public void setImageName(String imageName) {
         this.imageName = imageName;
-    }
-    public void setUserName(String userName) {
-        this.userName = userName;
     }
     public void setImage(byte[] image) {
         this.image = image;
@@ -38,24 +42,10 @@ public class Person {
     public void setIsDelete(Integer isDelete) {
         this.isDelete = isDelete;
     }
+    public long getTotalDuration() {
+        return totalDuration;
+    }
+    public void setTotalDuration(long totalDuration) {
+        this.totalDuration = totalDuration;
+    }
 }
-
-
-//public class Person {
-//    private String imageName; // 사진 이름
-//    private String userName; // 사용자가 입력한 이름
-//    private byte[] image; // 홈 화면 상단에 작게 표시되는 얼굴 이미지를 위한 데이터
-//
-//    public Person(String imageName, String name, byte[] image) {
-//        this.imageName = imageName;
-//        this.userName = name;
-//        this.image = image;
-//    }
-//    public String getImageName() { return imageName; }
-//    public String getName() {
-//        return userName;
-//    }
-//    public byte[] getImage() {
-//        return image;
-//    }
-//}

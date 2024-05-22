@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,8 +17,11 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import com.example.metasearch.R;
 import com.example.metasearch.dao.DatabaseHelper;
 import com.example.metasearch.databinding.ActivityPersonPhotosBinding;
+import com.example.metasearch.helper.DatabaseUtils;
+import com.example.metasearch.manager.AIRequestManager;
 import com.example.metasearch.manager.GalleryImageManager;
 import com.example.metasearch.manager.WebRequestManager;
+import com.example.metasearch.model.Person;
 import com.example.metasearch.ui.adapter.ImageAdapter;
 import com.example.metasearch.ui.viewmodel.ImageViewModel;
 
@@ -33,9 +35,11 @@ public class PersonPhotosActivity extends AppCompatActivity
                     ImageAdapter.OnImageClickListener {
     private ImageViewModel imageViewModel;
     private WebRequestManager webRequestManager;
+    private AIRequestManager aiRequestManager;
     private ActivityPersonPhotosBinding binding;
+    private Integer id;
     private String imageName;
-    private String userName;
+    private String inputName;
     private byte[] imageData;
     private DatabaseHelper databaseHelper;
     @Override
@@ -48,16 +52,7 @@ public class PersonPhotosActivity extends AppCompatActivity
         loadImages(); // 리사이클러뷰에 관련 인물 사진 모두 출력
     }
     private void loadImages() {
-        // 얼굴 DB에는 사진 이름, 바이트 배열, 인물 이름이 저장 되어 있음
-        // 사용자가 이름을 재설정 하지 않은 경우, 사진 이름으로 검색
-//        if (userName.equals("")) {
-//            webRequestManager.sendPersonData(imageName, "youjeong", this);
-//        } else { // 유저 이름으로 검색
-//            webRequestManager.sendPersonData(userName, "youjeong", this);
-//        }
-
-        // Test
-        webRequestManager.sendPersonData("사람B","youjeong", this);
+        webRequestManager.sendPersonData(inputName, DatabaseUtils.getPersistentDeviceDatabaseName(this), this);
     }
     private void setupRecyclerView() {
         ImageAdapter adapter = new ImageAdapter(new ArrayList<>(), this, this);
@@ -68,7 +63,7 @@ public class PersonPhotosActivity extends AppCompatActivity
         binding = ActivityPersonPhotosBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         // 화면 상단에 인물 이름 출력
-        binding.personName.setText(userName);
+        binding.personName.setText(inputName);
         // 바이트 배열을 Bitmap으로 변환
         Bitmap imageBitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
 
@@ -79,44 +74,75 @@ public class PersonPhotosActivity extends AppCompatActivity
         binding.editbtn.setOnClickListener(v -> showEditPersonDialog());
     }
     private void init() {
+        aiRequestManager = AIRequestManager.getAiImageUploader(this);
         webRequestManager = WebRequestManager.getWebImageUploader();
         databaseHelper = DatabaseHelper.getInstance(this);
-        imageName = getIntent().getStringExtra("imageName");
-        imageData = getIntent().getByteArrayExtra("imageData");
-        userName = getIntent().getStringExtra("personName");
+
+        id = getIntent().getIntExtra("id", -1);
+        if (id != -1) {
+            Person person = databaseHelper.getPersonById(id);
+            if (person != null) {
+                imageName = person.getImageName();
+                inputName = person.getInputName();
+                imageData = person.getImage();
+            }
+        }
     }
     private void showEditPersonDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomAlertDialogTheme);
         LayoutInflater inflater = getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_edit_person, null);
 
         EditText editPersonName = dialogView.findViewById(R.id.editPersonName);
         EditText editPhoneNumber = dialogView.findViewById(R.id.editPhoneNumber);
 
-        editPersonName.setText(userName);
-        editPhoneNumber.setText(databaseHelper.getPhoneNumber(userName));
+        editPersonName.setText(inputName);
+        editPhoneNumber.setText(databaseHelper.getPhoneNumberById(id));
 
         builder.setView(dialogView)
-                .setTitle("Edit Person Info")
-                .setPositiveButton("Save", (dialog, which) -> {
-                    String newPersonName = editPersonName.getText().toString();
-                    String newPhoneNumber = editPhoneNumber.getText().toString();
+                .setTitle("인물 정보 수정")
+                .setPositiveButton("저장", null) // 일단 리스너를 null로 설정
+                .setNegativeButton("취소", (dialog, which) -> dialog.dismiss());
 
-                    // 이름 및 전화번호 업데이트
-                    if (!newPersonName.isEmpty()) {
-                        boolean updateSuccess = databaseHelper.updateUserNameAndPhoneNumber(userName, newPersonName, newPhoneNumber);
-                        if (updateSuccess) {
-                            userName = newPersonName;
-                            binding.personName.setText(newPersonName);
-                        } else {
-                            Toast.makeText(this, "Failed to update info.", Toast.LENGTH_SHORT).show();
-                        }
-                    }
+        AlertDialog dialog = builder.create();
+        dialog.show();
 
-                })
-                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
-                .create()
-                .show();
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String newPersonName = editPersonName.getText().toString();
+            String newPhoneNumber = editPhoneNumber.getText().toString();
+
+            if (!newPersonName.isEmpty() && databaseHelper.isNameExists(newPersonName) && !newPersonName.equals(inputName)) {
+                // 이름 중복 경고
+                new AlertDialog.Builder(this, R.style.CustomAlertDialogTheme)
+                        .setTitle("이름 중복")
+                        .setMessage("이미 존재하는 이름 입니다. 그래도 저장하시겠습니까?")
+                        .setPositiveButton("예", (dialogInterface, i) -> {
+                            updatePersonInfo(newPersonName, newPhoneNumber);
+//                            webRequestManager.changePersonName(DatabaseUtils.getPersistentDeviceDatabaseName(this), inputName, newPersonName);
+                            dialog.dismiss();
+//                            inputName = newPersonName;
+                        })
+                        .setNegativeButton("아니요", (dialogInterface, i) -> {
+                            // 사용자가 'No'를 선택했을 때 아무 것도 하지 않음
+                        })
+                        .show();
+            } else {
+                // 이름 중복이 없거나 입력하지 않은 경우
+                updatePersonInfo(newPersonName, newPhoneNumber);
+                dialog.dismiss();
+            }
+        });
+    }
+    private void updatePersonInfo(String newName, String newPhone) {
+        boolean updateSuccess = databaseHelper.updatePersonById(id, newName, newPhone);
+        if (updateSuccess) {
+            StyleableToast.makeText(this, "인물 정보가 저장되었습니다.", R.style.customToast).show();
+            webRequestManager.changePersonName(DatabaseUtils.getPersistentDeviceDatabaseName(this), inputName, newName);
+            inputName = newName;
+            binding.personName.setText(newName);
+        } else {
+            StyleableToast.makeText(this, "인물 정보 업데이트를 종료합니다.", R.style.customToast).show();
+        }
     }
 
     private void updateUIWithMatchedUris(List<Uri> matchedUris) {
@@ -131,7 +157,6 @@ public class PersonPhotosActivity extends AppCompatActivity
                 adapter.updateData(matchedUris);
             }
         } else {
-//            Toast.makeText(this, "No matched images found.", Toast.LENGTH_SHORT).show();
             StyleableToast.makeText(this, "관련 사진이 없습니다.", R.style.customToast).show();
         }
     }
@@ -148,6 +173,7 @@ public class PersonPhotosActivity extends AppCompatActivity
 
         updateUIWithMatchedUris(matchedUris);
     }
+
     // UI 업데이트
     @Override
     public void onPersonDataUploadSuccess(List<String> personImages) {

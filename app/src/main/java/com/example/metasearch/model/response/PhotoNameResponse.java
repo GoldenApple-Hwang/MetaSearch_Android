@@ -3,13 +3,13 @@ package com.example.metasearch.model.response;
 import java.util.List;
 
 public class PhotoNameResponse {
-    private List<String> photoNames;
+    private List<String> PhotoName;
 
-    public List<String> getPhotoNames() {
-        return photoNames;
+    public List<String> getPhotoName() {
+        return PhotoName;
     }
 
-    public void setPhotoNames(List<String> photoNames) {
-        this.photoNames = photoNames;
+    public void setPhotoName(List<String> photoName) {
+        PhotoName = photoName;
     }
 }

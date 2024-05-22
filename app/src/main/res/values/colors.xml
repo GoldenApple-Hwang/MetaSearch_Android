@@ -20,14 +20,14 @@
     <color name="carrot">#f94829</color>
     <color name="orange">#fd9c7c</color>
     <color name="beige">#dfcbbd</color>
-    <color name="pink_grey">#e7d4d4</color>
+    <color name="pink_grey">#ead1d6</color>
     <color name="semi_transparent_pink_50">#80FF69B4</color>
     <color name="coral">#feb89f</color>
-    <color name="light_pink">#fee6e6</color>
+    <color name="light_pink">#fde6eb</color>
     <color name="pink">#fd8692</color>
     <color name="hot_pink">#f92960</color>
     <color name="rose">#dd8789</color>
-    <color name="medium_grey">#919191</color>
+    <color name="medium_grey">#4c4c4c</color>
     <color name="blue_grey">#bcc6d6</color>
     <color name="sky_blue">#b9d4ee</color>
     <color name="dark_green">#7fb785</color>
@@ -38,4 +38,8 @@
     <color name="light_brown">#caaa9a</color>
     <color name="brown">#997a60</color>
     <color name="pastel_purple">#b597fb</color>
+    <color name="blue_highlight">#bcc6d6</color>
+    <color name="drack_blue">#2C4367</color>
+
+
 </resources>

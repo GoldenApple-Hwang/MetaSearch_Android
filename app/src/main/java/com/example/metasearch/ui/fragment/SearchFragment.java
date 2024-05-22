@@ -8,52 +8,52 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.metasearch.BuildConfig;
 import com.example.metasearch.R;
 import com.example.metasearch.databinding.FragmentSearchBinding;
+import com.example.metasearch.helper.DatabaseUtils;
 import com.example.metasearch.helper.HttpHelper;
+import com.example.metasearch.interfaces.Update;
 import com.example.metasearch.manager.Neo4jDatabaseManager;
 import com.example.metasearch.manager.Neo4jDriverManager;
-import com.example.metasearch.model.request.NLQueryRequest;
-import com.example.metasearch.model.response.PhotoNameResponse;
-import com.example.metasearch.service.ApiService;
+import com.example.metasearch.manager.WebRequestManager;
 import com.example.metasearch.model.Choice;
 import com.example.metasearch.model.Message;
 import com.example.metasearch.model.request.OpenAIRequest;
 import com.example.metasearch.model.response.OpenAIResponse;
-import com.example.metasearch.ui.activity.CircleToSearchActivity;
+import com.example.metasearch.model.response.PhotoNameResponse;
+import com.example.metasearch.service.ApiService;
+import com.example.metasearch.ui.activity.ImageDisplayActivity;
+import com.example.metasearch.ui.activity.MainActivity;
 import com.example.metasearch.ui.adapter.CustomArrayAdapter;
 import com.example.metasearch.ui.adapter.ImageAdapter;
 import com.example.metasearch.ui.viewmodel.ImageViewModel;
-import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import io.github.muddz.styleabletoast.StyleableToast;
-import okhttp3.MediaType;
-import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class SearchFragment extends Fragment implements ImageAdapter.OnImageClickListener {
+public class SearchFragment extends Fragment
+        implements ImageAdapter.OnImageClickListener, Update {
+    private WebRequestManager webRequestManager;
     private static final String OPENAI_URL = "https://api.openai.com/";
-    private static final String WEB_SERVER_URL = "http://113.198.85.4";
     private ImageViewModel imageViewModel;
     private final Neo4jDatabaseManager Neo4jDatabaseManager = new Neo4jDatabaseManager();
     private FragmentSearchBinding binding;
@@ -67,57 +67,43 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
         View root = binding.getRoot();
 
         imageViewModel.getImageUris().observe(getViewLifecycleOwner(), this::updateRecyclerView);
-
+        webRequestManager = WebRequestManager.getWebImageUploader(); // 인스턴스 생성
         setupRecyclerView();
-
+        setupListeners();
         setupAutoCompleteTextView();
-        binding.searchButton.setOnClickListener(v -> retrieve());
+
         return root;
     }
-    private void sendQueryToServer(String dbName, String query) {
-        ApiService service = HttpHelper.getInstance(WEB_SERVER_URL).create(ApiService.class);
-        // Gson 인스턴스 생성
-        Gson gson = new Gson();
-
-        NLQueryRequest nlQueryRequest = new NLQueryRequest(dbName, query);
-        // dbName과 query를 포함하는 Map 객체 생성
-        Map<String, String> jsonMap = new HashMap<>();
-        jsonMap.put("dbName", nlQueryRequest.getDbName());
-        jsonMap.put("query", nlQueryRequest.getQuery());
-
-        // Map 객체를 JSON 문자열로 변환
-        String jsonObject = gson.toJson(jsonMap);
-        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonObject);
-
-        // Send request
-        Call<PhotoNameResponse> call = service.sendCypherQuery(requestBody);
-        call.enqueue(new Callback<PhotoNameResponse>() {
+    private void setupListeners() {
+        binding.searchButton.setOnClickListener(v -> retrieve());
+        // 리사이클러뷰 스크롤에 따라 하단의 네비바 높이 조절
+        binding.recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public void onResponse(Call<PhotoNameResponse> call, Response<PhotoNameResponse> response) {
-                if (response.isSuccessful()) {
-                    // Handle successful response
-                    PhotoNameResponse photoNameResponse = response.body();
-                    if (photoNameResponse != null && photoNameResponse.getPhotoNames() != null) {
-                        List<String> photoNames = photoNameResponse.getPhotoNames();
-                        // Process photo names
-                        // For example:
-                        Log.d("PhotoNames", photoNames.toString());
-
-                        List<Uri> matchedUris = findMatchedUris(photoNames, requireContext());
-                        updateUIWithMatchedUris(matchedUris);
-
-                    } else {
-                        Log.e("Response Error", "Received null response body or empty photos list");
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                MainActivity activity = (MainActivity) getActivity();
+                if (activity != null) {
+                    if (dy > 0) {
+                        // 스크롤 내릴 때, 네비게이션 바 숨기기
+                        activity.hideBottomNavigationView();
+                    } else if (dy < 0) {
+                        // 스크롤 올릴 때, 네비게이션 바 보이기
+                        activity.showBottomNavigationView();
                     }
-                } else {
-                    // Handle failure
-                    Log.e("Response Error", "Failed to receive successful response");
                 }
             }
+        });
+
+        binding.searchText.setOnKeyListener(new View.OnKeyListener() {
             @Override
-            public void onFailure(Call<PhotoNameResponse> call, Throwable t) {
-                // Handle error
-                Log.e("Request Error", "Failed to send request to server", t);
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                // 엔터 키가 눌렸는지 확인
+                if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN) {
+                    // 검색 실행 코드
+                    retrieve();
+                    return true; // 이벤트 처리 완료
+                }
+                return false; // 다른 키 이벤트는 기본 동작 수행
             }
         });
     }
@@ -127,12 +113,18 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
         String userInput = binding.searchText.getText().toString();
         // 사용자가 아무것도 입력하지 않고 검색 버튼 클릭 시, api 호출하지 않도록 리턴
         if (userInput.length() == 0) {
-            binding.searchButton.setEnabled(true);
-            binding.spinKit.setVisibility(View.GONE);
-            return;
+            // 사용자가 아무것도 입력하지 않았을 때 UI 업데이트와 로직을 종료
+            getActivity().runOnUiThread(() -> {
+                StyleableToast.makeText(getContext(), "검색어를 입력해주세요.", R.style.customToast).show();
+                binding.searchButton.setEnabled(true);
+                binding.spinKit.setVisibility(View.GONE);
+                updateUIWithMatchedUris(new ArrayList<>());
+            });
+
+            return;  // 메서드를 여기서 종료
         }
         // 사용자가 입력한 문장(찾고 싶은 사진) + gpt가 분석할 수 있도록 지시할 문장
-        userInput = userInput + getString(R.string.user_input_eng);
+        userInput = userInput + getString(R.string.user_input_kor);
         if (userInput.length() == 0) return;
         ApiService service = HttpHelper.getInstance(OPENAI_URL).create(ApiService.class);
 
@@ -177,7 +169,6 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
                                     relationships.add(parts[i + 1].trim()); // 공백 제거
                                 }
                             }
-
                             // test
                             System.out.println(entities);
                             System.out.println(relationships);
@@ -185,6 +176,7 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
                             if (entities.size() != pairCount || relationships.size() != pairCount) {
                                 Log.e("Data Mismatch", "The number of pairs does not match the pairCount.");
                                 StyleableToast.makeText(getContext(), "데이터 불일치. 응답 확인 필요.", R.style.customToast).show();
+
                             } else {
                                 neo4jQuery = Neo4jDatabaseManager.createCypherQuery(entities, relationships, pairCount);
                                 System.out.println("TEST_QUERY : " + neo4jQuery);
@@ -197,7 +189,19 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
                     binding.query.post(() -> binding.query.setText(neo4jQuery));
 
                     // 웹 서버에 쿼리 전송
-                    sendQueryToServer("youjeong", neo4jQuery);
+                    webRequestManager.sendQueryToServer(DatabaseUtils.getPersistentDeviceDatabaseName(getContext()), neo4jQuery , new WebRequestManager.WebServerQueryCallbacks() {
+                        @Override
+                        public void onWebServerQuerySuccess(PhotoNameResponse photoNameResponse) {
+                            List<Uri> matchedUris = findMatchedUris(photoNameResponse.getPhotoName(), requireContext());
+
+                            updateUIWithMatchedUris(matchedUris);
+                        }
+
+                        @Override
+                        public void onWebServerQueryFailure() {
+                            updateUIWithMatchedUris(new ArrayList<>());
+                        }
+                    });
                 } else {
                     Log.e("OpenAI Error", "Error fetching response");
                 }
@@ -275,7 +279,16 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
     }
     // 새로운 이미지로 리사이클러뷰 업데이트
     private void updateUIWithMatchedUris(List<Uri> matchedUris) {
-        binding.recyclerView.post(() -> imageViewModel.setImageUris(matchedUris));
+//        binding.recyclerView.post(() -> imageViewModel.setImageUris(matchedUris));
+        if (matchedUris.isEmpty()) {
+            Log.d("SearchFragment", "No matched photos found, updating with empty list.");
+        }
+        getActivity().runOnUiThread(() -> {
+            if (binding != null && imageViewModel != null) {
+                imageViewModel.setImageUris(matchedUris);
+                binding.recyclerView.getAdapter().notifyDataSetChanged();
+            }
+        });
     }
     private void retrieve() {
         binding.searchButton.setEnabled(false);
@@ -289,10 +302,17 @@ public class SearchFragment extends Fragment implements ImageAdapter.OnImageClic
         binding = null;
         Neo4jDriverManager.closeDriver();
     }
+    // 자연어 검색 창에서 검색 결과로 출력된 사진 클릭 시, 써클 투 써치로 전환
     @Override
     public void onImageClick(Uri uri) {
-        Intent intent = new Intent(requireContext(), CircleToSearchActivity.class);
+        Intent intent = new Intent(requireContext(), ImageDisplayActivity.class);
         intent.putExtra("imageUri", uri.toString());
         startActivity(intent);
+    }
+    // 화면 초기화
+    @Override
+    public void performDataUpdate() {
+        updateUIWithMatchedUris(new ArrayList<>()); // 검색된 사진 제거
+        binding.searchText.setText(""); // 검색한 문장 초기화
     }
 }

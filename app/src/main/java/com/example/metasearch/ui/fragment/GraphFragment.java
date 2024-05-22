@@ -27,6 +27,8 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.metasearch.databinding.FragmentGraphBinding;
+import com.example.metasearch.helper.DatabaseUtils;
+import com.example.metasearch.ui.activity.GraphDisplayActivity;
 import com.example.metasearch.ui.viewmodel.GraphViewModel;
 
 import java.util.ArrayList;
@@ -63,8 +65,10 @@ public class GraphFragment extends Fragment {
         binding.webView.addJavascriptInterface(new WebAppInterface(requireContext()), "Android");
 
         //수정해야됨 제발
-        String dbName = "meet";
-        binding.webView.loadUrl("http://113.198.85.4/graph/" + dbName );
+//        String dbName = "meet";
+//        binding.webView.loadUrl("http://113.198.85.4/graph/" + dbName );
+        // 수정 후 코드
+        binding.webView.loadUrl("http://113.198.85.6/graph/" + DatabaseUtils.getPersistentDeviceDatabaseName(getContext()));
 
         return root;
     }
@@ -135,6 +139,15 @@ public class GraphFragment extends Fragment {
         imageViews.add(0, imageView);
         binding.imageContainer.addView(imageView, 0);
         existingUris.add(0, uri); // 새 URI를 리스트의 맨 앞에 추가
+
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(requireContext(), GraphDisplayActivity.class);
+                intent.putExtra("imageUri", uri.toString());
+                startActivity(intent);
+            }
+        });
 
         imageView.setOnLongClickListener(v -> {
             shareImage(uri);
