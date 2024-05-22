@@ -227,8 +227,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         List<Person> persons = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
 
-        // 전화번호가 있는 인물만 선택
-        String selection = "PHONENUMBER <> '' AND IS_DELETE = 0";  // PHONENUMBER가 비어 있지 않고, 삭제되지 않은 인물
+        // 전화번호가 있는 인물만 선택하고 '나'라는 이름을 가진 인물은 제외합니다.
+        String selection = "PHONENUMBER <> '' AND IS_DELETE = 0 AND INPUTNAME <> '나'";
         Cursor personCursor = db.query(TABLE_NAME, new String[]{"ID", "NAME", "INPUTNAME", "PHONENUMBER", "IMAGE"}, selection, null, null, null, null);
 
         if (personCursor.moveToFirst()) {
@@ -249,10 +249,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         personCursor.close();
         db.close();
+
         // 통화 시간으로 리스트 정렬
         Collections.sort(persons, (p1, p2) -> Long.compare(p2.getTotalDuration(), p1.getTotalDuration()));
         return persons;
     }
+
     @SuppressLint("Range")
     private long getTotalCallDurationForNumber(String phoneNumber) {
         long totalDuration = 0;
