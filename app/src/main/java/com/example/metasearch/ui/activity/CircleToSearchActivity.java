@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.metasearch.R;
+import com.example.metasearch.dao.DatabaseHelper;
 import com.example.metasearch.databinding.ActivityCircleToSearchBinding;
 import com.example.metasearch.helper.DatabaseUtils;
 import com.example.metasearch.interfaces.CircleDataUploadCallbacks;
@@ -218,8 +219,18 @@ public class CircleToSearchActivity extends AppCompatActivity
                 if (detectedObjects.isEmpty()) {
                     StyleableToast.makeText(this, "분석된 객체가 없습니다.", R.style.customToast).show();
                 } else {
+
+                    List<String> newDetectedObjects = new ArrayList<>();
+                    for (String imageName : detectedObjects) {
+                        String inputName = DatabaseHelper.getInstance(context).getInputNameByImageName(imageName);
+                        if (inputName != null) {
+                            newDetectedObjects.add(inputName);
+                        } else {
+                            newDetectedObjects.add(imageName); // 매칭되지 않으면 원래 이름을 사용
+                        }
+                    }
                     // Web Server로 이미지 분석 결과 전송
-                    webRequestManager.sendDetectedObjectsToAnotherServer(detectedObjects, DatabaseUtils.getPersistentDeviceDatabaseName(this), this);
+                    webRequestManager.sendDetectedObjectsToWebServer(newDetectedObjects, DatabaseUtils.getPersistentDeviceDatabaseName(this), this);
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Error updating UI: ", e);

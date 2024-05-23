@@ -402,5 +402,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return images;
     }
+    @SuppressLint("Range")
+    public String getInputNameByImageName(String imageName) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String inputName = null;
+
+        Cursor cursor = db.query(TABLE_NAME, new String[]{COLUMN_INPUTNAME}, "NAME = ?", new String[]{imageName}, null, null, null);
+
+        if (cursor.moveToFirst()) {
+            inputName = cursor.getString(cursor.getColumnIndex(COLUMN_INPUTNAME));
+        }
+        cursor.close();
+        db.close();
+        return inputName;
+    }
+
 
 }
