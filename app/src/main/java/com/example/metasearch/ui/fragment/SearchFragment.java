@@ -27,7 +27,6 @@ import com.example.metasearch.helper.DatabaseUtils;
 import com.example.metasearch.helper.HttpHelper;
 import com.example.metasearch.interfaces.Update;
 import com.example.metasearch.manager.Neo4jDatabaseManager;
-import com.example.metasearch.manager.Neo4jDriverManager;
 import com.example.metasearch.manager.WebRequestManager;
 import com.example.metasearch.model.Choice;
 import com.example.metasearch.model.Message;
@@ -55,7 +54,6 @@ public class SearchFragment extends Fragment
     private WebRequestManager webRequestManager;
     private static final String OPENAI_URL = "https://api.openai.com/";
     private ImageViewModel imageViewModel;
-    private final Neo4jDatabaseManager Neo4jDatabaseManager = new Neo4jDatabaseManager();
     private FragmentSearchBinding binding;
     private String userInputText = ""; // 사용자 입력을 추적하는 변수
     private String neo4jQuery = ""; // Neo4j 서버에 보낼 쿼리문
@@ -66,13 +64,16 @@ public class SearchFragment extends Fragment
         binding = FragmentSearchBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        imageViewModel.getImageUris().observe(getViewLifecycleOwner(), this::updateRecyclerView);
-        webRequestManager = WebRequestManager.getWebImageUploader(); // 인스턴스 생성
+        init();
         setupRecyclerView();
         setupListeners();
         setupAutoCompleteTextView();
 
         return root;
+    }
+    private void init() {
+        imageViewModel.getImageUris().observe(getViewLifecycleOwner(), this::updateRecyclerView);
+        webRequestManager = WebRequestManager.getWebImageUploader(); // 인스턴스 생성
     }
     private void setupListeners() {
         binding.searchButton.setOnClickListener(v -> retrieve());
@@ -300,7 +301,6 @@ public class SearchFragment extends Fragment
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
-        Neo4jDriverManager.closeDriver();
     }
     // 자연어 검색 창에서 검색 결과로 출력된 사진 클릭 시, 써클 투 써치로 전환
     @Override
