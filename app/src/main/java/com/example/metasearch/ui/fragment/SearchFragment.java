@@ -26,6 +26,7 @@ import com.example.metasearch.databinding.FragmentSearchBinding;
 import com.example.metasearch.helper.DatabaseUtils;
 import com.example.metasearch.helper.HttpHelper;
 import com.example.metasearch.interfaces.Update;
+import com.example.metasearch.interfaces.WebServerQueryCallbacks;
 import com.example.metasearch.manager.Neo4jDatabaseManager;
 import com.example.metasearch.manager.WebRequestManager;
 import com.example.metasearch.model.Choice;
@@ -190,7 +191,7 @@ public class SearchFragment extends Fragment
                     binding.query.post(() -> binding.query.setText(neo4jQuery));
 
                     // 웹 서버에 쿼리 전송
-                    webRequestManager.sendQueryToServer(DatabaseUtils.getPersistentDeviceDatabaseName(getContext()), neo4jQuery , new WebRequestManager.WebServerQueryCallbacks() {
+                    webRequestManager.sendQueryToServer(DatabaseUtils.getPersistentDeviceDatabaseName(getContext()), neo4jQuery , new WebServerQueryCallbacks() {
                         @Override
                         public void onWebServerQuerySuccess(PhotoNameResponse photoNameResponse) {
                             List<Uri> matchedUris = findMatchedUris(photoNameResponse.getPhotoName(), requireContext());
@@ -280,7 +281,6 @@ public class SearchFragment extends Fragment
     }
     // 새로운 이미지로 리사이클러뷰 업데이트
     private void updateUIWithMatchedUris(List<Uri> matchedUris) {
-//        binding.recyclerView.post(() -> imageViewModel.setImageUris(matchedUris));
         if (matchedUris.isEmpty()) {
             Log.d("SearchFragment", "No matched photos found, updating with empty list.");
         }

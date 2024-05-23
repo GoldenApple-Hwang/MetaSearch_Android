@@ -22,6 +22,8 @@ import com.bumptech.glide.Glide;
 import com.example.metasearch.R;
 import com.example.metasearch.databinding.ActivityCircleToSearchBinding;
 import com.example.metasearch.helper.DatabaseUtils;
+import com.example.metasearch.interfaces.CircleDataUploadCallbacks;
+import com.example.metasearch.interfaces.WebServerUploadCallbacks;
 import com.example.metasearch.manager.AIRequestManager;
 import com.example.metasearch.manager.GalleryImageManager;
 import com.example.metasearch.manager.WebRequestManager;
@@ -43,8 +45,8 @@ import me.jfenn.colorpickerdialog.interfaces.OnColorPickedListener;
 
 public class CircleToSearchActivity extends AppCompatActivity
         implements ImageAdapter.OnImageClickListener,
-        AIRequestManager.CircleDataUploadCallbacks,
-        WebRequestManager.WebServerUploadCallbacks {
+        CircleDataUploadCallbacks,
+        WebServerUploadCallbacks {
     private ActivityCircleToSearchBinding binding;
     private Uri imageUri;
     private ImageViewModel imageViewModel;
@@ -196,10 +198,8 @@ public class CircleToSearchActivity extends AppCompatActivity
         // 카테고리 이름만 TextView에 표시
         StringBuilder categories = new StringBuilder();
         photoResponse.getPhotos().getIndividualPhotos().keySet().forEach(category -> {
-//            categories.append(category).append("\n");
             categories.append("#").append(category).append("  ");
         });
-//        binding.textViewRelatedCategories.setText(categories.toString().trim());
         binding.textViewRelatedCategories.setText(categories.toString());
     }
     @Override
@@ -224,7 +224,6 @@ public class CircleToSearchActivity extends AppCompatActivity
             } catch (Exception e) {
                 Log.e(TAG, "Error updating UI: ", e);
                 StyleableToast.makeText(this, "분석된 객체가 없습니다.", R.style.customToast).show();
-//                StyleableToast.makeText(this, "Error in processing: " + e.getMessage(), R.style.customToast).show();
             }
         });
     }

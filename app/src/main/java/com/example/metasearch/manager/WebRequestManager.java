@@ -2,14 +2,15 @@ package com.example.metasearch.manager;
 
 import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
-import static com.example.metasearch.manager.GalleryImageManager.findMatchedUris;
-
-import android.net.Uri;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 
 import com.example.metasearch.helper.HttpHelper;
+import com.example.metasearch.interfaces.WebServerPersonDataUploadCallbacks;
+import com.example.metasearch.interfaces.WebServerPersonFrequencyUploadCallbacks;
+import com.example.metasearch.interfaces.WebServerQueryCallbacks;
+import com.example.metasearch.interfaces.WebServerUploadCallbacks;
 import com.example.metasearch.model.Person;
 import com.example.metasearch.model.request.ChangeNameRequest;
 import com.example.metasearch.model.request.NLQueryRequest;
@@ -43,7 +44,6 @@ import retrofit2.Retrofit;
 public class WebRequestManager {
     private static final String Webserver_BASE_URL = "http://113.198.85.6"; // web 서버의 기본 url
     private static WebRequestManager webImageUploader;
-    private Retrofit webRetrofit;
     private ApiService webService;
 
     private WebRequestManager(){
@@ -134,19 +134,8 @@ public class WebRequestManager {
 
 
 
-    // UI 업데이트를 위한 콜백 메서드
-    public interface WebServerUploadCallbacks {
-        void onWebServerUploadSuccess(PhotoResponse detectedObjects);
-        void onWebServerUploadFailure(String message);
-    }
-    public interface WebServerPersonDataUploadCallbacks {
-        void onPersonDataUploadSuccess(List<String> photoNameResponse);
-        void onPersonDataUploadFailure(String message);
-    }
-    public interface WebServerPersonFrequencyUploadCallbacks {
-        void onPersonFrequencyUploadSuccess(PersonFrequencyResponse responses);
-        void onPersonFrequencyUploadFailure(String message);
-    }
+
+
 
     // Web Server에 인물 빈도 수 요청
     public void getPersonFrequency(String dbName, List<Person> people, WebServerPersonFrequencyUploadCallbacks callbacks) {
@@ -208,7 +197,7 @@ public class WebRequestManager {
         });
     }
     // Web Server로 Circle to Search 이미지 분석 결과 전송
-    public void sendDetectedObjectsToAnotherServer(List<String> detectedObjects, String dbName, WebRequestManager.WebServerUploadCallbacks callbacks) {
+    public void sendDetectedObjectsToAnotherServer(List<String> detectedObjects, String dbName, WebServerUploadCallbacks callbacks) {
         // Gson 인스턴스 생성
         Gson gson = new Gson();
 
@@ -296,10 +285,6 @@ public class WebRequestManager {
                 Log.e("Name Change", "Error: " + t.getMessage());
             }
         });
-    }
-    public interface WebServerQueryCallbacks {
-        void onWebServerQuerySuccess(PhotoNameResponse photoNameResponse);
-        void onWebServerQueryFailure();
     }
     public void sendQueryToServer(String dbName, String query, WebServerQueryCallbacks callbacks) {
         Gson gson = new Gson();
