@@ -191,7 +191,7 @@ public class SearchFragment extends Fragment
                     binding.query.post(() -> binding.query.setText(neo4jQuery));
 
                     // 웹 서버에 쿼리 전송
-                    webRequestManager.sendQueryToServer(DatabaseUtils.getPersistentDeviceDatabaseName(getContext()), neo4jQuery , new WebServerQueryCallbacks() {
+                    webRequestManager.sendQueryToWebServer(DatabaseUtils.getPersistentDeviceDatabaseName(getContext()), neo4jQuery , new WebServerQueryCallbacks() {
                         @Override
                         public void onWebServerQuerySuccess(PhotoNameResponse photoNameResponse) {
                             List<Uri> matchedUris = findMatchedUris(photoNameResponse.getPhotoName(), requireContext());
@@ -302,7 +302,6 @@ public class SearchFragment extends Fragment
         super.onDestroyView();
         binding = null;
     }
-    // 자연어 검색 창에서 검색 결과로 출력된 사진 클릭 시, 써클 투 써치로 전환
     @Override
     public void onImageClick(Uri uri) {
         Intent intent = new Intent(requireContext(), ImageDisplayActivity.class);

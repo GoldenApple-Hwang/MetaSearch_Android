@@ -39,7 +39,6 @@ import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
 
 public class WebRequestManager {
     private static final String Webserver_BASE_URL = "http://113.198.85.6"; // web 서버의 기본 url
@@ -197,7 +196,7 @@ public class WebRequestManager {
         });
     }
     // Web Server로 Circle to Search 이미지 분석 결과 전송
-    public void sendDetectedObjectsToAnotherServer(List<String> detectedObjects, String dbName, WebServerUploadCallbacks callbacks) {
+    public void sendDetectedObjectsToWebServer(List<String> detectedObjects, String dbName, WebServerUploadCallbacks callbacks) {
         // Gson 인스턴스 생성
         Gson gson = new Gson();
 
@@ -286,7 +285,7 @@ public class WebRequestManager {
             }
         });
     }
-    public void sendQueryToServer(String dbName, String query, WebServerQueryCallbacks callbacks) {
+    public void sendQueryToWebServer(String dbName, String query, WebServerQueryCallbacks callbacks) {
         Gson gson = new Gson();
         String jsonObject = gson.toJson(new NLQueryRequest(dbName, query));
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonObject);
