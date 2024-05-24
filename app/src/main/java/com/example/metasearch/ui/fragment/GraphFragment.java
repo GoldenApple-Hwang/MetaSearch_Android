@@ -10,6 +10,7 @@ import android.net.http.SslError;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -64,11 +65,9 @@ public class GraphFragment extends Fragment {
         // JavascriptInterface 추가
         binding.webView.addJavascriptInterface(new WebAppInterface(requireContext()), "Android");
 
-        //수정해야됨 제발
-//        String dbName = "meet";
-//        binding.webView.loadUrl("http://113.198.85.4/graph/" + dbName );
         // 수정 후 코드
         binding.webView.loadUrl("http://113.198.85.6/graph/" + DatabaseUtils.getPersistentDeviceDatabaseName(getContext()));
+        Log.d("WEBVIEW_URL", "http://113.198.85.6/graph/" + DatabaseUtils.getPersistentDeviceDatabaseName(getContext()));
 
         return root;
     }
