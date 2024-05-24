@@ -1,10 +1,16 @@
 <resources>
     <string name="app_name">Visualize Me By Photo</string>
-    <string name="title_home">Visualize Me By Photo</string>
     <string name="title_refresh"> </string>
-    <string name="title_search">검색</string>
-    <string name="title_graph">그래프</string>
+
+    <string name="menu_title_home">홈</string>
+    <string name="menu_title_search">검색</string>
+    <string name="menu_title_graph">그래프</string>
     <string name="title_like">좋아요</string>
+
+    <string name="title_search">Natural Language Search</string>
+    <string name="title_graph">Knowledge Graph</string>
+    <string name="title_focusing">Focusing Search</string>
+
     <string name="title_comment">설명</string>
     <string name="title_share">공유</string>
 
