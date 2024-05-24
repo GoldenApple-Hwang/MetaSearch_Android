@@ -132,7 +132,8 @@ public class PersonPhotosActivity extends AppCompatActivity
         });
     }
     private void updatePersonInfo(String newName, String newPhone) {
-        boolean updateSuccess = databaseHelper.updatePersonById(id, newName, newPhone);
+//        boolean updateSuccess = databaseHelper.updatePersonById(id, newName, newPhone);
+        boolean updateSuccess = databaseHelper.updatePersonByName(inputName, newName, newPhone);
         if (updateSuccess) {
             StyleableToast.makeText(this, "인물 정보가 저장되었습니다.", R.style.customToast).show();
             webRequestManager.changePersonName(DatabaseUtils.getPersistentDeviceDatabaseName(this), inputName, newName);

@@ -330,6 +330,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return person;
     }
+    public boolean updatePersonByName(String oldName, String newName, String newPhoneNumber) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_INPUTNAME, newName);
+        values.put(COLUMN_PHONENUMBER, newPhoneNumber);
+
+        String selection = COLUMN_INPUTNAME + " = ?";
+        String[] selectionArgs = { oldName };
+
+        int result = db.update(TABLE_NAME, values, selection, selectionArgs);
+        db.close();
+
+        return result > 0;
+    }
+
     public boolean updatePersonById(int id, String newName, String newPhoneNumber) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
