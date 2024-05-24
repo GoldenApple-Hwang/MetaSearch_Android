@@ -349,7 +349,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE IS_DELETE = 0", null);
         HashSet<String> seenNames = new HashSet<>(); // 중복 이름 추적을 위한 HashSet
-        Person myPerson = null; // '나' 인물을 저장할 변수
+        boolean isMyPersonAdded = false; // '나' 인물이 추가되었는지 여부
 
         if (cursor.moveToFirst()) {
             do {
@@ -359,12 +359,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 @SuppressLint("Range") byte[] image = cursor.getBlob(cursor.getColumnIndex(COLUMN_IMAGE));
                 @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(COLUMN_PHONENUMBER));
 
-                // '나'라는 이름을 가진 사람을 먼저 찾아 저장
-                if (inputName.equals("나") && myPerson == null) {
-                    myPerson = new Person(id, name, image);
-                    myPerson.setInputName(inputName);
-                    myPerson.setPhone(phoneNumber);
-                } else if (!seenNames.contains(inputName)) { // 이미 처리한 이름이 아니면 추가
+                if (inputName.equals("나")) {
+                    // '나' 인물이 이미 추가되었는지 확인
+                    if (!isMyPersonAdded) {
+                        // '나' 인물을 리스트에 추가
+                        Person myPerson = new Person(id, name, image);
+                        myPerson.setInputName(inputName);
+                        myPerson.setPhone(phoneNumber);
+                        people.add(0, myPerson); // '나' 인물을 리스트의 맨 앞에 추가
+                        isMyPersonAdded = true; // '나' 인물이 추가되었음을 표시
+                    }
+                } else if (!seenNames.contains(inputName)) {
+                    // 이미 처리한 이름이 아니면 추가
                     Person person = new Person(id, name, image);
                     person.setInputName(inputName);
                     person.setPhone(phoneNumber);
@@ -376,12 +382,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         db.close();
 
-        // '나' 인물이 있으면 목록의 맨 앞에 추가
-        if (myPerson != null) {
-            people.add(0, myPerson);
-        }
         return people;
     }
+
     public ArrayList<byte[]> getImageData(){
         ArrayList<byte[]> images = new ArrayList<>();
         SQLiteDatabase db = this.getWritableDatabase();
