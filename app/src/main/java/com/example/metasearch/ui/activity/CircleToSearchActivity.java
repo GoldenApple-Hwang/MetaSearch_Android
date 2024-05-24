@@ -155,10 +155,25 @@ public class CircleToSearchActivity extends AppCompatActivity
         // Individual photos 처리
         binding.individualPhotosContainer.removeAllViews();
 
+        // Common photos에 대한 카테고리 이름 수집
+        Set<String> relatedCategories = new HashSet<>();
+        for (String commonPhoto : uniqueCommonPhotoNames) {
+            for (Map.Entry<String, List<String>> entry : individualPhotosMap.entrySet()) {
+                if (entry.getValue().contains(commonPhoto)) {
+                    relatedCategories.add(entry.getKey());
+                }
+            }
+        }
+
         // Common photos 추가
         if (!commonPhotoUris.isEmpty()) {
+            // Common photos 카테고리 이름 출력
+            StringBuilder categoriesText = new StringBuilder();
+            for (String category : relatedCategories) {
+                categoriesText.append("#").append(category).append("  ");
+            }
             TextView commonPhotosTextView = new TextView(this);
-            commonPhotosTextView.setText("Common Photos");
+            commonPhotosTextView.setText(categoriesText);
             commonPhotosTextView.setTextSize(16);
             Typeface customFont = ResourcesCompat.getFont(this, R.font.light); // 폰트 로드
             commonPhotosTextView.setTypeface(customFont, Typeface.BOLD); // 폰트와 스타일 적용
