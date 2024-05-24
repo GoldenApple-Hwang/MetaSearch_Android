@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
-    private Context context;
+    private final Context context;
     static final String TABLE_NAME = "Faces";
     private static final int DATABASE_VERSION = 2; // 데이터베이스 버전 번호 증가
     private static final String COLUMN_IMAGE = "IMAGE"; // 이미지 컬럼
@@ -45,18 +45,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return instance;
     }
     // 싱글톤으로 만들기 위해 private으로 변경
-    private DatabaseHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version){
+    private DatabaseHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, DATABASE_VERSION);
         this.context = context;
-        Log.d(TAG,"DataBaseHelper 생성자 호출");
+        Log.d(TAG, "DataBaseHelper 생성자 호출");
     }
-//    public static DatabaseHelper getInstance(Context context) {
-//        if (instance == null) {
-//            instance = new DatabaseHelper(context.getApplicationContext(), "FACEIMAGE.db", null, 1);
-//        }
-//        return instance;
-//    }
-
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase){
         Log.d(TAG,"Table create");
