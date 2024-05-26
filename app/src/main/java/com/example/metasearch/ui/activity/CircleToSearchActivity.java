@@ -231,7 +231,6 @@ public class CircleToSearchActivity extends AppCompatActivity
         intent.putExtra("imageUri", uri.toString());
         startActivity(intent);
     }
-
     @Override
     public void onCircleUploadSuccess(List<String> detectedObjects) {
         runOnUiThread(() -> {
@@ -239,36 +238,45 @@ public class CircleToSearchActivity extends AppCompatActivity
                 MenuItem searchItem = binding.circleMenu.getMenu().findItem(R.id.search);
                 searchItem.setEnabled(true); // 검색 버튼 활성화
                 binding.spinKit.setVisibility(View.GONE); // 로딩 아이콘 숨김
-                if (detectedObjects.isEmpty()) {
+
+                // 등록된 인물 이름으로 검색하기 위한 필터링
+                List<String> newDetectedObjects = new ArrayList<>();
+                for (String imageName : detectedObjects) {
+                    String inputName = DatabaseHelper.getInstance(context).getInputNameByImageName(imageName);
+                    if (inputName != null) {
+                        newDetectedObjects.add(inputName);
+                    } else {
+                        newDetectedObjects.add(imageName); // 매칭되지 않으면 원래 이름을 사용
+                    }
+                }
+
+                // detectedObjects와 newDetectedObjects가 모두 빈 문자열로만 구성되어 있는지 확인
+                boolean allEmpty = detectedObjects.stream().allMatch(String::isEmpty)
+                        && newDetectedObjects.stream().allMatch(String::isEmpty);
+
+                if (allEmpty || detectedObjects.isEmpty()) {
+                    // 분석된 객체가 없는 경우 처리
                     StyleableToast.makeText(this, "분석된 객체가 없습니다.", R.style.customToast).show();
                     // Individual photos 처리
                     binding.individualPhotosContainer.removeAllViews();
-                } else {
-                    // 등록된 인물 이름으로 검색하기 위한 필터링
-                    List<String> newDetectedObjects = new ArrayList<>();
-                    for (String imageName : detectedObjects) {
-                        String inputName = DatabaseHelper.getInstance(context).getInputNameByImageName(imageName);
-                        if (inputName != null) {
-                            newDetectedObjects.add(inputName);
-                        } else {
-                            newDetectedObjects.add(imageName); // 매칭되지 않으면 원래 이름을 사용
-                        }
-                    }
-                    // 원의 중심에 텍스트 설정
-                    for (int i = 0; i < newDetectedObjects.size(); i++) {
-                        if (i < binding.customImageView.getCircles().size()) {
-                            Circle circle = binding.customImageView.getCircles().get(i);
-                            // 분석된 객체 없는 경우 텍스트뷰 출력 x
-                            addTextViewAtCircleCenter(circle, newDetectedObjects.get(i));
-                        }
-                    }
-                    // detectedObjects에서 빈 문자열을 제거한 리스트를 생성
-                    List<String> validDetectedObjects = newDetectedObjects.stream()
-                            .filter(name -> name != null && !name.trim().isEmpty() && !name.equals("?"))
-                            .collect(Collectors.toList());
-                    // Web Server로 이미지 분석 결과 전송
-                    webRequestManager.sendDetectedObjectsToWebServer(validDetectedObjects, DatabaseUtils.getPersistentDeviceDatabaseName(this), this);
+                    return;
                 }
+
+                // 원의 중심에 텍스트 설정
+                for (int i = 0; i < newDetectedObjects.size(); i++) {
+                    if (i < binding.customImageView.getCircles().size()) {
+                        Circle circle = binding.customImageView.getCircles().get(i);
+                        addTextViewAtCircleCenter(circle, newDetectedObjects.get(i));
+                    }
+                }
+
+                // newDetectedObjects에서 빈 문자열을 제거한 리스트를 생성
+                List<String> validDetectedObjects = newDetectedObjects.stream()
+                        .filter(name -> name != null && !name.trim().isEmpty() && !name.equals(""))
+                        .collect(Collectors.toList());
+
+                // Web Server로 이미지 분석 결과 전송
+                webRequestManager.sendDetectedObjectsToWebServer(validDetectedObjects, DatabaseUtils.getPersistentDeviceDatabaseName(this), this);
             } catch (Exception e) {
                 Log.e(TAG, "Error updating UI: ", e);
                 StyleableToast.makeText(this, "분석된 객체가 없습니다.", R.style.customToast).show();
@@ -302,37 +310,42 @@ public class CircleToSearchActivity extends AppCompatActivity
     }
     // 원의 중심에 텍스트뷰 추가
     private void addTextViewAtCircleCenter(Circle circle, String text) {
-        // TextView 생성
-        TextView textView = new TextView(this);
-        if (text == null || text.trim().isEmpty()) {
-            textView.setText("객체 인식 실패");
-        } else {
-            textView.setText(text);
+        try {
+            // TextView 생성
+            TextView textView = new TextView(this);
+            if (text.equals("") || text.trim().isEmpty()) {
+                textView.setText("객체 인식 실패");
+            } else {
+                textView.setText(text);
+            }
+            textView.setTextSize(12);
+            textView.setTextColor(getResources().getColor(R.color.light_pink));
+            textView.setBackgroundResource(R.drawable.rounded_button);
+            Typeface customFont = ResourcesCompat.getFont(this, R.font.light); // 폰트 로드
+            textView.setTypeface(customFont, Typeface.BOLD); // 폰트와 스타일 적용
+
+            // TextView의 레이아웃 파라미터 설정
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+            );
+
+            // TextView의 위치 설정
+            float centerX = circle.getCenterX() * binding.customImageView.getWidth();
+            float centerY = circle.getCenterY() * binding.customImageView.getHeight();
+            textView.measure(0, 0); // 텍스트뷰의 실제 크기를 측정
+            params.leftMargin = (int) (centerX - (textView.getMeasuredWidth() / 2));
+            params.topMargin = (int) (centerY - (textView.getMeasuredHeight() / 2));
+
+            // TextView의 레이아웃 파라미터 적용
+            textView.setLayoutParams(params);
+
+            // TextView를 FrameLayout에 추가
+            FrameLayout parent = findViewById(R.id.custom_image_container);
+            parent.addView(textView);
+        } catch (Exception e) {
+            Log.e(TAG, "Error adding TextView: ", e);
         }
-        textView.setTextSize(12);
-        textView.setTextColor(getResources().getColor(R.color.light_pink));
-        textView.setBackgroundResource(R.drawable.rounded_button);
-        Typeface customFont = ResourcesCompat.getFont(this, R.font.light); // 폰트 로드
-        textView.setTypeface(customFont, Typeface.BOLD); // 폰트와 스타일 적용
-
-        // TextView의 레이아웃 파라미터 설정
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.WRAP_CONTENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT
-        );
-
-        // TextView의 위치 설정
-        float centerX = circle.getCenterX() * binding.customImageView.getWidth();
-        float centerY = circle.getCenterY() * binding.customImageView.getHeight();
-        textView.measure(0, 0); // 텍스트뷰의 실제 크기를 측정
-        params.leftMargin = (int) (centerX - (textView.getMeasuredWidth() / 2));
-        params.topMargin = (int) (centerY - (textView.getMeasuredHeight() / 2));
-
-        // TextView의 레이아웃 파라미터 적용
-        textView.setLayoutParams(params);
-
-        // TextView를 FrameLayout에 추가
-        FrameLayout parent = findViewById(R.id.custom_image_container);
-        parent.addView(textView);}
+    }
 
 }
