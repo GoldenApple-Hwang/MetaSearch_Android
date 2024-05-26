@@ -1,9 +1,11 @@
 package com.example.metasearch.service;
 
 import com.example.metasearch.model.request.ChangeNameRequest;
+import com.example.metasearch.model.request.DeleteEntityRequest;
 import com.example.metasearch.model.request.PersonFrequencyRequest;
 import com.example.metasearch.model.response.ChangeNameResponse;
 import com.example.metasearch.model.response.CircleDetectionResponse;
+import com.example.metasearch.model.response.DeleteEntityResponse;
 import com.example.metasearch.model.response.PersonFrequencyResponse;
 import com.example.metasearch.model.response.PhotoResponse;
 import com.example.metasearch.model.response.PhotoNameResponse;
@@ -59,7 +61,9 @@ public interface ApiService {
     // Web 서버에 사진 속성(이미지 설명 출력에 필요) 요청
     @GET("/api/photoTripleData/{dbName}/{photoName}")
     Call<TripleResponse> fetchTripleData(@Path("dbName") String dbName, @Path("photoName") String photoName);
-
+    // Web 서버에 노드 삭제 요청
+    @POST("neo4j/deleteEntity/")
+    Call<DeleteEntityResponse> deleteEntity(@Body DeleteEntityRequest request);
 
 
     //AI서버에 추가 이미지 분석 요청

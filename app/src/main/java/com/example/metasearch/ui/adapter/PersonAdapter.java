@@ -16,25 +16,31 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.metasearch.R;
 import com.example.metasearch.dao.DatabaseHelper;
+import com.example.metasearch.helper.DatabaseUtils;
+import com.example.metasearch.interfaces.WebServerDeleteEntityCallbacks;
+import com.example.metasearch.manager.WebRequestManager;
 import com.example.metasearch.model.Person;
 import com.example.metasearch.ui.activity.PersonPhotosActivity;
-import com.example.metasearch.ui.fragment.HomeFragment;
 
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import io.github.muddz.styleabletoast.StyleableToast;
 
-public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonViewHolder> {
+public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonViewHolder>
+                            implements WebServerDeleteEntityCallbacks {
     private DatabaseHelper databaseHelper;
     private final List<Person> people;
     private ImageAdapter.OnImageClickListener listener;
     private final Context context;
+    private final WebRequestManager webRequestManager;
 
     public PersonAdapter(List<Person> people, ImageAdapter.OnImageClickListener listener, Context context) {
         this.people = people;
         this.listener = listener;
         this.context = context;
-        databaseHelper = DatabaseHelper.getInstance(context);
+        this.databaseHelper = DatabaseHelper.getInstance(context);
+        this.webRequestManager = WebRequestManager.getWebImageUploader();
     }
 
     public interface OnImageClickListener {
@@ -58,14 +64,15 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
         builder.setMessage("'" + name + "'님을 '내가 아는 사람들'에서 삭제하시겠습니까?");
         builder.setPositiveButton("삭제", (dialog, which) -> {
             // 데이터 삭제 로직 실행
-            deletePerson(personId);
+            deletePerson(name);
         });
         builder.setNegativeButton("취소", (dialog, which) -> dialog.dismiss());
         builder.show();
     }
-    // 실제 삭제는 아니고, 화면에 표시 여부만 변경
-    private void deletePerson(int personId) {
-        databaseHelper.markPersonAsDeleted(personId);
+    private void deletePerson(String inputName) {
+        databaseHelper.deletePersonByName(inputName);
+        // Web 서버에 엔티티 삭제 요청
+        webRequestManager.deleteEntity(DatabaseUtils.getPersistentDeviceDatabaseName(context), inputName, this);
         // 화면 업데이트 필요
     }
     @NonNull
@@ -78,7 +85,6 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
     @Override
     public void onBindViewHolder(PersonViewHolder holder, int position) {
         Person person = people.get(position);
-//        holder.nameView.setText(person.getUserName());
         holder.nameView.setText(person.getInputName());
 
         // 바이트 배열을 Bitmap으로 변환
@@ -103,6 +109,19 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
     @Override
     public int getItemCount() {
         return people.size();
+    }
+    @Override
+    public void onDeleteEntitySuccess(String message) {
+//        StyleableToast.makeText(context, "삭제 성공: " + message, R.style.customToast).show();
+        StyleableToast.makeText(context, "인물 등록 해제 완료", R.style.customToast).show();
+        // 삭제 성공 시 화면 업데이트
+        people.clear();
+        people.addAll(databaseHelper.getAllPerson());
+        notifyDataSetChanged();
+    }
+    @Override
+    public void onDeleteEntityFailure(String message) {
+        StyleableToast.makeText(context, "삭제 실패: " + message, R.style.customToast).show();
     }
 }
 

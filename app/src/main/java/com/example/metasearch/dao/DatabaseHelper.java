@@ -58,8 +58,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + "NAME TEXT NOT NULL, "
                 + "INPUTNAME TEXT, " // 인물 이름(기본 값은 인물1, 인물2, ...)
                 + "PHONENUMBER TEXT, "
-                + "IMAGE BLOB, " // 이미지 컬럼 추가
-                + "IS_DELETE INTEGER DEFAULT 0);"; // IS_VERIFIED 컬럼 추가, BOOLEAN 대신 INTEGER 사용
+                + "IMAGE BLOB); "; // 이미지 컬럼 추가
         sqLiteDatabase.execSQL(createQuery);
     }
 
@@ -122,7 +121,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         Cursor cursor = null;
         try {
-            // 모든 행을 조회합니다.
+            // 모든 행을 조회
             String query = "SELECT NAME, INPUTNAME FROM "+TABLE_NAME;
             cursor = db.rawQuery(query, null);
 
@@ -131,7 +130,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex("NAME"));
                     @SuppressLint("Range") String inputName = cursor.getString(cursor.getColumnIndex("INPUTNAME"));
 
-                    // IMAGE와 INPUTNAME이 다른 경우 맵에 추가합니다.
+                    // IMAGE와 INPUTNAME이 다른 경우 맵에 추가
                     if (!name.equals(inputName)) {
                         mismatchMap.put(name, inputName);
                     }
@@ -148,8 +147,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return mismatchMap;
     }
-
-
     public boolean insertImage(String name ,byte[] imageBytes) {
         Log.d(TAG,"이미지 추가함");
         //userNum +=1; //한 명 추가
@@ -221,7 +218,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
 
         // 전화번호가 있는 인물만 선택하고 '나'라는 이름을 가진 인물은 제외합니다.
-        String selection = "PHONENUMBER <> '' AND IS_DELETE = 0 AND INPUTNAME <> '나'";
+        String selection = "PHONENUMBER <> '' AND INPUTNAME <> '나'";
         Cursor personCursor = db.query(TABLE_NAME, new String[]{"ID", "NAME", "INPUTNAME", "PHONENUMBER", "IMAGE"}, selection, null, null, null, null);
 
         if (personCursor.moveToFirst()) {
@@ -284,15 +281,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return phoneNumbers;
     }
-    // 실제 삭제는 아님
-    public void markPersonAsDeleted(int id) {
+    // inputname을 통해 해당 컬럼 삭제
+    public void deletePersonByName(String inputName) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("IS_DELETE", 1); // Set isDelete to 1 to indicate logical deletion
-
-        // Perform the update on rows matching the specified ID
-        int result = db.update(TABLE_NAME, values, "ID = ?", new String[]{String.valueOf(id)});
-        db.close();
+        // inputname을 기준으로 해당 행을 삭제
+        int result = db.delete(TABLE_NAME, "INPUTNAME = ?", new String[]{inputName});
+        db.close(); // 데이터베이스 사용 후 닫기
     }
     public String getPhoneNumberById(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -362,7 +356,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public List<Person> getAllPerson() {
         List<Person> people = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE IS_DELETE = 0", null);
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
         HashSet<String> seenNames = new HashSet<>(); // 중복 이름 추적을 위한 HashSet
         boolean isMyPersonAdded = false; // '나' 인물이 추가되었는지 여부
 
@@ -399,7 +393,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return people;
     }
-
     public ArrayList<byte[]> getImageData(){
         ArrayList<byte[]> images = new ArrayList<>();
         SQLiteDatabase db = this.getWritableDatabase();
@@ -427,6 +420,4 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return inputName;
     }
-
-
 }
