@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
@@ -34,6 +35,8 @@ public class ImageDisplayActivity extends AppCompatActivity {
     private String imageUriString;
     private WebRequestManager webRequestManager; // 웹 요청 관리자 추가
     private ChatGPTManager chatGPTManager;
+    private static final String TEXT_VIEW_TAG = "descriptionTextView";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,7 +138,6 @@ public class ImageDisplayActivity extends AppCompatActivity {
                     Log.e("GPT", "API Response Error: " + response.errorBody());
                 }
             }
-
             @Override
             public void onFailure(Call<OpenAIResponse> call, Throwable t) {
                 runOnUiThread(() -> StyleableToast.makeText(ImageDisplayActivity.this, "Error: " + t.getMessage(), R.style.customToast).show());
@@ -144,28 +146,12 @@ public class ImageDisplayActivity extends AppCompatActivity {
         });
     }
     private void addTextViewOnImage(String text) {
-        TextView textView = new TextView(this);
-        textView.setText(text);
-        textView.setTextSize(16);
-        textView.setTextColor(getResources().getColor(android.R.color.white));
-        textView.setBackgroundColor(getResources().getColor(R.color.semi_transparent_black_50));
-        textView.setPadding(16, 16, 16, 16);
-        textView.setVisibility(View.VISIBLE);
-
-        // TextView의 레이아웃 파라미터 설정
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT
-        );
-        params.topMargin = 16;
-
-        // TextView의 레이아웃 파라미터 적용
-        textView.setLayoutParams(params);
-
-        // FrameLayout에 TextView 추가
-        FrameLayout parent = findViewById(R.id.image_container);
-        parent.addView(textView);
+        binding.tripleDataTextView.setText(text);
+        binding.tripleDataTextView.setTextSize(16);
+        binding.tripleDataTextView.setTextColor(getResources().getColor(R.color.light_pink)); // 글자색 설정
+//        binding.tripleDataTextView.setBackgroundResource(R.drawable.rounded_button); // 배경 리소스 설정
     }
+
     private List<Message> createMessagesFromTripleData(String tripleData) {
         List<Message> messages = new ArrayList<>();
         messages.add(new Message("user", tripleData + " 이건 사진의 트리플이야. 반드시 이 내용만 사용해서 어떤 사진인지 설명해. ")); // 트리플 데이터를 그대로 메시지에 추가
