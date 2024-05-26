@@ -1,12 +1,9 @@
 package com.example.metasearch.ui.activity;
 
-import static android.content.ContentValues.TAG;
-
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.example.metasearch.R;
 
@@ -40,14 +37,22 @@ public class MainActivity extends AppCompatActivity {
         requestPermissions(); // 권한 요청
     }
     private void requestPermissions() {
+        // Android 13(Tiramisu) 이상에서는 READ_MEDIA_IMAGES 권한 사용
         String storagePermission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ?
                 Manifest.permission.READ_MEDIA_IMAGES : Manifest.permission.READ_EXTERNAL_STORAGE;
-        String[] permissions = new String[] { storagePermission, Manifest.permission.READ_CALL_LOG };
+        // 요청할 권한 목록에 알림 권한과 위치 정보 권한 추가
+        String[] permissions = new String[] {
+                storagePermission,
+                Manifest.permission.READ_CALL_LOG,
+                Manifest.permission.POST_NOTIFICATIONS, // 알림 권한
+                Manifest.permission.ACCESS_FINE_LOCATION, // 위치 정보 권한
+                Manifest.permission.ACCESS_COARSE_LOCATION // 추가적으로 요청할 수 있습니다.
+        };
 
         for (String permission : permissions) {
             if (ActivityCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, permissions, PERMISSIONS_REQUEST_READ_PHOTOS);
-                return; // Stop checking after finding an ungranted permission
+                return; // 권한이 허용되지 않은 경우 요청 후 종료
             }
         }
     }

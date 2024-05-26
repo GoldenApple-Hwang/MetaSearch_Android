@@ -7,12 +7,11 @@ import android.net.Uri;
 import android.util.Base64;
 import android.util.Log;
 
-import com.example.metasearch.dao.AnalyzedImageListDatabaseHelper;
 import com.example.metasearch.dao.DatabaseHelper;
 import com.example.metasearch.helper.HttpHelper;
+import com.example.metasearch.interfaces.CircleDataUploadCallbacks;
 import com.example.metasearch.model.Circle;
 import com.example.metasearch.model.response.CircleDetectionResponse;
-import com.example.metasearch.model.response.PhotoNameResponse;
 import com.example.metasearch.model.response.UploadResponse;
 import com.example.metasearch.service.ApiService;
 import com.google.gson.Gson;
@@ -20,7 +19,6 @@ import com.google.gson.Gson;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -37,7 +35,6 @@ public class AIRequestManager {
     private static final String AIserver_BASE_URL = "http://113.198.85.5"; // ai 서버의 기본 url
     private static AIRequestManager aiImageUploader;
     private ImageAnalyzeListManager imageAnalyzeListManager;
-    private Retrofit aiRetrofit;
     private ApiService aiService;
     static final String TABLE_NAME = "Faces";
     private Context context;
@@ -299,11 +296,7 @@ public class AIRequestManager {
 
 
 
-    // UI 업데이트를 위한 콜백 메서드
-    public interface CircleDataUploadCallbacks {
-        void onCircleUploadSuccess(List<String> detectedObjects);
-        void onCircleUploadFailure(String message);
-    }
+
     // AI Server로 이미지와 원 리스트 전송
     public void uploadCircleData(Uri imageUri, List<Circle> circles, String source, Context context, CircleDataUploadCallbacks callbacks) throws IOException {
         File file = UriToFileConverter.getFileFromUri(context, imageUri);
@@ -325,7 +318,6 @@ public class AIRequestManager {
                     callbacks.onCircleUploadFailure("Server responded with error");
                 }
             }
-
             @Override
             public void onFailure(Call<CircleDetectionResponse> call, Throwable t) {
                 callbacks.onCircleUploadFailure("Failed to upload data and image: " + t.getMessage());

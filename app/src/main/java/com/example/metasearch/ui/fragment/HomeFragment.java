@@ -7,6 +7,7 @@ import com.example.metasearch.dao.DatabaseHelper;
 import com.example.metasearch.helper.DatabaseUtils;
 import com.example.metasearch.interfaces.ImageAnalysisCompleteListener;
 import com.example.metasearch.interfaces.Update;
+import com.example.metasearch.interfaces.WebServerPersonFrequencyUploadCallbacks;
 import com.example.metasearch.manager.ImageServiceRequestManager;
 import com.example.metasearch.manager.WebRequestManager;
 import com.example.metasearch.model.Person;
@@ -54,7 +55,7 @@ import io.github.muddz.styleabletoast.StyleableToast;
 
 public class HomeFragment extends Fragment
         implements ImageAdapter.OnImageClickListener, Update, ImageAnalysisCompleteListener,
-        WebRequestManager.WebServerPersonFrequencyUploadCallbacks {
+        WebServerPersonFrequencyUploadCallbacks {
     private FragmentHomeBinding binding;
     private DatabaseHelper databaseHelper;
     //이미지 분석 요청 관리 객체 가져옴

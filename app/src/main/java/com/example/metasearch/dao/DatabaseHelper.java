@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
-    private Context context;
+    private final Context context;
     static final String TABLE_NAME = "Faces";
     private static final int DATABASE_VERSION = 2; // 데이터베이스 버전 번호 증가
     private static final String COLUMN_IMAGE = "IMAGE"; // 이미지 컬럼
@@ -45,18 +45,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return instance;
     }
     // 싱글톤으로 만들기 위해 private으로 변경
-    private DatabaseHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version){
+    private DatabaseHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, DATABASE_VERSION);
         this.context = context;
-        Log.d(TAG,"DataBaseHelper 생성자 호출");
+        Log.d(TAG, "DataBaseHelper 생성자 호출");
     }
-//    public static DatabaseHelper getInstance(Context context) {
-//        if (instance == null) {
-//            instance = new DatabaseHelper(context.getApplicationContext(), "FACEIMAGE.db", null, 1);
-//        }
-//        return instance;
-//    }
-
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase){
         Log.d(TAG,"Table create");
@@ -65,8 +58,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + "NAME TEXT NOT NULL, "
                 + "INPUTNAME TEXT, " // 인물 이름(기본 값은 인물1, 인물2, ...)
                 + "PHONENUMBER TEXT, "
-                + "IMAGE BLOB, " // 이미지 컬럼 추가
-                + "IS_DELETE INTEGER DEFAULT 0);"; // IS_VERIFIED 컬럼 추가, BOOLEAN 대신 INTEGER 사용
+                + "IMAGE BLOB); "; // 이미지 컬럼 추가
         sqLiteDatabase.execSQL(createQuery);
     }
 
@@ -129,7 +121,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         Cursor cursor = null;
         try {
-            // 모든 행을 조회합니다.
+            // 모든 행을 조회
             String query = "SELECT NAME, INPUTNAME FROM "+TABLE_NAME;
             cursor = db.rawQuery(query, null);
 
@@ -138,7 +130,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex("NAME"));
                     @SuppressLint("Range") String inputName = cursor.getString(cursor.getColumnIndex("INPUTNAME"));
 
-                    // IMAGE와 INPUTNAME이 다른 경우 맵에 추가합니다.
+                    // IMAGE와 INPUTNAME이 다른 경우 맵에 추가
                     if (!name.equals(inputName)) {
                         mismatchMap.put(name, inputName);
                     }
@@ -155,8 +147,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return mismatchMap;
     }
-
-
     public boolean insertImage(String name ,byte[] imageBytes) {
         Log.d(TAG,"이미지 추가함");
         //userNum +=1; //한 명 추가
@@ -228,7 +218,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
 
         // 전화번호가 있는 인물만 선택하고 '나'라는 이름을 가진 인물은 제외합니다.
-        String selection = "PHONENUMBER <> '' AND IS_DELETE = 0 AND INPUTNAME <> '나'";
+        String selection = "PHONENUMBER <> '' AND INPUTNAME <> '나'";
         Cursor personCursor = db.query(TABLE_NAME, new String[]{"ID", "NAME", "INPUTNAME", "PHONENUMBER", "IMAGE"}, selection, null, null, null, null);
 
         if (personCursor.moveToFirst()) {
@@ -291,15 +281,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return phoneNumbers;
     }
-    // 실제 삭제는 아님
-    public void markPersonAsDeleted(int id) {
+    // inputname을 통해 해당 컬럼 삭제
+    public void deletePersonByName(String inputName) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("IS_DELETE", 1); // Set isDelete to 1 to indicate logical deletion
-
-        // Perform the update on rows matching the specified ID
-        int result = db.update(TABLE_NAME, values, "ID = ?", new String[]{String.valueOf(id)});
-        db.close();
+        // inputname을 기준으로 해당 행을 삭제
+        int result = db.delete(TABLE_NAME, "INPUTNAME = ?", new String[]{inputName});
+        db.close(); // 데이터베이스 사용 후 닫기
     }
     public String getPhoneNumberById(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -337,6 +324,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return person;
     }
+    public boolean updatePersonByName(String oldName, String newName, String newPhoneNumber) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_INPUTNAME, newName);
+        values.put(COLUMN_PHONENUMBER, newPhoneNumber);
+
+        String selection = COLUMN_INPUTNAME + " = ?";
+        String[] selectionArgs = { oldName };
+
+        int result = db.update(TABLE_NAME, values, selection, selectionArgs);
+        db.close();
+
+        return result > 0;
+    }
+
     public boolean updatePersonById(int id, String newName, String newPhoneNumber) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -354,9 +356,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public List<Person> getAllPerson() {
         List<Person> people = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE IS_DELETE = 0", null);
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
         HashSet<String> seenNames = new HashSet<>(); // 중복 이름 추적을 위한 HashSet
-        Person myPerson = null; // '나' 인물을 저장할 변수
+        boolean isMyPersonAdded = false; // '나' 인물이 추가되었는지 여부
 
         if (cursor.moveToFirst()) {
             do {
@@ -366,12 +368,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 @SuppressLint("Range") byte[] image = cursor.getBlob(cursor.getColumnIndex(COLUMN_IMAGE));
                 @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(COLUMN_PHONENUMBER));
 
-                // '나'라는 이름을 가진 사람을 먼저 찾아 저장
-                if (inputName.equals("나") && myPerson == null) {
-                    myPerson = new Person(id, name, image);
-                    myPerson.setInputName(inputName);
-                    myPerson.setPhone(phoneNumber);
-                } else if (!seenNames.contains(inputName)) { // 이미 처리한 이름이 아니면 추가
+                if (inputName.equals("나")) {
+                    // '나' 인물이 이미 추가되었는지 확인
+                    if (!isMyPersonAdded) {
+                        // '나' 인물을 리스트에 추가
+                        Person myPerson = new Person(id, name, image);
+                        myPerson.setInputName(inputName);
+                        myPerson.setPhone(phoneNumber);
+                        people.add(0, myPerson); // '나' 인물을 리스트의 맨 앞에 추가
+                        isMyPersonAdded = true; // '나' 인물이 추가되었음을 표시
+                    }
+                } else if (!seenNames.contains(inputName)) {
+                    // 이미 처리한 이름이 아니면 추가
                     Person person = new Person(id, name, image);
                     person.setInputName(inputName);
                     person.setPhone(phoneNumber);
@@ -383,10 +391,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         db.close();
 
-        // '나' 인물이 있으면 목록의 맨 앞에 추가
-        if (myPerson != null) {
-            people.add(0, myPerson);
-        }
         return people;
     }
     public ArrayList<byte[]> getImageData(){
@@ -402,5 +406,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return images;
     }
+    @SuppressLint("Range")
+    public String getInputNameByImageName(String imageName) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String inputName = null;
 
+        Cursor cursor = db.query(TABLE_NAME, new String[]{COLUMN_INPUTNAME}, "NAME = ?", new String[]{imageName}, null, null, null);
+
+        if (cursor.moveToFirst()) {
+            inputName = cursor.getString(cursor.getColumnIndex(COLUMN_INPUTNAME));
+        }
+        cursor.close();
+        db.close();
+        return inputName;
+    }
 }

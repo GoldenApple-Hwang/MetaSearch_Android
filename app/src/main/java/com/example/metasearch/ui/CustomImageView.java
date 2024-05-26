@@ -6,13 +6,19 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.widget.AppCompatImageView;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -23,7 +29,7 @@ import com.example.metasearch.model.Circle;
 
 import io.github.muddz.styleabletoast.StyleableToast;
 
-public class CustomImageView extends androidx.appcompat.widget.AppCompatImageView {
+public class CustomImageView extends AppCompatImageView {
     private final List<Circle> circles = new ArrayList<>(); // 원들을 저장할 리스트
     private Paint paint;
     private float startX, startY, currentX, currentY;
@@ -111,6 +117,11 @@ public class CustomImageView extends androidx.appcompat.widget.AppCompatImageVie
     }
     public void clearCircles() {
         circles.clear();
+        if (getParent() instanceof FrameLayout) {
+            FrameLayout parent = (FrameLayout) getParent();
+            parent.removeAllViews();
+            parent.addView(this); // CustomImageView를 다시 추가
+        }
         invalidate(); // 화면을 다시 그림
     }
 }

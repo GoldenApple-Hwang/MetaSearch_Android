@@ -18,7 +18,7 @@ import com.example.metasearch.R;
 import com.example.metasearch.dao.DatabaseHelper;
 import com.example.metasearch.databinding.ActivityPersonPhotosBinding;
 import com.example.metasearch.helper.DatabaseUtils;
-import com.example.metasearch.manager.AIRequestManager;
+import com.example.metasearch.interfaces.WebServerPersonDataUploadCallbacks;
 import com.example.metasearch.manager.GalleryImageManager;
 import com.example.metasearch.manager.WebRequestManager;
 import com.example.metasearch.model.Person;
@@ -31,11 +31,10 @@ import java.util.List;
 import io.github.muddz.styleabletoast.StyleableToast;
 
 public class PersonPhotosActivity extends AppCompatActivity
-        implements WebRequestManager.WebServerPersonDataUploadCallbacks,
+        implements WebServerPersonDataUploadCallbacks,
                     ImageAdapter.OnImageClickListener {
     private ImageViewModel imageViewModel;
     private WebRequestManager webRequestManager;
-    private AIRequestManager aiRequestManager;
     private ActivityPersonPhotosBinding binding;
     private Integer id;
     private String imageName;
@@ -74,7 +73,6 @@ public class PersonPhotosActivity extends AppCompatActivity
         binding.editbtn.setOnClickListener(v -> showEditPersonDialog());
     }
     private void init() {
-        aiRequestManager = AIRequestManager.getAiImageUploader(this);
         webRequestManager = WebRequestManager.getWebImageUploader();
         databaseHelper = DatabaseHelper.getInstance(this);
 
@@ -134,7 +132,8 @@ public class PersonPhotosActivity extends AppCompatActivity
         });
     }
     private void updatePersonInfo(String newName, String newPhone) {
-        boolean updateSuccess = databaseHelper.updatePersonById(id, newName, newPhone);
+//        boolean updateSuccess = databaseHelper.updatePersonById(id, newName, newPhone);
+        boolean updateSuccess = databaseHelper.updatePersonByName(inputName, newName, newPhone);
         if (updateSuccess) {
             StyleableToast.makeText(this, "인물 정보가 저장되었습니다.", R.style.customToast).show();
             webRequestManager.changePersonName(DatabaseUtils.getPersistentDeviceDatabaseName(this), inputName, newName);

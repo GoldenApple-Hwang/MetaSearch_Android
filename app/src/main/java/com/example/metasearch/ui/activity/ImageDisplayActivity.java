@@ -4,6 +4,10 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.View;
+import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -31,6 +35,8 @@ public class ImageDisplayActivity extends AppCompatActivity {
     private String imageUriString;
     private WebRequestManager webRequestManager; // 웹 요청 관리자 추가
     private ChatGPTManager chatGPTManager;
+    private static final String TEXT_VIEW_TAG = "descriptionTextView";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +66,7 @@ public class ImageDisplayActivity extends AppCompatActivity {
             if (item.getItemId() == R.id.comment) {
                 // 챗 지피티 사용해 이미지 설명 구현
                 // 사진 위에 설명 텍스트를 바로 띄움
-                fetchAndDisplayTripleData(); // 트리플 데이터 요청 및 표시
+                fetchAndDisplayTripleData(); // csv 데이터 요청 및 표시
                 return false;
             } else if (item.getItemId() == R.id.graph) {
                 // 그래프 액티비티 실행
@@ -99,7 +105,6 @@ public class ImageDisplayActivity extends AppCompatActivity {
                             });
                         }
                     }
-
                     @Override
                     public void onFailure(Call<TripleResponse> call, Throwable t) {
                         runOnUiThread(() -> {
@@ -120,7 +125,7 @@ public class ImageDisplayActivity extends AppCompatActivity {
                         Message message = openAIResponse.getChoices().get(0).getMessage();
                         if (message != null) {
                             String responseText = message.getContent();
-                            runOnUiThread(() -> binding.tripleDataTextView.setText(responseText));
+                            runOnUiThread(() -> addTextViewOnImage(responseText));
                             Log.d("GPT", "Response: " + responseText);
                         } else {
                             runOnUiThread(() -> StyleableToast.makeText(ImageDisplayActivity.this, "No message found in response.", R.style.customToast).show());
@@ -133,13 +138,18 @@ public class ImageDisplayActivity extends AppCompatActivity {
                     Log.e("GPT", "API Response Error: " + response.errorBody());
                 }
             }
-
             @Override
             public void onFailure(Call<OpenAIResponse> call, Throwable t) {
                 runOnUiThread(() -> StyleableToast.makeText(ImageDisplayActivity.this, "Error: " + t.getMessage(), R.style.customToast).show());
                 Log.e("GPT", "API Call Failure: " + t);
             }
         });
+    }
+    private void addTextViewOnImage(String text) {
+        binding.tripleDataTextView.setText(text);
+        binding.tripleDataTextView.setTextSize(16);
+        binding.tripleDataTextView.setTextColor(getResources().getColor(R.color.light_pink)); // 글자색 설정
+//        binding.tripleDataTextView.setBackgroundResource(R.drawable.rounded_button); // 배경 리소스 설정
     }
 
     private List<Message> createMessagesFromTripleData(String tripleData) {

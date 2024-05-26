@@ -17,17 +17,27 @@
         app:SpinKit_Color="@color/blue_grey"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/customImageView" />
+        app:layout_constraintTop_toBottomOf="@+id/custom_image_container" />
 
-    <com.example.metasearch.ui.CustomImageView
-        android:id="@+id/customImageView"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_marginTop="32dp"
+    <FrameLayout
+        android:id="@+id/custom_image_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="MissingConstraints">
+
+        <com.example.metasearch.ui.CustomImageView
+            android:id="@+id/customImageView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter" />
+
+    </FrameLayout>
+
 
     <TextView
         android:id="@+id/textViewRelatedCategories"
@@ -38,18 +48,22 @@
         android:textSize="16sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/customImageView" />
+        app:layout_constraintTop_toBottomOf="@+id/custom_image_container" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/circleToSearchRecyclerView"
-        android:layout_width="match_parent"
+    <ScrollView
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="0.5dp"
-        android:layout_marginEnd="0.5dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/circleMenu"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewRelatedCategories" />
+        app:layout_constraintTop_toBottomOf="@id/textViewRelatedCategories">
+
+        <LinearLayout
+            android:id="@+id/individualPhotosContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"/>
+    </ScrollView>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/circleMenu"

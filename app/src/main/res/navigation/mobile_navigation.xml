@@ -7,7 +7,7 @@
     <fragment
         android:id="@+id/navigation_home"
         android:name="com.example.metasearch.ui.fragment.HomeFragment"
-        android:label="@string/title_home"
+        android:label="@string/app_name"
         tools:layout="@layout/fragment_home" />
     <fragment
         android:id="@+id/navigation_search"
@@ -19,9 +19,4 @@
         android:name="com.example.metasearch.ui.fragment.GraphFragment"
         android:label="@string/title_graph"
         tools:layout="@layout/fragment_graph" />
-    <fragment
-        android:id="@+id/navigation_like"
-        android:name="com.example.metasearch.ui.fragment.LikeFragment"
-        android:label="@string/title_like"
-        tools:layout="@layout/fragment_like" />
 </navigation>

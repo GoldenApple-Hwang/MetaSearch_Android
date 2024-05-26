@@ -2,19 +2,23 @@ package com.example.metasearch.manager;
 
 import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
-import static com.example.metasearch.manager.GalleryImageManager.findMatchedUris;
-
-import android.net.Uri;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 
 import com.example.metasearch.helper.HttpHelper;
+import com.example.metasearch.interfaces.WebServerDeleteEntityCallbacks;
+import com.example.metasearch.interfaces.WebServerPersonDataUploadCallbacks;
+import com.example.metasearch.interfaces.WebServerPersonFrequencyUploadCallbacks;
+import com.example.metasearch.interfaces.WebServerQueryCallbacks;
+import com.example.metasearch.interfaces.WebServerUploadCallbacks;
 import com.example.metasearch.model.Person;
 import com.example.metasearch.model.request.ChangeNameRequest;
+import com.example.metasearch.model.request.DeleteEntityRequest;
 import com.example.metasearch.model.request.NLQueryRequest;
 import com.example.metasearch.model.request.PersonFrequencyRequest;
 import com.example.metasearch.model.response.ChangeNameResponse;
+import com.example.metasearch.model.response.DeleteEntityResponse;
 import com.example.metasearch.model.response.PersonFrequencyResponse;
 import com.example.metasearch.model.response.PhotoNameResponse;
 import com.example.metasearch.model.response.PhotoResponse;
@@ -38,12 +42,10 @@ import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
 
 public class WebRequestManager {
     private static final String Webserver_BASE_URL = "http://113.198.85.6"; // web 서버의 기본 url
     private static WebRequestManager webImageUploader;
-    private Retrofit webRetrofit;
     private ApiService webService;
 
     private WebRequestManager(){
@@ -134,19 +136,8 @@ public class WebRequestManager {
 
 
 
-    // UI 업데이트를 위한 콜백 메서드
-    public interface WebServerUploadCallbacks {
-        void onWebServerUploadSuccess(PhotoResponse detectedObjects);
-        void onWebServerUploadFailure(String message);
-    }
-    public interface WebServerPersonDataUploadCallbacks {
-        void onPersonDataUploadSuccess(List<String> photoNameResponse);
-        void onPersonDataUploadFailure(String message);
-    }
-    public interface WebServerPersonFrequencyUploadCallbacks {
-        void onPersonFrequencyUploadSuccess(PersonFrequencyResponse responses);
-        void onPersonFrequencyUploadFailure(String message);
-    }
+
+
 
     // Web Server에 인물 빈도 수 요청
     public void getPersonFrequency(String dbName, List<Person> people, WebServerPersonFrequencyUploadCallbacks callbacks) {
@@ -208,7 +199,7 @@ public class WebRequestManager {
         });
     }
     // Web Server로 Circle to Search 이미지 분석 결과 전송
-    public void sendDetectedObjectsToAnotherServer(List<String> detectedObjects, String dbName, WebRequestManager.WebServerUploadCallbacks callbacks) {
+    public void sendDetectedObjectsToWebServer(List<String> detectedObjects, String dbName, WebServerUploadCallbacks callbacks) {
         // Gson 인스턴스 생성
         Gson gson = new Gson();
 
@@ -297,11 +288,8 @@ public class WebRequestManager {
             }
         });
     }
-    public interface WebServerQueryCallbacks {
-        void onWebServerQuerySuccess(PhotoNameResponse photoNameResponse);
-        void onWebServerQueryFailure();
-    }
-    public void sendQueryToServer(String dbName, String query, WebServerQueryCallbacks callbacks) {
+    //
+    public void sendQueryToWebServer(String dbName, String query, WebServerQueryCallbacks callbacks) {
         Gson gson = new Gson();
         String jsonObject = gson.toJson(new NLQueryRequest(dbName, query));
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonObject);
@@ -329,14 +317,13 @@ public class WebRequestManager {
             }
         });
     }
-
+    // 이미지 설명을 위한 속성을 받아옴
     public void fetchTripleData(String dbName, String photoName, Callback<TripleResponse> callback) {
         Call<TripleResponse> call = webService.fetchTripleData(dbName, photoName);
         call.enqueue(new Callback<TripleResponse>() {
             @Override
             public void onResponse(Call<TripleResponse> call, Response<TripleResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    // 성공적으로 데이터를 받아옴
                     callback.onResponse(call, response);
                 } else {
                     // 서버로부터 성공적인 응답을 받았지만, 응답 내용에 문제가 있을 때
@@ -346,11 +333,33 @@ public class WebRequestManager {
             }
             @Override
             public void onFailure(Call<TripleResponse> call, Throwable t) {
-                // 네트워크 문제 등 요청 자체에 실패했을 때
+                // 네트워크 문제 등 요청 자체에 실패한 경우
                 Log.e(TAG, "Failure fetching triple data", t);
                 callback.onFailure(call, t);
             }
         });
     }
-
+    public void deleteEntity(String dbName, String entityName, WebServerDeleteEntityCallbacks callbacks) {
+        DeleteEntityRequest request = new DeleteEntityRequest(dbName, entityName);
+        Call<DeleteEntityResponse> call = webService.deleteEntity(request);
+        call.enqueue(new Callback<DeleteEntityResponse>() {
+            @Override
+            public void onResponse(Call<DeleteEntityResponse> call, Response<DeleteEntityResponse> response) {
+                if (response.isSuccessful()) {
+                    DeleteEntityResponse deleteEntityResponse = response.body();
+                    if (deleteEntityResponse != null) {
+                        callbacks.onDeleteEntitySuccess(deleteEntityResponse.getMessage());
+                    } else {
+                        callbacks.onDeleteEntityFailure("Response body is null");
+                    }
+                } else {
+                    callbacks.onDeleteEntityFailure("Response unsuccessful: " + response.message());
+                }
+            }
+            @Override
+            public void onFailure(Call<DeleteEntityResponse> call, Throwable t) {
+                callbacks.onDeleteEntityFailure("Request failed: " + t.getMessage());
+            }
+        });
+    }
 }
