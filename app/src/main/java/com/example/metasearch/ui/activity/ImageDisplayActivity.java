@@ -4,6 +4,9 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -60,7 +63,7 @@ public class ImageDisplayActivity extends AppCompatActivity {
             if (item.getItemId() == R.id.comment) {
                 // 챗 지피티 사용해 이미지 설명 구현
                 // 사진 위에 설명 텍스트를 바로 띄움
-                fetchAndDisplayTripleData(); // 트리플 데이터 요청 및 표시
+                fetchAndDisplayTripleData(); // csv 데이터 요청 및 표시
                 return false;
             } else if (item.getItemId() == R.id.graph) {
                 // 그래프 액티비티 실행
@@ -99,7 +102,6 @@ public class ImageDisplayActivity extends AppCompatActivity {
                             });
                         }
                     }
-
                     @Override
                     public void onFailure(Call<TripleResponse> call, Throwable t) {
                         runOnUiThread(() -> {
@@ -120,7 +122,7 @@ public class ImageDisplayActivity extends AppCompatActivity {
                         Message message = openAIResponse.getChoices().get(0).getMessage();
                         if (message != null) {
                             String responseText = message.getContent();
-                            runOnUiThread(() -> binding.tripleDataTextView.setText(responseText));
+                            runOnUiThread(() -> addTextViewOnImage(responseText));
                             Log.d("GPT", "Response: " + responseText);
                         } else {
                             runOnUiThread(() -> StyleableToast.makeText(ImageDisplayActivity.this, "No message found in response.", R.style.customToast).show());
@@ -141,7 +143,29 @@ public class ImageDisplayActivity extends AppCompatActivity {
             }
         });
     }
+    private void addTextViewOnImage(String text) {
+        TextView textView = new TextView(this);
+        textView.setText(text);
+        textView.setTextSize(16);
+        textView.setTextColor(getResources().getColor(android.R.color.white));
+        textView.setBackgroundColor(getResources().getColor(R.color.semi_transparent_black_50));
+        textView.setPadding(16, 16, 16, 16);
+        textView.setVisibility(View.VISIBLE);
 
+        // TextView의 레이아웃 파라미터 설정
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+        );
+        params.topMargin = 16;
+
+        // TextView의 레이아웃 파라미터 적용
+        textView.setLayoutParams(params);
+
+        // FrameLayout에 TextView 추가
+        FrameLayout parent = findViewById(R.id.image_container);
+        parent.addView(textView);
+    }
     private List<Message> createMessagesFromTripleData(String tripleData) {
         List<Message> messages = new ArrayList<>();
         messages.add(new Message("user", tripleData + " 이건 사진의 트리플이야. 반드시 이 내용만 사용해서 어떤 사진인지 설명해. ")); // 트리플 데이터를 그대로 메시지에 추가
