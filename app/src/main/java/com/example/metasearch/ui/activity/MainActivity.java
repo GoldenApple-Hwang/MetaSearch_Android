@@ -1,15 +1,21 @@
 package com.example.metasearch.ui.activity;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 
 import com.example.metasearch.R;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -25,7 +31,18 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private int currentSelectedItemId;  // 현재 선택된 아이템 ID 저장
 
-    private boolean hasPermission = false; // 권한 받은 이후 작동되는 코드에 쓰이는 변수
+    private final ActivityResultLauncher<String[]> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+                boolean allGranted = true;
+                for (Boolean granted : result.values()) {
+                    allGranted &= granted;
+                }
+                if (allGranted) {
+                    loadAllImagesInHomeFragment();
+                } else {
+                    showPermissionDeniedDialog();
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,33 +51,67 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         setupNavigation();
-        requestPermissions(); // 권한 요청
+        checkAndRequestPermissions(); // 권한 요청
     }
-    private void requestPermissions() {
+
+    private void checkAndRequestPermissions() {
         // Android 13(Tiramisu) 이상에서는 READ_MEDIA_IMAGES 권한 사용
         String storagePermission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ?
                 Manifest.permission.READ_MEDIA_IMAGES : Manifest.permission.READ_EXTERNAL_STORAGE;
+
         // 요청할 권한 목록에 알림 권한과 위치 정보 권한 추가
-        String[] permissions = new String[] {
+        String[] allPermissions = new String[] {
                 storagePermission,
-                Manifest.permission.READ_CALL_LOG,
-                Manifest.permission.POST_NOTIFICATIONS, // 알림 권한
                 Manifest.permission.ACCESS_FINE_LOCATION, // 위치 정보 권한
-                Manifest.permission.ACCESS_COARSE_LOCATION // 추가적으로 요청할 수 있습니다.
+                Manifest.permission.ACCESS_COARSE_LOCATION, // 추가적으로 요청 가능
+                Manifest.permission.READ_CALL_LOG,
+                Manifest.permission.POST_NOTIFICATIONS // 알림 권한
         };
 
-        for (String permission : permissions) {
-            if (ActivityCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, permissions, PERMISSIONS_REQUEST_READ_PHOTOS);
-                return; // 권한이 허용되지 않은 경우 요청 후 종료
+        String[] essentialPermissions = new String[] {
+                storagePermission
+        };
+
+        boolean essentialPermissionsGranted = true;
+
+        for (String permission : essentialPermissions) {
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                essentialPermissionsGranted = false;
+                break;
             }
         }
+
+        if (!essentialPermissionsGranted) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissionLauncher.launch(essentialPermissions);
+            } else {
+                ActivityCompat.requestPermissions(this, essentialPermissions, PERMISSIONS_REQUEST_READ_PHOTOS);
+            }
+        } else {
+            loadAllImagesInHomeFragment();
+        }
     }
+
+    private void showPermissionDeniedDialog() {
+        new AlertDialog.Builder(this, R.style.CustomAlertDialogTheme)
+                .setTitle("권한 요청")
+                .setMessage("사진 권한이 필요합니다. 앱 설정에서 권한을 허용해주세요.")
+                .setPositiveButton("설정으로 이동", (dialog, which) -> openAppSettings())
+                .setNegativeButton("취소", null)
+                .show();
+    }
+
+    private void openAppSettings() {
+        Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        Uri uri = Uri.fromParts("package", getPackageName(), null);
+        intent.setData(uri);
+        startActivity(intent);
+    }
+
     private void setupNavigation() {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.navigation_home, R.id.navigation_search, R.id.navigation_graph
-//                , R.id.navigation_like
         ).build();
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
@@ -92,31 +143,33 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
     // 하단의 네비 바 숨김
     public void hideBottomNavigationView() {
         binding.navView.animate().translationY(binding.navView.getHeight());
     }
+
     // 하단의 네비 바 보임
     public void showBottomNavigationView() {
         binding.navView.animate().translationY(0);
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSIONS_REQUEST_READ_PHOTOS && grantResults.length > 0) {
-            for (int i = 0; i < permissions.length; i++) {
-                if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                    if (permissions[i].equals(Manifest.permission.READ_EXTERNAL_STORAGE) || permissions[i].equals(Manifest.permission.READ_MEDIA_IMAGES)) {
-                        loadAllImagesInHomeFragment();
-                    } else if (permissions[i].equals(Manifest.permission.READ_CALL_LOG)) {
-
-                    }
-                } else {
-
-                }
+            boolean allGranted = true;
+            for (int grantResult : grantResults) {
+                allGranted &= (grantResult == PackageManager.PERMISSION_GRANTED);
+            }
+            if (allGranted) {
+                loadAllImagesInHomeFragment();
+            } else {
+                showPermissionDeniedDialog();
             }
         }
     }
+
     // HomeFragment에 접근하여 loadAllImages 호출
     private void loadAllImagesInHomeFragment() {
         Fragment navHostFragment = getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment_activity_main);
@@ -128,3 +181,4 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 }
+
