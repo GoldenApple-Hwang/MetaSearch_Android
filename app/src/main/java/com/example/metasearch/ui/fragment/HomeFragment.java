@@ -16,12 +16,16 @@ import com.example.metasearch.ui.activity.ImageDisplayActivity;
 import com.example.metasearch.ui.activity.MainActivity;
 import com.example.metasearch.ui.adapter.PersonAdapter;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -31,7 +35,10 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -56,12 +63,23 @@ import io.github.muddz.styleabletoast.StyleableToast;
 public class HomeFragment extends Fragment
         implements ImageAdapter.OnImageClickListener, Update, ImageAnalysisCompleteListener,
         WebServerPersonFrequencyUploadCallbacks {
+
     private FragmentHomeBinding binding;
     private DatabaseHelper databaseHelper;
     //이미지 분석 요청 관리 객체 가져옴
     private ImageServiceRequestManager imageServiceRequestManager;
     private WebRequestManager webRequestManager;
     private Dialog dialog; // 인물 랭킹 다이얼로그
+    private static final int PERMISSIONS_REQUEST_READ_CALL_LOG = 102;
+
+    private final ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    showRankingDialog();
+                } else {
+                    showPermissionDeniedDialog();
+                }
+            });
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -76,13 +94,15 @@ public class HomeFragment extends Fragment
 
         return root;
     }
+
     private void init() {
         // `requireContext()`를 사용하는 대신 `getContext()` 사용
         databaseHelper = DatabaseHelper.getInstance(getContext());
-        imageServiceRequestManager = ImageServiceRequestManager.getInstance(getContext(),databaseHelper);
+        imageServiceRequestManager = ImageServiceRequestManager.getInstance(getContext(), databaseHelper);
         imageServiceRequestManager.setImageAnalysisCompleteListener(this);
         webRequestManager = WebRequestManager.getWebImageUploader();
     }
+
     public void startImageAnalysis() {
         ExecutorService executor = Executors.newSingleThreadExecutor(); // 단일 스레드를 사용하는 ExecutorService 생성
         executor.submit(() -> {
@@ -115,8 +135,22 @@ public class HomeFragment extends Fragment
             }
         });
         // 화면 상단의 정보 아이콘 클릭 시 랭킹 다이얼로그 출력
-        binding.rankingBtn.setOnClickListener(v -> showRankingDialog());
+        binding.rankingBtn.setOnClickListener(v -> {
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_CALL_LOG)
+                    != PackageManager.PERMISSION_GRANTED) {
+                // 권한이 없으면 요청
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermissionLauncher.launch(Manifest.permission.READ_CALL_LOG);
+                } else {
+                    requestPermissions(new String[]{Manifest.permission.READ_CALL_LOG}, PERMISSIONS_REQUEST_READ_CALL_LOG);
+                }
+            } else {
+                // 권한이 있으면 랭킹 다이얼로그 출력
+                showRankingDialog();
+            }
+        });
     }
+
     private void showRankingDialog() {
         /*
          * 웹 서버에서 데이터(인물 빈도수) 받아와 출력
@@ -128,7 +162,7 @@ public class HomeFragment extends Fragment
 
         // 데이터베이스에서 인물 정보(전화번호가 저장된 인물 리스트)를 가져오고, 웹 서버에 빈도수 데이터 요청
         List<Person> persons = databaseHelper.getPersonsByCallDuration();
-        Log.d("CALL",persons.toString());
+        Log.d("CALL", persons.toString());
         if (!persons.isEmpty()) {
             webRequestManager.getPersonFrequency(DatabaseUtils.getPersistentDeviceDatabaseName(getContext()), persons, this);
         } else {
@@ -138,25 +172,57 @@ public class HomeFragment extends Fragment
         dialog.show(); // 다이얼로그를 먼저 표시하고, 데이터가 로드되면 업데이트
     }
 
+    private void showPermissionDeniedDialog() {
+        new AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogTheme)
+                .setTitle("권한 요청")
+                .setMessage("통화 기록 권한이 필요합니다. 앱 설정에서 권한을 허용해주세요.")
+                .setPositiveButton("설정으로 이동", (dialog, which) -> openAppSettings())
+                .setNegativeButton("취소", null)
+                .show();
+    }
+
+    private void openAppSettings() {
+        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        Uri uri = Uri.fromParts("package", requireContext().getPackageName(), null);
+        intent.setData(uri);
+        startActivity(intent);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSIONS_REQUEST_READ_CALL_LOG) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // 권한이 허용되었으면 다시 다이얼로그 표시 메서드 호출
+                showRankingDialog();
+            } else {
+                // 권한이 거부되었을 때 처리
+                showPermissionDeniedDialog();
+            }
+        }
+    }
+
     @Override
     public void onPersonFrequencyUploadFailure(String message) {
         Log.e("HomeFragment", "Data fetch failed: " + message);
         StyleableToast.makeText(getContext(), "데이터 불러오기 실패: " + message, R.style.customToast).show();
     }
+
     private String formatDuration(Long durationInSeconds) {
         long hours = durationInSeconds / 3600;
         long minutes = (durationInSeconds % 3600) / 60;
         long seconds = durationInSeconds % 60;
-
         return String.format("%02d:%02d:%02d", hours, minutes, seconds);
     }
+
     public void loadAllGalleryImages() {
         // 갤러리의 모든 사진을 출력하는 세로 방향 RecyclerView 세팅
         ImageAdapter adapter = new ImageAdapter(getAllGalleryImagesUri(requireContext()), requireContext(), this);
         GridLayoutManager layoutManager = new GridLayoutManager(requireContext(), 5);
-        binding.galleryRecyclerView.setAdapter(adapter) ;
+        binding.galleryRecyclerView.setAdapter(adapter);
         binding.galleryRecyclerView.setLayoutManager(layoutManager);
     }
+
     private void loadFaceImages() {
         List<Person> people = databaseHelper.getAllPerson();
         if (people.isEmpty()) {
@@ -169,6 +235,7 @@ public class HomeFragment extends Fragment
         binding.personRecyclerViewHorizon.setLayoutManager(layoutManager);
         binding.personRecyclerViewHorizon.setAdapter(adapter);
     }
+
     @Override
     public void onPersonFrequencyUploadSuccess(PersonFrequencyResponse response) {
         Map<String, Integer> frequencies = new HashMap<>();
@@ -182,20 +249,20 @@ public class HomeFragment extends Fragment
             callDurations.put(person.getInputName(), person.getTotalDuration());
         }
 
-        // Find max values for normalization
+        // 정규화 위해 최댓값 찾기
         double maxCallDuration = Collections.max(callDurations.values());
         double maxFrequency = Collections.max(frequencies.values());
 
-        // Calculate combined scores
+        // 총점 계산
         Map<String, Double> scores = new HashMap<>();
         for (Person person : persons) {
             double normalizedCallDuration = maxCallDuration != 0 ? callDurations.get(person.getInputName()) / maxCallDuration : 0;
             double normalizedFrequency = maxFrequency != 0 ? frequencies.getOrDefault(person.getInputName(), 0) / maxFrequency : 0;
-            double score = (normalizedCallDuration + normalizedFrequency) / 2; // Assuming equal weighting
+            double score = (normalizedCallDuration + normalizedFrequency) / 2;
             scores.put(person.getInputName(), score);
         }
 
-        // Sort persons based on scores in descending order
+        // 점수가 높은 인물 순으로 정렬
         Collections.sort(persons, (p1, p2) -> scores.get(p2.getInputName()).compareTo(scores.get(p1.getInputName())));
 
         // Update UI
@@ -204,9 +271,9 @@ public class HomeFragment extends Fragment
 
     private void updateRankingTable(List<Person> persons, Map<String, Double> scores, Map<String, Integer> frequencies, Map<String, Long> callDurations) {
         TableLayout table = dialog.findViewById(R.id.tableLayout);
-        table.removeAllViews(); // Clear existing views
+        table.removeAllViews();
 
-        // Adding a header row
+        // 테이블 헤더 추가
         TableRow header = new TableRow(getContext());
         addTableCell(header, "이름", true);
         addTableCell(header, "사진", true);
@@ -214,7 +281,7 @@ public class HomeFragment extends Fragment
         addTableCell(header, "친밀도", true);
         table.addView(header);
 
-        // Adding data rows
+        // 테이블에 데이터 추가
         for (Person person : persons) {
             TableRow row = new TableRow(getContext());
             row.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
@@ -236,7 +303,6 @@ public class HomeFragment extends Fragment
             scoreView.setText(String.format(Locale.US, "%.2f", scores.get(person.getInputName())));
             scoreView.setGravity(Gravity.CENTER);
 
-            // Adding views to the row
             row.addView(nameView);
             row.addView(frequencyView);
             row.addView(durationView);
@@ -245,6 +311,7 @@ public class HomeFragment extends Fragment
             table.addView(row);
         }
     }
+
     private void addTableCell(TableRow row, String text, boolean isHeader) {
         TextView tv = new TextView(getContext());
         tv.setText(text);
@@ -252,27 +319,31 @@ public class HomeFragment extends Fragment
         tv.setPadding(5, 10, 5, 10);
         if (isHeader) {
             tv.setTypeface(null, Typeface.BOLD);
-            tv.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.pink_grey)); // Set a different background color for header
+            tv.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.pink_grey));
         }
         row.addView(tv);
     }
+
     @Override
     public void onImageClick(Uri uri) {
         Intent intent = new Intent(requireContext(), ImageDisplayActivity.class);
         intent.putExtra("imageUri", uri.toString());
         startActivity(intent);
     }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
     }
+
     @Override
     public void onResume() {
         super.onResume();
         loadFaceImages(); // 항상 최신 데이터 로드
         loadAllGalleryImages(); // 항상 최신 데이터 로드
     }
+
     @Override
     public void performDataUpdate() {
         startImageAnalysis();
