@@ -49,6 +49,7 @@ public class ImageServiceRequestManager {
     private static final String COMPLETE_CHANNEL_ID = "completeChannelID"; //channel을 구분하기 위한 ID(완료)
     private static final int NOTIFICATION_ID = 0; //Notificaiton에 대한 ID 생성
     private String DBName; //클라이언트가 사용하는 neo4j dbName
+    private boolean isAnalyzing = false;
 
 
     private ImageServiceRequestManager(Context context, DatabaseHelper databaseHelper) {
@@ -73,7 +74,11 @@ public class ImageServiceRequestManager {
     public void setImageAnalysisCompleteListener(ImageAnalysisCompleteListener listener) {
         this.listener = listener;
     }
+    public boolean getIsAnalyzing(){
+        return this.isAnalyzing;
+    }
     public void getImagePathsAndUpload() throws IOException, ExecutionException, InterruptedException { // 갤러리 이미지 경로 / 데이터베이스의 모든 얼굴 byte 가져옴
+        this.isAnalyzing = true;
         Log.d(TAG,"getImagePathsAndUpload 함수 들어옴");
         //aiRetrofit = AIHttpService.getInstance(AIserver_BASE_URL).getRetrofit();
 //         webRetrofit = WebHttpService.getInstance(Webserver_BASE_URL).getRetrofit();
@@ -221,6 +226,7 @@ public class ImageServiceRequestManager {
                         requestChangeName();
                         informCompleteImageAnalyze();
                         completeAnalysis();
+                        this.isAnalyzing = false;
 
                     });
                 });
@@ -241,6 +247,8 @@ public class ImageServiceRequestManager {
                     Log.d(TAG,"모든 이미지 전송 완료");
 
                     completeAnalysis();
+                    this.isAnalyzing = false;
+
                 });
             });
         }
@@ -261,7 +269,7 @@ public class ImageServiceRequestManager {
                     requestChangeName();
                     informCompleteImageAnalyze();
                     completeAnalysis();
-
+                    this.isAnalyzing = false;
 
                 });
             });
