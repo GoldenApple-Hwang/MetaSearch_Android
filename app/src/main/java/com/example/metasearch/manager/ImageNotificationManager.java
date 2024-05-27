@@ -203,7 +203,7 @@ public class ImageNotificationManager {
                 if (progressCurrent < imageListSize && !isCanceled) {
                     // 알림 업데이트
                     notifyBuilder.setProgress(imageListSize, progressCurrent, false);
-                    notifyBuilder.setContentTitle("이미지 분석 "+progressCurrent+"/"+imageListSize+"개 완료...");
+                    notifyBuilder.setContentTitle("이미지 분석 "+progressCurrent+"/"+imageListSize+"개 완료");
                     Log.d(TAG, "현재 완료 숫자 :" + progressCurrent);
                     mNotificationManager.notify(NOTIFICATION_ID, notifyBuilder.build());
 
