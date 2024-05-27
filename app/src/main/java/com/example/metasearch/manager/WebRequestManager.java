@@ -96,7 +96,8 @@ public class WebRequestManager {
 //            }
 //        });
 //    }
-    public void uploadAddGalleryImage(ApiService service, ArrayList<String>addImagePaths, String dbName){
+
+    public void uploadAddGalleryImage(ArrayList<String>addImagePaths, String dbName){
         Log.d(TAG,"web의 uploadAddGalleryImage 안에 들어옴");
 
         for(String addImagePath : addImagePaths){
@@ -116,7 +117,7 @@ public class WebRequestManager {
             RequestBody requestBody = RequestBody.create(MediaType.parse("image/*"), imageFile);
             MultipartBody.Part imagePart = MultipartBody.Part.createFormData("image", fileName, requestBody);
 
-            Call<Void> call = service.uploadWebAddImage(imagePart, dbName); // sourceBody 대신 dbName을 직접 전달합니다.
+            Call<Void> call = webService.uploadWebAddImage(imagePart, dbName); // sourceBody 대신 dbName을 직접 전달합니다.
             call.enqueue(new Callback<Void>() {
                 @Override
                 public void onResponse(Call<Void> call, Response<Void> response) {
@@ -133,7 +134,6 @@ public class WebRequestManager {
         }
 
     }
-
 
 
 
@@ -238,16 +238,28 @@ public class WebRequestManager {
         });
     }
 
-    public void uploadDeleteGalleryImage(ApiService service, ArrayList<String> deleteImagePahts, String dbName ){
+    public void uploadDeleteGalleryImage(ArrayList<String> deleteImagePaths, String dbName ){
         RequestBody requestBody;
         MultipartBody.Part imagePart;
-        for(String deleteImagePath : deleteImagePahts){
-            requestBody = RequestBody.create(MediaType.parse("filename"),deleteImagePath);
+        for(String deleteImagePath : deleteImagePaths){
+            // 파일 이름을 URL 인코딩
+            String deleteImageName = null;
+            try {
+                deleteImageName = URLEncoder.encode(deleteImagePath, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                Log.e(TAG, "파일 이름 인코딩 실패: " + e.getMessage());
+                continue;
+            }
+            deleteImageName = deleteImageName.substring(deleteImageName.lastIndexOf(File.separator) + 1);
+            requestBody = RequestBody.create(MediaType.parse("filename"),deleteImageName);
             //파일의 경로를 해당 이미지의 이름으로 설정함
-            imagePart = MultipartBody.Part.createFormData("deleteImage",deleteImagePath,requestBody);
+            imagePart = MultipartBody.Part.createFormData("deleteImage",deleteImageName,requestBody);
+            RequestBody sourceBody = RequestBody.create(MediaType.parse("text/plain"),dbName); //DB이름과 어디에 저장되어야하는지에 관한 정보를 전달
+
+
 
             //API 호출
-            Call<Void> call = service.uploadWebDeleteImage(imagePart,dbName); //이미지 업로드 API 호출
+            Call<Void> call = webService.uploadWebDeleteImage(imagePart,sourceBody); //이미지 업로드 API 호출
             call.enqueue(new Callback<Void>() { //비동기
                 @Override
                 public void onResponse(Call<Void> call, Response<Void> response) {
