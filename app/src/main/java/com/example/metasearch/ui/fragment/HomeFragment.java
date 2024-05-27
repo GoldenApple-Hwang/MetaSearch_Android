@@ -8,6 +8,7 @@ import com.example.metasearch.helper.DatabaseUtils;
 import com.example.metasearch.interfaces.ImageAnalysisCompleteListener;
 import com.example.metasearch.interfaces.Update;
 import com.example.metasearch.interfaces.WebServerPersonFrequencyUploadCallbacks;
+import com.example.metasearch.manager.ImageAnalysisWorker;
 import com.example.metasearch.manager.ImageServiceRequestManager;
 import com.example.metasearch.manager.WebRequestManager;
 import com.example.metasearch.model.Person;
@@ -37,6 +38,11 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.work.Constraints;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
+import androidx.work.WorkRequest;
 
 import com.example.metasearch.ui.adapter.ImageAdapter;
 import com.example.metasearch.databinding.FragmentHomeBinding;
@@ -84,16 +90,32 @@ public class HomeFragment extends Fragment
         webRequestManager = WebRequestManager.getWebImageUploader();
     }
     public void startImageAnalysis() {
-        ExecutorService executor = Executors.newSingleThreadExecutor(); // 단일 스레드를 사용하는 ExecutorService 생성
-        executor.submit(() -> {
-            try {
-                // 이미지 분석 시작
-                imageServiceRequestManager.getImagePathsAndUpload();
-            } catch (IOException | InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        executor.shutdown(); // 작업을 시작한 후 ExecutorService를 종료합니다. 이는 현재 진행 중인 작업이 완료될 때까지 기다립니다.
+//        WorkRequest uploadWorkRequest = new OneTimeWorkRequest.Builder(ImageAnalysisWorker.class)
+//                .build();
+//
+//        WorkManager
+//                .getInstance(getContext())
+//                .enqueue(uploadWorkRequest);
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED) // 네트워크 연결 상태를 고려하지 않음
+                .build();
+
+        WorkRequest uploadWorkRequest = new OneTimeWorkRequest.Builder(ImageAnalysisWorker.class)
+                .setConstraints(constraints)
+                .build();
+
+        WorkManager.getInstance(requireContext()).enqueue(uploadWorkRequest);
+
+//        ExecutorService executor = Executors.newSingleThreadExecutor(); // 단일 스레드를 사용하는 ExecutorService 생성
+//        executor.submit(() -> {
+//            try {
+//                // 이미지 분석 시작
+//                imageServiceRequestManager.getImagePathsAndUpload();
+//            } catch (IOException | InterruptedException | ExecutionException e) {
+//                throw new RuntimeException(e);
+//            }
+//        });
+//        executor.shutdown(); // 작업을 시작한 후 ExecutorService를 종료합니다. 이는 현재 진행 중인 작업이 완료될 때까지 기다립니다.
     }
 
     private void setupListeners() {
