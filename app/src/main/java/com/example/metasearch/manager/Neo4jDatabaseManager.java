@@ -39,4 +39,23 @@ public class Neo4jDatabaseManager {
         //RETURN photo.name AS PhotoName
         return query.toString();
     }
+    // 사이퍼쿼리 생성 함수 : entity만 아는 경우
+    public static String createCypherQueryForEntities(List<String> entities) {
+        StringBuilder query = new StringBuilder("MATCH ");
+        for (int i = 0; i < entities.size(); i++) {
+            query.append("(photo)-[]->(a").append(i).append(" {name: '").append(entities.get(i)).append("'})");
+            if (i < entities.size() - 1) {
+                query.append(", ");
+            }
+        }
+        query.append(" RETURN DISTINCT photo.name AS PhotoName");
+        // 반환 형식
+        // MATCH
+        //(photo)-[]->(a1 {name: $entity1}),
+        //(photo)-[]->(a2 {name: $entity2}),
+        //...
+        //RETURN DISTINCT photo.name AS PhotoName
+        return query.toString();
+    }
+    // String entityQuery = "MATCH (photo)-[]->(person {name: $entity2}) RETURN DISTINCT photo.name AS PhotoName";
 }

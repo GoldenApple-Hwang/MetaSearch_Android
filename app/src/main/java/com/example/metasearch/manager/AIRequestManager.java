@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.util.Base64;
 import android.util.Log;
 
+import com.example.metasearch.dao.AnalyzedImageListDatabaseHelper;
 import com.example.metasearch.dao.DatabaseHelper;
 import com.example.metasearch.helper.HttpHelper;
 import com.example.metasearch.interfaces.CircleDataUploadCallbacks;
@@ -35,6 +36,8 @@ public class AIRequestManager {
     private static final String AIserver_BASE_URL = "http://113.198.85.5"; // ai 서버의 기본 url
     private static AIRequestManager aiImageUploader;
     private ImageAnalyzeListManager imageAnalyzeListManager;
+    private AnalyzedImageListDatabaseHelper analyzedImageListDatabaseHelper;
+
     private ApiService aiService;
     static final String TABLE_NAME = "Faces";
     private Context context;
@@ -42,6 +45,7 @@ public class AIRequestManager {
     private AIRequestManager(Context context){
         //this.aiService = AIHttpService.getInstance(AIserver_BASE_URL);
         this.aiService = HttpHelper.getInstance(AIserver_BASE_URL).getRetrofit().create(ApiService.class);
+        this.analyzedImageListDatabaseHelper = AnalyzedImageListDatabaseHelper.getInstance(context);
 
         this.imageAnalyzeListManager = ImageAnalyzeListManager.getInstance(context);
         this.context = context;
@@ -142,6 +146,7 @@ public class AIRequestManager {
 
     //추가된 이미지 관해 서버에 전송
     public CompletableFuture<Void> uploadAddGalleryImage( ArrayList<String> imagePaths,String source) throws IOException {
+        ImageNotificationManager imageNotificationManager = ImageNotificationManager.getImageNotification(context);
         List<CompletableFuture<Void>> futuresList = new ArrayList<>();
         Log.d(TAG,"uploadAddGalleryImage 안에 들어옴");
         //List<CompletableFuture<Void>> futuresList = new ArrayList<>();
@@ -169,6 +174,7 @@ public class AIRequestManager {
                 public void onResponse(Call<Void> call, Response<Void> response) {
                     if (response.isSuccessful()) {
                         Log.e(TAG, "AI 서버 Image upload 성공: " + response.message());
+                       // updateProgress(imageNotificationManager,imagePaths.size() );
                         future.complete(null);
                     }
                 }
@@ -195,6 +201,90 @@ public class AIRequestManager {
         }
         return CompletableFuture.allOf(futuresList.toArray(new CompletableFuture[0]));
     }
+//    public CompletableFuture<List<String>> uploadAddGalleryImage(ArrayList<String> imagePaths, String source) {
+//        Log.d(TAG, "uploadAddGalleryImage 안에 들어옴");
+//        //알림 매니저
+//
+//
+//        // 첫 번째 Future를 null로 처리하여 체인을 시작합니다.
+//        CompletableFuture<String> initialFuture = CompletableFuture.completedFuture(null);
+//        List<String> results = new ArrayList<>();
+//
+//        // 이전 작업이 완료된 후 다음 작업을 시작하는 체인을 만듭니다.
+//        CompletableFuture<String> chain = initialFuture;
+//        int size = imagePaths.size();
+//        for (String imagePath : imagePaths) {
+//            chain = chain.thenCompose(aVoid -> uploadSingleImage(imagePath, source,size).thenApply(result -> {
+//                results.add(result);
+//                return result;
+//            }));
+//
+//        }
+//
+//        // 모든 작업이 완료되면 결과 리스트를 반환합니다.
+//        return chain.thenApply(v -> results);
+//    }
+//    private CompletableFuture<String> uploadSingleImage(String imagePath, String source, int imageSize) {
+//        ImageNotificationManager imageNotificationManager = ImageNotificationManager.getImageNotification(context);
+//        CompletableFuture<String> future = new CompletableFuture<>();
+//        File imageFile = new File(imagePath);
+//
+//        RequestBody requestBody = RequestBody.create(MediaType.parse("image/*"), imageFile);
+//        MultipartBody.Part imagePart = MultipartBody.Part.createFormData("addImage", imageFile.getName(), requestBody);
+//        RequestBody sourceBody = RequestBody.create(MediaType.parse("text/plain"), source);
+//
+//        Call<Void> call = aiService.uploadAddImage(imagePart, sourceBody);
+//        call.enqueue(new Callback<Void>() {
+//            @Override
+//            public void onResponse(Call<Void> call, Response<Void> response) {
+//                if (response.isSuccessful()) {
+//                    Log.d(TAG, "AI 서버 이미지 업로드 완료 ");
+//                    future.complete("Success: " + imagePath);
+//
+//                    // 업로드 성공 후에 진행률 업데이트
+//                    updateProgress(imageNotificationManager, imageSize);
+//                } else {
+//                    future.complete("Failed: " + imagePath);
+//                    //분석된 리스트에 삭제함 즉, DB에서 삭제함
+//                    analyzedImageListDatabaseHelper.removeImagePath(imagePath);
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(Call<Void> call, Throwable t) {
+//                future.complete("Failed: " + imagePath);
+//                analyzedImageListDatabaseHelper.removeImagePath(imagePath);
+//
+//            }
+//        });
+//
+//        return future;
+//    }
+
+//    private void updateProgress(ImageNotificationManager manager, int imageSize) {
+//        if (imageSize > 0) {  // imageSize가 0보다 클 때만 진행률 계산
+//            int progressCurrent = manager.getProgressCurrent();
+//            int increase = Math.round(100.0f / imageSize);
+//            manager.setProgressCurrent(progressCurrent + increase);
+//            Log.d(TAG, "현재 프로그래스 숫자 : " + progressCurrent);
+//            Log.d(TAG, "increase : " + increase);
+//        } else {
+//            Log.e(TAG, "imageSize is zero, cannot update progress.");
+//        }
+//    }
+    private void updateProgress(ImageNotificationManager manager, int imageSize) {
+        if (imageSize > 0) {
+            int progressCurrent = manager.getProgressCurrent(); //현재 진행량
+            manager.setProgressCurrent(progressCurrent + +1);
+            Log.d(TAG, "현재 프로그래스 숫자 : " + (progressCurrent + +1));
+            Log.d(TAG, "increase : " + progressCurrent + +1);
+        } else {
+            Log.e(TAG, "imageSize is zero, cannot update progress.");
+        }
+    }
+
+
+
 
     //삭제된 이미지 관해 서버에 전송
     public CompletableFuture<Void> uploadDeleteGalleryImage(DatabaseHelper databaseHelper, ArrayList<String>deleteImagePaths,String source){
@@ -215,42 +305,23 @@ public class AIRequestManager {
             // RequestBody endIndicatorBody = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(isFinal)); //갤러리의 마지막 요청인지에 대한 정보 전달
 
             //API 호출
-            Call<UploadResponse> call = aiService.UploadDeleteImage(imagePart,sourceBody); //이미지 업로드 API 호출
-            call.enqueue(new Callback<UploadResponse>() { //비동기
+            Call<Void> call = aiService.UploadDeleteImage(imagePart,sourceBody); //이미지 업로드 API 호출
+            call.enqueue(new Callback<Void>() { //비동기
                 @Override
-                public void onResponse(Call<UploadResponse> call, Response<UploadResponse> response) {
+                public void onResponse(Call<Void> call, Response<Void> response) {
                     if (response.isSuccessful()) {
-                        //Log.e(TAG, "Image upload 성공: " + response.message());
-                        // 서버로부터 받은 응답 처리
-                        if(response.body() != null){
-                            for (UploadResponse.ImageData imageData : response.body().getImages()) {
-                                boolean isExit = imageData.getIsExit();
-                                if(isExit){
-                                    Log.d(TAG,"삭제 이미지에 대한 응답 받음 / 삭제할 얼굴 있음");
-                                    String imageName = imageData.getImageName();
-//                                String imageBytes = imageData.getImageBytes();
-//                                // 여기서 바이트 배열로 변환 후 이미지 처리를 할 수 있음
-//                                byte[] decodedString = Base64.decode(imageBytes, Base64.DEFAULT);
-                                    Log.d(TAG,"imageName : "+imageName);
-                                    databaseHelper.deleteImage(imageName); //이미지 이름을 통해 해당 데이터 삭제함
-                                }
-                                else{
-                                    Log.e(TAG, "삭제 이미지에 대한 응답 받음 / 삭제할 얼굴 없음" + response.message());
-                                }
-                            }
-                        }
+                        Log.e(TAG, "Image delete 성공: " + response.message());
                         future.complete(null);
-
                     }
                 }
                 @Override
-                public void onFailure(Call<UploadResponse> call, Throwable t) {
+                public void onFailure(Call<Void> call, Throwable t) {
                     Log.e(TAG, "삭제 이미지 업로드 실패함" + t.getMessage());
                     future.complete(null);
+
                 }
             });
         }
-
 
         return CompletableFuture.allOf(futuresList.toArray(new CompletableFuture[0]));
 

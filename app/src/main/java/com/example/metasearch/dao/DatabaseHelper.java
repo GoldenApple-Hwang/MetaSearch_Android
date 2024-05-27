@@ -10,14 +10,17 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteStatement;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.ParcelFileDescriptor;
 import android.provider.CallLog;
 import android.util.Log;
 
 import com.example.metasearch.model.Person;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -191,35 +194,65 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result != -1; // 삭제된 행의 수가 0보다 크면 true를 반환
     }
     // 데이터베이스에서 모든 이미지와 이름을 선택하여 반환
+//    public Map<String, byte[]> getAllImages() {
+//        Map<String, byte[]> imagesMap = new HashMap<>();
+//        // 데이터베이스에서 모든 이미지와 이름을 선택하는 쿼리
+//        String selectQuery = "SELECT * FROM " + TABLE_NAME;
+//        SQLiteDatabase db = this.getReadableDatabase();
+//        Cursor cursor = db.rawQuery(selectQuery, null);
+//        if (cursor.moveToFirst()) {
+//            int nameColumnIndex = cursor.getColumnIndex(COLUMN_NAME); // 이름 컬럼 인덱스
+//            int imageColumnIndex = cursor.getColumnIndex(COLUMN_IMAGE); // 이미지 컬럼 인덱스
+//            do {
+//                // 각 컬럼에서 데이터를 읽음
+//                String imageName = cursor.getString(nameColumnIndex);
+//                byte[] imageData = cursor.getBlob(imageColumnIndex);
+//                // 읽은 데이터를 HashMap에 추가
+//                imagesMap.put(imageName, imageData);
+//            } while (cursor.moveToNext());
+//        }
+//        cursor.close();
+//        db.close();
+//        // 이미지 데이터가 담긴 HashMap 반환
+//        return imagesMap;
+//    }
     public Map<String, byte[]> getAllImages() {
         Map<String, byte[]> imagesMap = new HashMap<>();
-        // 데이터베이스에서 모든 이미지와 이름을 선택하는 쿼리
-        String selectQuery = "SELECT * FROM " + TABLE_NAME;
+        // 데이터베이스에서 모든 이미지 이름을 선택하는 쿼리
+        String selectQuery = "SELECT " + "ID" + ", " + COLUMN_NAME + " FROM " + TABLE_NAME;
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
+
         if (cursor.moveToFirst()) {
+            int idColumnIndex = cursor.getColumnIndex("ID"); // ID 컬럼 인덱스
             int nameColumnIndex = cursor.getColumnIndex(COLUMN_NAME); // 이름 컬럼 인덱스
-            int imageColumnIndex = cursor.getColumnIndex(COLUMN_IMAGE); // 이미지 컬럼 인덱스
+
             do {
                 // 각 컬럼에서 데이터를 읽음
+                int personId = cursor.getInt(idColumnIndex);
                 String imageName = cursor.getString(nameColumnIndex);
-                byte[] imageData = cursor.getBlob(imageColumnIndex);
+                byte[] imageData = getImageData(personId);
+
                 // 읽은 데이터를 HashMap에 추가
                 imagesMap.put(imageName, imageData);
             } while (cursor.moveToNext());
         }
+
         cursor.close();
         db.close();
+
         // 이미지 데이터가 담긴 HashMap 반환
         return imagesMap;
     }
+
+
     public List<Person> getPersonsByCallDuration() {
         List<Person> persons = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
 
         // 전화번호가 있는 인물만 선택하고 '나'라는 이름을 가진 인물은 제외합니다.
         String selection = "PHONENUMBER <> '' AND INPUTNAME <> '나'";
-        Cursor personCursor = db.query(TABLE_NAME, new String[]{"ID", "NAME", "INPUTNAME", "PHONENUMBER", "IMAGE"}, selection, null, null, null, null);
+        Cursor personCursor = db.query(TABLE_NAME, new String[]{"ID", "NAME", "INPUTNAME", "PHONENUMBER"}, selection, null, null, null, null);
 
         if (personCursor.moveToFirst()) {
             do {
@@ -227,7 +260,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 @SuppressLint("Range") String name = personCursor.getString(personCursor.getColumnIndex("NAME"));
                 @SuppressLint("Range") String inputName = personCursor.getString(personCursor.getColumnIndex("INPUTNAME"));
                 @SuppressLint("Range") String phoneNumber = personCursor.getString(personCursor.getColumnIndex("PHONENUMBER"));
-                @SuppressLint("Range") byte[] image = personCursor.getBlob(personCursor.getColumnIndex("IMAGE"));
+                //@SuppressLint("Range") byte[] image = personCursor.getBlob(personCursor.getColumnIndex("IMAGE"));
+                byte[] image = getImageData(id);
 
                 long totalDuration = getTotalCallDurationForNumber(phoneNumber);
                 Person person = new Person(id, name, image);
@@ -307,14 +341,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
     public Person getPersonById(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_NAME, new String[]{COLUMN_NAME, COLUMN_INPUTNAME, COLUMN_IMAGE, COLUMN_PHONENUMBER}, "ID = ?", new String[]{String.valueOf(id)}, null, null, null);
+        Cursor cursor = db.query(TABLE_NAME, new String[]{COLUMN_NAME, COLUMN_INPUTNAME, COLUMN_PHONENUMBER}, "ID = ?", new String[]{String.valueOf(id)}, null, null, null);
         Person person = null;
 
         if (cursor.moveToFirst()) {
             @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
             @SuppressLint("Range") String inputName = cursor.getString(cursor.getColumnIndex(COLUMN_INPUTNAME));
-            @SuppressLint("Range") byte[] image = cursor.getBlob(cursor.getColumnIndex(COLUMN_IMAGE));
+            //@SuppressLint("Range") byte[] image = cursor.getBlob(cursor.getColumnIndex(COLUMN_IMAGE));
             @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(COLUMN_PHONENUMBER));
+            byte[] image = getImageData(id); // 이미지 데이터 스트리밍을 통해 가져오기
+
             person = new Person(id, name, image);
             person.setInputName(inputName);
             person.setPhone(phoneNumber);
@@ -353,59 +389,134 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return result > 0;
     }
-    public List<Person> getAllPerson() {
-        List<Person> people = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
-        HashSet<String> seenNames = new HashSet<>(); // 중복 이름 추적을 위한 HashSet
-        boolean isMyPersonAdded = false; // '나' 인물이 추가되었는지 여부
+//    public List<Person> getAllPerson() {
+//        List<Person> people = new ArrayList<>();
+//        SQLiteDatabase db = this.getReadableDatabase();
+//        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
+//        HashSet<String> seenNames = new HashSet<>(); // 중복 이름 추적을 위한 HashSet
+//        boolean isMyPersonAdded = false; // '나' 인물이 추가되었는지 여부
+//
+//        if (cursor.moveToFirst()) {
+//            do {
+//                @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex("ID"));
+//                @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
+//                @SuppressLint("Range") String inputName = cursor.getString(cursor.getColumnIndex(COLUMN_INPUTNAME));
+//                @SuppressLint("Range") byte[] image = cursor.getBlob(cursor.getColumnIndex(COLUMN_IMAGE));
+//                @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(COLUMN_PHONENUMBER));
+//
+//                if (inputName.equals("나")) {
+//                    // '나' 인물이 이미 추가되었는지 확인
+//                    if (!isMyPersonAdded) {
+//                        // '나' 인물을 리스트에 추가
+//                        Person myPerson = new Person(id, name, image);
+//                        myPerson.setInputName(inputName);
+//                        myPerson.setPhone(phoneNumber);
+//                        people.add(0, myPerson); // '나' 인물을 리스트의 맨 앞에 추가
+//                        isMyPersonAdded = true; // '나' 인물이 추가되었음을 표시
+//                    }
+//                } else if (!seenNames.contains(inputName)) {
+//                    // 이미 처리한 이름이 아니면 추가
+//                    Person person = new Person(id, name, image);
+//                    person.setInputName(inputName);
+//                    person.setPhone(phoneNumber);
+//                    people.add(person);
+//                    seenNames.add(inputName); // 처리된 이름을 추가
+//                }
+//            } while (cursor.moveToNext());
+//        }
+//        cursor.close();
+//        db.close();
+//
+//        return people;
+//    }
 
-        if (cursor.moveToFirst()) {
-            do {
-                @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex("ID"));
-                @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
-                @SuppressLint("Range") String inputName = cursor.getString(cursor.getColumnIndex(COLUMN_INPUTNAME));
-                @SuppressLint("Range") byte[] image = cursor.getBlob(cursor.getColumnIndex(COLUMN_IMAGE));
-                @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(COLUMN_PHONENUMBER));
+public List<Person> getAllPerson() {
+    List<Person> people = new ArrayList<>();
+    SQLiteDatabase db = this.getReadableDatabase();
+    Cursor cursor = db.rawQuery("SELECT ID, NAME, INPUTNAME, PHONENUMBER  FROM " + TABLE_NAME, null);
+    HashSet<String> seenNames = new HashSet<>(); // 중복 이름 추적을 위한 HashSet
+    boolean isMyPersonAdded = false; // '나' 인물이 추가되었는지 여부
 
-                if (inputName.equals("나")) {
-                    // '나' 인물이 이미 추가되었는지 확인
-                    if (!isMyPersonAdded) {
-                        // '나' 인물을 리스트에 추가
-                        Person myPerson = new Person(id, name, image);
-                        myPerson.setInputName(inputName);
-                        myPerson.setPhone(phoneNumber);
-                        people.add(0, myPerson); // '나' 인물을 리스트의 맨 앞에 추가
-                        isMyPersonAdded = true; // '나' 인물이 추가되었음을 표시
-                    }
-                } else if (!seenNames.contains(inputName)) {
-                    // 이미 처리한 이름이 아니면 추가
-                    Person person = new Person(id, name, image);
-                    person.setInputName(inputName);
-                    person.setPhone(phoneNumber);
-                    people.add(person);
-                    seenNames.add(inputName); // 처리된 이름을 추가
+    if (cursor.moveToFirst()) {
+        do {
+            @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex("ID"));
+            @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
+            @SuppressLint("Range") String inputName = cursor.getString(cursor.getColumnIndex(COLUMN_INPUTNAME));
+            @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(COLUMN_PHONENUMBER));
+
+            byte[] image = getImageData(id); // 이미지 데이터 스트리밍을 통해 가져오기
+
+            if (inputName.equals("나")) {
+                // '나' 인물이 이미 추가되었는지 확인
+                if (!isMyPersonAdded) {
+                    // '나' 인물을 리스트에 추가
+                    Person myPerson = new Person(id, name, image);
+                    myPerson.setInputName(inputName);
+                    myPerson.setPhone(phoneNumber);
+                    people.add(0, myPerson); // '나' 인물을 리스트의 맨 앞에 추가
+                    isMyPersonAdded = true; // '나' 인물이 추가되었음을 표시
                 }
-            } while (cursor.moveToNext());
-        }
-        cursor.close();
-        db.close();
+            } else if (!seenNames.contains(inputName)) {
+                // 이미 처리한 이름이 아니면 추가
+                Person person = new Person(id, name, image);
+                person.setInputName(inputName);
+                person.setPhone(phoneNumber);
+                people.add(person);
+                seenNames.add(inputName); // 처리된 이름을 추가
+            }
+        } while (cursor.moveToNext());
+    }
+    cursor.close();
+    db.close();
 
-        return people;
-    }
-    public ArrayList<byte[]> getImageData(){
-        ArrayList<byte[]> images = new ArrayList<>();
-        SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM "+TABLE_NAME, null);
-        if(cursor.moveToFirst()){
-            do{
-                byte[] imgByte = cursor.getBlob(0);
-                images.add(imgByte);
-            }while(cursor.moveToNext());
+    return people;
+}
+
+    private byte[] getImageData(int personId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        SQLiteStatement statement = db.compileStatement("SELECT IMAGE FROM " + TABLE_NAME + " WHERE ID = ?");
+        statement.bindLong(1, personId);
+        byte[] buffer = new byte[2048]; // 버퍼 사이즈 설정
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        try {
+            ParcelFileDescriptor pfd = statement.simpleQueryForBlobFileDescriptor();
+            if (pfd != null) {
+                FileInputStream inputStream = new FileInputStream(pfd.getFileDescriptor());
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+                inputStream.close();
+                pfd.close();
+            }
+            return outputStream.toByteArray();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            try {
+                outputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            statement.close();
         }
-        cursor.close();
-        return images;
     }
+//    public ArrayList<byte[]> getImageData(){
+//        ArrayList<byte[]> images = new ArrayList<>();
+//        SQLiteDatabase db = this.getWritableDatabase();
+//        Cursor cursor = db.rawQuery("SELECT * FROM "+TABLE_NAME, null);
+//        if(cursor.moveToFirst()){
+//            do{
+//                byte[] imgByte = cursor.getBlob(0);
+//                images.add(imgByte);
+//            }while(cursor.moveToNext());
+//        }
+//        cursor.close();
+//        return images;
+//    }
+
     @SuppressLint("Range")
     public String getInputNameByImageName(String imageName) {
         SQLiteDatabase db = this.getReadableDatabase();
