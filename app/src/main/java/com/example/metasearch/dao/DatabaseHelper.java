@@ -194,35 +194,65 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result != -1; // 삭제된 행의 수가 0보다 크면 true를 반환
     }
     // 데이터베이스에서 모든 이미지와 이름을 선택하여 반환
+//    public Map<String, byte[]> getAllImages() {
+//        Map<String, byte[]> imagesMap = new HashMap<>();
+//        // 데이터베이스에서 모든 이미지와 이름을 선택하는 쿼리
+//        String selectQuery = "SELECT * FROM " + TABLE_NAME;
+//        SQLiteDatabase db = this.getReadableDatabase();
+//        Cursor cursor = db.rawQuery(selectQuery, null);
+//        if (cursor.moveToFirst()) {
+//            int nameColumnIndex = cursor.getColumnIndex(COLUMN_NAME); // 이름 컬럼 인덱스
+//            int imageColumnIndex = cursor.getColumnIndex(COLUMN_IMAGE); // 이미지 컬럼 인덱스
+//            do {
+//                // 각 컬럼에서 데이터를 읽음
+//                String imageName = cursor.getString(nameColumnIndex);
+//                byte[] imageData = cursor.getBlob(imageColumnIndex);
+//                // 읽은 데이터를 HashMap에 추가
+//                imagesMap.put(imageName, imageData);
+//            } while (cursor.moveToNext());
+//        }
+//        cursor.close();
+//        db.close();
+//        // 이미지 데이터가 담긴 HashMap 반환
+//        return imagesMap;
+//    }
     public Map<String, byte[]> getAllImages() {
         Map<String, byte[]> imagesMap = new HashMap<>();
-        // 데이터베이스에서 모든 이미지와 이름을 선택하는 쿼리
-        String selectQuery = "SELECT * FROM " + TABLE_NAME;
+        // 데이터베이스에서 모든 이미지 이름을 선택하는 쿼리
+        String selectQuery = "SELECT " + "ID" + ", " + COLUMN_NAME + " FROM " + TABLE_NAME;
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
+
         if (cursor.moveToFirst()) {
+            int idColumnIndex = cursor.getColumnIndex("ID"); // ID 컬럼 인덱스
             int nameColumnIndex = cursor.getColumnIndex(COLUMN_NAME); // 이름 컬럼 인덱스
-            int imageColumnIndex = cursor.getColumnIndex(COLUMN_IMAGE); // 이미지 컬럼 인덱스
+
             do {
                 // 각 컬럼에서 데이터를 읽음
+                int personId = cursor.getInt(idColumnIndex);
                 String imageName = cursor.getString(nameColumnIndex);
-                byte[] imageData = cursor.getBlob(imageColumnIndex);
+                byte[] imageData = getImageData(personId);
+
                 // 읽은 데이터를 HashMap에 추가
                 imagesMap.put(imageName, imageData);
             } while (cursor.moveToNext());
         }
+
         cursor.close();
         db.close();
+
         // 이미지 데이터가 담긴 HashMap 반환
         return imagesMap;
     }
+
+
     public List<Person> getPersonsByCallDuration() {
         List<Person> persons = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
 
         // 전화번호가 있는 인물만 선택하고 '나'라는 이름을 가진 인물은 제외합니다.
         String selection = "PHONENUMBER <> '' AND INPUTNAME <> '나'";
-        Cursor personCursor = db.query(TABLE_NAME, new String[]{"ID", "NAME", "INPUTNAME", "PHONENUMBER", "IMAGE"}, selection, null, null, null, null);
+        Cursor personCursor = db.query(TABLE_NAME, new String[]{"ID", "NAME", "INPUTNAME", "PHONENUMBER"}, selection, null, null, null, null);
 
         if (personCursor.moveToFirst()) {
             do {
@@ -230,7 +260,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 @SuppressLint("Range") String name = personCursor.getString(personCursor.getColumnIndex("NAME"));
                 @SuppressLint("Range") String inputName = personCursor.getString(personCursor.getColumnIndex("INPUTNAME"));
                 @SuppressLint("Range") String phoneNumber = personCursor.getString(personCursor.getColumnIndex("PHONENUMBER"));
-                @SuppressLint("Range") byte[] image = personCursor.getBlob(personCursor.getColumnIndex("IMAGE"));
+                //@SuppressLint("Range") byte[] image = personCursor.getBlob(personCursor.getColumnIndex("IMAGE"));
+                byte[] image = getImageData(id);
 
                 long totalDuration = getTotalCallDurationForNumber(phoneNumber);
                 Person person = new Person(id, name, image);
@@ -310,14 +341,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
     public Person getPersonById(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_NAME, new String[]{COLUMN_NAME, COLUMN_INPUTNAME, COLUMN_IMAGE, COLUMN_PHONENUMBER}, "ID = ?", new String[]{String.valueOf(id)}, null, null, null);
+        Cursor cursor = db.query(TABLE_NAME, new String[]{COLUMN_NAME, COLUMN_INPUTNAME, COLUMN_PHONENUMBER}, "ID = ?", new String[]{String.valueOf(id)}, null, null, null);
         Person person = null;
 
         if (cursor.moveToFirst()) {
             @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
             @SuppressLint("Range") String inputName = cursor.getString(cursor.getColumnIndex(COLUMN_INPUTNAME));
-            @SuppressLint("Range") byte[] image = cursor.getBlob(cursor.getColumnIndex(COLUMN_IMAGE));
+            //@SuppressLint("Range") byte[] image = cursor.getBlob(cursor.getColumnIndex(COLUMN_IMAGE));
             @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(COLUMN_PHONENUMBER));
+            byte[] image = getImageData(id); // 이미지 데이터 스트리밍을 통해 가져오기
+
             person = new Person(id, name, image);
             person.setInputName(inputName);
             person.setPhone(phoneNumber);
