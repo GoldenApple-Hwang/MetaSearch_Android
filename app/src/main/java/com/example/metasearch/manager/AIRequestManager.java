@@ -272,12 +272,10 @@ public class AIRequestManager {
 //    }
     private void updateProgress(ImageNotificationManager manager, int imageSize) {
         if (imageSize > 0) {
-            int progressCurrent = manager.getProgressCurrent();
-            double increase = 100.0 / imageSize;  // 소수점을 유지하기 위해 100을 100.0으로 변경
-            int roundedIncrease = (int) Math.round(increase);  // 소수점을 반올림하여 정수로 변환
-            manager.setProgressCurrent(progressCurrent + roundedIncrease);
-            Log.d(TAG, "현재 프로그래스 숫자 : " + (progressCurrent + roundedIncrease));
-            Log.d(TAG, "increase : " + roundedIncrease);
+            int progressCurrent = manager.getProgressCurrent(); //현재 진행량
+            manager.setProgressCurrent(progressCurrent + +1);
+            Log.d(TAG, "현재 프로그래스 숫자 : " + (progressCurrent + +1));
+            Log.d(TAG, "increase : " + progressCurrent + +1);
         } else {
             Log.e(TAG, "imageSize is zero, cannot update progress.");
         }

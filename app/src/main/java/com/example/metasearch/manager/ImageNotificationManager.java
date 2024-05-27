@@ -33,7 +33,7 @@ public class ImageNotificationManager {
     private static final String COMPLETE_CHANNEL_ID = "completeChannelID"; //마지막 알림 channelID
     private static final int NOTIFICATION_ID = 0; //Notification에 대한 ID 생성
     private NotificationChannel notificationChannel;
-    private int progressMax = 100;
+//    private int progressMax = 100;
     private int progressCurrent = 0;
     private boolean is_finish_analyze = false;
     private boolean isCanceled = false; //작업을 중단하기 위한 플래그
@@ -107,7 +107,7 @@ public class ImageNotificationManager {
                     .setContentTitle("이미지 분석 중...") //알림 제목 설정
                     .setContentText("이미지 분석 중 입니다.") //알림 내용 설정
                     .setSmallIcon(R.drawable.baseline_image_search_24) //알림 아이콘 설정
-                    .setProgress(progressMax, progressCurrent, false);
+                    .setProgress(100, progressCurrent, false);
         }
         else if(channelID.equals(COMPLETE_CHANNEL_ID)){
             //새로운 알림 생성
@@ -189,7 +189,6 @@ public class ImageNotificationManager {
 //    }
 
     public void showUpdateNotificationProgress(Context context, int imageListSize) {
-        final int totalImages = imageListSize;
         notifyBuilder = settingBuilder(context, CHNANNEL_ID);
 
         handler = new Handler(Looper.getMainLooper());
@@ -201,10 +200,10 @@ public class ImageNotificationManager {
             public void run() {
                 this.progressCurrent = imageNotificationManager.getProgressCurrent();
                 Log.d(TAG, "현재 알람에서의 프로그래스 숫자 : " + progressCurrent);
-                if (progressCurrent < 100 && !isCanceled) {
+                if (progressCurrent < imageListSize && !isCanceled) {
                     // 알림 업데이트
-                    notifyBuilder.setProgress(progressMax, progressCurrent, false);
-                    notifyBuilder.setContentTitle("이미지 분석 " + progressCurrent + "% 완료");
+                    notifyBuilder.setProgress(imageListSize, progressCurrent, false);
+                    notifyBuilder.setContentTitle("이미지 분석 "+progressCurrent+"/"+imageListSize+"개 완료...");
                     Log.d(TAG, "현재 완료 숫자 :" + progressCurrent);
                     mNotificationManager.notify(NOTIFICATION_ID, notifyBuilder.build());
 
@@ -212,9 +211,9 @@ public class ImageNotificationManager {
                     handler.postDelayed(this, 5000);
                 } else {
                     // 작업이 완료되거나 취소되었을 때 알림 업데이트 종료
-                    if (progressCurrent >= 100) {
-                        notifyBuilder.setProgress(progressMax, progressMax, false);
-                        notifyBuilder.setContentTitle("이미지 분석 100% 완료");
+                    if (progressCurrent >= imageListSize) {
+                        notifyBuilder.setProgress(imageListSize, imageListSize, false);
+                        notifyBuilder.setContentTitle("이미지 분석 완료");
                         notifyBuilder.setContentText("잠시만 기다려주세요...");
                         mNotificationManager.notify(NOTIFICATION_ID, notifyBuilder.build());
 
@@ -223,8 +222,8 @@ public class ImageNotificationManager {
                     }
 
                     if (isCanceled) {
-                        notifyBuilder.setProgress(progressMax, progressMax, false);
-                        notifyBuilder.setContentTitle("이미지 분석 100% 완료");
+                        notifyBuilder.setProgress(imageListSize, imageListSize, false);
+                        notifyBuilder.setContentTitle("이미지 분석 완료");
                         notifyBuilder.setContentText("잠시만 기다려주세요...");
                         mNotificationManager.notify(NOTIFICATION_ID, notifyBuilder.build());
 
