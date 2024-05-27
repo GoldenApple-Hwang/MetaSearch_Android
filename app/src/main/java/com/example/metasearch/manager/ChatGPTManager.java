@@ -32,7 +32,7 @@ public class ChatGPTManager {
 
     public void getChatResponse(List<Message> prompt, int maxTokens, Callback<OpenAIResponse> callback) {
         String authToken = "Bearer " + API_KEY;
-        OpenAIRequest chatRequest = new OpenAIRequest("gpt-3.5-turbo", prompt);
+        OpenAIRequest chatRequest = new OpenAIRequest("gpt-3.5-turbo", prompt, 0.5, 0.1);
         apiService.createChatCompletion(authToken, chatRequest).enqueue(callback);
     }
 
