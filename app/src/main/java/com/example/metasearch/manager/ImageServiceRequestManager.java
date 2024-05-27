@@ -218,6 +218,7 @@ public class ImageServiceRequestManager {
                         //이미지 이름과 input 이름이 다른 것을 확인하여 neo4j서버에 csv 이름 변경을 요청함
                         requestChangeName();
                         informCompleteImageAnalyze();
+                        completeAnalysis();
 
                         //추가 이미지 경로 리스트, 삭제 이미지 경로 리스트 초기화
                         imageAnalyzeListController.clearAddDeleteImageList();
@@ -238,6 +239,7 @@ public class ImageServiceRequestManager {
                     Log.d(TAG,"모든 이미지 전송 완료");
                     //추가 이미지 경로 리스트, 삭제 이미지 경로 리스트 초기화
                     imageAnalyzeListController.clearAddDeleteImageList();
+                    completeAnalysis();
                 });
             });
         }
@@ -256,6 +258,7 @@ public class ImageServiceRequestManager {
                     //이미지 이름과 input 이름이 다른 것을 확인하여 neo4j서버에 csv 이름 변경을 요청함
                     requestChangeName();
                     informCompleteImageAnalyze();
+                    completeAnalysis();
 
                     //추가 이미지 경로 리스트, 삭제 이미지 경로 리스트 초기화
                     imageAnalyzeListController.clearAddDeleteImageList();
@@ -296,7 +299,6 @@ public class ImageServiceRequestManager {
         OneTimeWorkRequest notificationWork = new OneTimeWorkRequest.Builder(NotificationWorker.class)
                 .build();
         WorkManager.getInstance(context).enqueue(notificationWork);
-
 
 
     }
