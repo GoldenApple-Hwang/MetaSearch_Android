@@ -116,8 +116,8 @@ public class HomeFragment extends Fragment
 //        WorkManager
 //                .getInstance(getContext())
 //                .enqueue(uploadWorkRequest);
-        boolean isAnalyzing = imageServiceRequestManager.getIsAnalyzing();
-        if (!isAnalyzing) {
+//        boolean isAnalyzing = imageServiceRequestManager.getIsAnalyzing();
+//        if (!isAnalyzing) {
             Constraints constraints = new Constraints.Builder()
                     .setRequiredNetworkType(NetworkType.CONNECTED) // 네트워크 연결 상태를 고려하지 않음
                     .build();
@@ -127,7 +127,7 @@ public class HomeFragment extends Fragment
                     .build();
 
             WorkManager.getInstance(requireContext()).enqueue(uploadWorkRequest);
-        }
+       // }
 
 //        ExecutorService executor = Executors.newSingleThreadExecutor(); // 단일 스레드를 사용하는 ExecutorService 생성
 //        executor.submit(() -> {
