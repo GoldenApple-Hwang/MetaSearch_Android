@@ -126,7 +126,7 @@ public class SearchFragment extends Fragment
             return;  // 메서드를 여기서 종료
         }
         // 사용자가 입력한 문장(찾고 싶은 사진) + gpt가 분석할 수 있도록 지시할 문장
-        userInput = userInput + getString(R.string.user_input_kor);
+        userInput = getString(R.string.user_input_kor) + userInput;
         if (userInput.length() == 0) return;
         ApiService service = HttpHelper.getInstance(OPENAI_URL).create(ApiService.class);
 
@@ -144,46 +144,37 @@ public class SearchFragment extends Fragment
                     StringBuilder msg = new StringBuilder();
                     OpenAIResponse openAIResponse = response.body();
                     assert openAIResponse != null;
+
                     for (Choice choice : openAIResponse.getChoices()) {
                         String text = choice.getMessage().getContent().trim();
                         // 여기에서 응답 처리, 예: TextView에 출력
                         msg.append(text).append("\n");
                         System.out.println("response : " + text); // test
-                        // 응답 형식 : "추출된 속성 쌍의 개수" "entity2[0]" "relationship[0]" "entity2[1]" "relationship[1]"
-                        // "2,짱구,인물,사과,과일"
-                        String[] parts = text.split(",");
-                        if (parts.length > 0) {
-                            int pairCount = 0;
-                            try {
-                                pairCount = Integer.parseInt(parts[0].trim()); // 공백 제거
-                                System.out.println("pairCount : " + pairCount);
-                            } catch (NumberFormatException e) {
-                                Log.e("Parse Error", "Error parsing pair count", e);
-                            }
-                            List<String> entities = new ArrayList<>();
-                            List<String> relationships = new ArrayList<>();
 
-                            int maxIndex = Math.min(parts.length, 1 + 2 * pairCount);
-                            System.out.println("maxIndex : " + maxIndex);
-                            for (int i = 1; i < maxIndex; i += 2) {
-                                entities.add(parts[i].trim()); // 공백 제거
-                                if (i + 1 < parts.length) {
-                                    relationships.add(parts[i + 1].trim()); // 공백 제거
-                                }
-                            }
-                            // test
-                            System.out.println(entities);
-                            System.out.println(relationships);
-
-                            if (entities.size() != pairCount || relationships.size() != pairCount) {
-                                Log.e("Data Mismatch", "The number of pairs does not match the pairCount.");
-                                StyleableToast.makeText(getContext(), "데이터 불일치. 응답 확인 필요.", R.style.customToast).show();
-
-                            } else {
-                                neo4jQuery = Neo4jDatabaseManager.createCypherQuery(entities, relationships, pairCount);
-                                System.out.println("TEST_QUERY : " + neo4jQuery);
-                            }
+                        // 응답 값이 "0"일 때 예외 처리
+                        if (text.equals("0")) {
+                            Log.e("OpenAI Response", "No results found.");
+                            getActivity().runOnUiThread(() -> {
+                                StyleableToast.makeText(getContext(), "검색된 결과가 없습니다.", R.style.customToast).show();
+                                binding.searchButton.setEnabled(true);
+                                binding.spinKit.setVisibility(View.GONE);
+                                updateUIWithMatchedUris(new ArrayList<>());
+                            });
+                            return;
                         }
+
+                        // 콤마로 구분된 응답을 분리하여 entities 리스트에 추가
+                        String[] parts = text.split(",");
+                        List<String> entities = new ArrayList<>();
+                        for (String part : parts) {
+                            entities.add(part.trim()); // 공백 제거 후 추가
+                        }
+                        // test
+                        System.out.println(entities);
+
+                        // 사이퍼 쿼리 생성
+                        neo4jQuery = Neo4jDatabaseManager.createCypherQueryForEntities(entities);
+                        System.out.println("TEST_QUERY : " + neo4jQuery);
                     }
                     // UI 업데이트는 메인 스레드에서 실행
                     binding.textView2.post(() -> binding.textView2.setText(msg));

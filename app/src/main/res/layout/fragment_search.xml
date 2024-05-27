@@ -17,9 +17,9 @@
         android:background="@drawable/edittext_rounded_background"
         android:hint="사진 검색"
         android:inputType="textMultiLine"
-        android:maxLines="1"
+        android:maxLines="2"
         android:textSize="16dp"
-
+        android:text="5월에 내가 강아지랑 서울에서 찍은 사진"
         android:minLines="1"
         android:textColor="@color/black"
         android:textColorHint="@color/rose"
