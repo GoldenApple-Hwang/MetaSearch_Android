@@ -10,4 +10,11 @@ public class Choice {
     public void setMessage(Message message) {
         this.message = message;
     }
+
+    @Override
+    public String toString() {
+        return "Choice{" +
+                "message=" + (message != null ? message.toString() : "null") +
+                '}';
+    }
 }
