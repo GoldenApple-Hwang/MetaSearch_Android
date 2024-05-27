@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.util.Base64;
 import android.util.Log;
 
+import com.example.metasearch.dao.AnalyzedImageListDatabaseHelper;
 import com.example.metasearch.dao.DatabaseHelper;
 import com.example.metasearch.helper.HttpHelper;
 import com.example.metasearch.interfaces.CircleDataUploadCallbacks;
@@ -35,6 +36,8 @@ public class AIRequestManager {
     private static final String AIserver_BASE_URL = "http://113.198.85.5"; // ai 서버의 기본 url
     private static AIRequestManager aiImageUploader;
     private ImageAnalyzeListManager imageAnalyzeListManager;
+    private AnalyzedImageListDatabaseHelper analyzedImageListDatabaseHelper;
+
     private ApiService aiService;
     static final String TABLE_NAME = "Faces";
     private Context context;
@@ -42,6 +45,7 @@ public class AIRequestManager {
     private AIRequestManager(Context context){
         //this.aiService = AIHttpService.getInstance(AIserver_BASE_URL);
         this.aiService = HttpHelper.getInstance(AIserver_BASE_URL).getRetrofit().create(ApiService.class);
+        this.analyzedImageListDatabaseHelper = AnalyzedImageListDatabaseHelper.getInstance(context);
 
         this.imageAnalyzeListManager = ImageAnalyzeListManager.getInstance(context);
         this.context = context;
@@ -239,25 +243,41 @@ public class AIRequestManager {
                     updateProgress(imageNotificationManager, imageSize);
                 } else {
                     future.complete("Failed: " + imagePath);
+                    //분석된 리스트에 삭제함 즉, DB에서 삭제함
+                    analyzedImageListDatabaseHelper.removeImagePath(imagePath);
                 }
             }
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
                 future.complete("Failed: " + imagePath);
+                analyzedImageListDatabaseHelper.removeImagePath(imagePath);
+
             }
         });
 
         return future;
     }
 
+//    private void updateProgress(ImageNotificationManager manager, int imageSize) {
+//        if (imageSize > 0) {  // imageSize가 0보다 클 때만 진행률 계산
+//            int progressCurrent = manager.getProgressCurrent();
+//            int increase = Math.round(100.0f / imageSize);
+//            manager.setProgressCurrent(progressCurrent + increase);
+//            Log.d(TAG, "현재 프로그래스 숫자 : " + progressCurrent);
+//            Log.d(TAG, "increase : " + increase);
+//        } else {
+//            Log.e(TAG, "imageSize is zero, cannot update progress.");
+//        }
+//    }
     private void updateProgress(ImageNotificationManager manager, int imageSize) {
-        if (imageSize > 0) {  // imageSize가 0보다 클 때만 진행률 계산
+        if (imageSize > 0) {
             int progressCurrent = manager.getProgressCurrent();
-            int increase = Math.round(100.0f / imageSize);
-            manager.setProgressCurrent(progressCurrent + increase);
-            Log.d(TAG, "현재 프로그래스 숫자 : " + progressCurrent);
-            Log.d(TAG, "increase : " + increase);
+            double increase = 100.0 / imageSize;  // 소수점을 유지하기 위해 100을 100.0으로 변경
+            int roundedIncrease = (int) Math.round(increase);  // 소수점을 반올림하여 정수로 변환
+            manager.setProgressCurrent(progressCurrent + roundedIncrease);
+            Log.d(TAG, "현재 프로그래스 숫자 : " + (progressCurrent + roundedIncrease));
+            Log.d(TAG, "increase : " + roundedIncrease);
         } else {
             Log.e(TAG, "imageSize is zero, cannot update progress.");
         }
