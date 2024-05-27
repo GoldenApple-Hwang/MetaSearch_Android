@@ -14,4 +14,11 @@ public class OpenAIResponse {
     public void setChoices(List<Choice> choices) {
         this.choices = choices;
     }
+
+    @Override
+    public String toString() {
+        return "OpenAIResponse{" +
+                "choices=" + (choices != null ? choices.toString() : "null") +
+                '}';
+    }
 }
