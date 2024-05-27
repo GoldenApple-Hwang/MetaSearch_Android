@@ -105,7 +105,7 @@ public class ImageNotificationManager {
             //새로운 알림 생성
             notifyBuilder = new NotificationCompat.Builder(context, CHNANNEL_ID)
                     .setContentTitle("이미지 분석 중...") //알림 제목 설정
-                    .setContentText("이미지 분석이 시작됩니다.") //알림 내용 설정
+                    .setContentText("이미지 분석 중 입니다.") //알림 내용 설정
                     .setSmallIcon(R.drawable.baseline_image_search_24) //알림 아이콘 설정
                     .setProgress(progressMax, progressCurrent, false);
         }
@@ -133,60 +133,121 @@ public class ImageNotificationManager {
 //    }
 
     // 진행 중인 알림창 띄우기
-    public void showUpdateNotificationProgress(Context context, int imageListSize){
+//    public void showUpdateNotificationProgress(Context context, int imageListSize){
+//        final int totalImages = imageListSize;
+//        final int updateInterval = 30000; // 30초 동안 이미지 처리
+//        notifyBuilder = settingBuilder(context,CHNANNEL_ID);
+//
+//        //handler를 사용하여 비동기적으로 알림 업데이트
+//        handler = new Handler(Looper.getMainLooper());
+//
+//        notificationRunnable = new Runnable() {
+//            int currentProgress = 0;
+//
+//            @Override
+//            public void run() {
+//                if (isCanceled) {
+//                    //작업이 중간에 강제 취소된 경우
+//                    //100% 강제 완료 or 제대로 다 끝낸 후 종료
+//                    Log.d(TAG,"isCanceled는 true로 변경");
+//                    notifyBuilder.setProgress(progressMax, progressMax, false);
+//                    notifyBuilder.setContentTitle("이미지 분석 100% 완료");
+//                    notifyBuilder.setContentText("잠시만 기다려주세요...");
+//                    mNotificationManager.notify(NOTIFICATION_ID, notifyBuilder.build());
+//
+//                    if (!is_finish_analyze) //false 이면
+//                        is_finish_analyze = true;//프로그래스 바 마지막까지 완료
+//                    isCanceled = false; //다시 원상복구
+//                    return;
+//                }
+//                if (currentProgress <= 100) {
+//                    //알림 업데이트
+//                    notifyBuilder.setProgress(progressMax, currentProgress, false);
+//                    notifyBuilder.setContentTitle("이미지 분석 " + currentProgress + "% 완료");
+//                    Log.d(TAG, "현재 완료 숫자 :" + currentProgress);
+//                    mNotificationManager.notify(NOTIFICATION_ID, notifyBuilder.build());
+//
+//                    //다음 업데이트를 위한 프로그래스 증가
+//                    currentProgress += (100 / totalImages);
+//
+//                    //다음 업데이트 스케줄 //30초 이후
+//                    handler.postDelayed(this, updateInterval);
+//
+//                    //마지막 업데이트에서 100% 설정
+//                    if (currentProgress >= 100) {
+//                        notifyBuilder.setProgress(progressMax, progressMax, false);
+//                        notifyBuilder.setContentTitle("이미지 분석 100% 완료");
+//                        notifyBuilder.setContentText("잠시만 기다려주세요...");
+//
+//                        is_finish_analyze = true; //프로그래스바 마지막까지 완료
+//                    }
+//                }
+//            }
+//        };
+//        //첫 업데이트 시작
+//        handler.post(notificationRunnable);
+//    }
+
+    public void showUpdateNotificationProgress(Context context, int imageListSize) {
         final int totalImages = imageListSize;
-        final int updateInterval = 30000; // 30초 동안 이미지 처리
-        notifyBuilder = settingBuilder(context,CHNANNEL_ID);
+        notifyBuilder = settingBuilder(context, CHNANNEL_ID);
 
-        //handler를 사용하여 비동기적으로 알림 업데이트
         handler = new Handler(Looper.getMainLooper());
-
         notificationRunnable = new Runnable() {
-            int currentProgress = 0;
+            ImageNotificationManager imageNotificationManager = ImageNotificationManager.getImageNotification(context);
+            private int progressCurrent;
 
             @Override
             public void run() {
-                if (isCanceled) {
-                    //작업이 중간에 강제 취소된 경우
-                    //100% 강제 완료 or 제대로 다 끝낸 후 종료
-                    Log.d(TAG,"isCanceled는 true로 변경");
-                    notifyBuilder.setProgress(progressMax, progressMax, false);
-                    notifyBuilder.setContentTitle("이미지 분석 100% 완료");
-                    notifyBuilder.setContentText("잠시만 기다려주세요...");
+                this.progressCurrent = imageNotificationManager.getProgressCurrent();
+                Log.d(TAG, "현재 알람에서의 프로그래스 숫자 : " + progressCurrent);
+                if (progressCurrent < 100 && !isCanceled) {
+                    // 알림 업데이트
+                    notifyBuilder.setProgress(progressMax, progressCurrent, false);
+                    notifyBuilder.setContentTitle("이미지 분석 " + progressCurrent + "% 완료");
+                    Log.d(TAG, "현재 완료 숫자 :" + progressCurrent);
                     mNotificationManager.notify(NOTIFICATION_ID, notifyBuilder.build());
 
-                    if (!is_finish_analyze) //false 이면
-                        is_finish_analyze = true;//프로그래스 바 마지막까지 완료
-                    isCanceled = false; //다시 원상복구
-                    return;
-                }
-                if (currentProgress <= 100) {
-                    //알림 업데이트
-                    notifyBuilder.setProgress(progressMax, currentProgress, false);
-                    notifyBuilder.setContentTitle("이미지 분석 " + currentProgress + "% 완료");
-                    Log.d(TAG, "현재 완료 숫자 :" + currentProgress);
-                    mNotificationManager.notify(NOTIFICATION_ID, notifyBuilder.build());
-
-                    //다음 업데이트를 위한 프로그래스 증가
-                    currentProgress += (100 / totalImages);
-
-                    //다음 업데이트 스케줄 //30초 이후
-                    handler.postDelayed(this, updateInterval);
-
-                    //마지막 업데이트에서 100% 설정
-                    if (currentProgress >= 100) {
+                    // 5초 이후 다음 업데이트 스케줄
+                    handler.postDelayed(this, 5000);
+                } else {
+                    // 작업이 완료되거나 취소되었을 때 알림 업데이트 종료
+                    if (progressCurrent >= 100) {
                         notifyBuilder.setProgress(progressMax, progressMax, false);
                         notifyBuilder.setContentTitle("이미지 분석 100% 완료");
                         notifyBuilder.setContentText("잠시만 기다려주세요...");
+                        mNotificationManager.notify(NOTIFICATION_ID, notifyBuilder.build());
 
-                        is_finish_analyze = true; //프로그래스바 마지막까지 완료
+                        // 프로그래스바 마지막까지 완료
+                        is_finish_analyze = true;
+                    }
+
+                    if (isCanceled) {
+                        notifyBuilder.setProgress(progressMax, progressMax, false);
+                        notifyBuilder.setContentTitle("이미지 분석 100% 완료");
+                        notifyBuilder.setContentText("잠시만 기다려주세요...");
+                        mNotificationManager.notify(NOTIFICATION_ID, notifyBuilder.build());
+
+                        if (!is_finish_analyze)
+                            is_finish_analyze = true;
                     }
                 }
             }
         };
-        //첫 업데이트 시작
+        // 첫 업데이트 시작
         handler.post(notificationRunnable);
     }
+
+
+    public void setProgressCurrent (int count){ //현재 프로그래스 숫자 변경
+        this.progressCurrent = count;
+    }
+    public int getProgressCurrent(){
+        return this.progressCurrent;
+    }
+
+
+
 
 
     // 종료된 알림창 띄우기
@@ -234,6 +295,7 @@ public class ImageNotificationManager {
 
         sleep(2000); //2초 후에 해당 runnable 삭제
         handler.removeCallbacks(notificationRunnable); //현재 예약된 runnable을 제거함
+        setProgressCurrent(0); //현재 진행률 0%로 설정
         Log.d(TAG,"cancelProceedProgressbar 함수 실행");
     }
 
