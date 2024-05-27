@@ -177,9 +177,9 @@ public class SearchFragment extends Fragment
                         System.out.println("TEST_QUERY : " + neo4jQuery);
                     }
                     // UI 업데이트는 메인 스레드에서 실행
-                    binding.textView2.post(() -> binding.textView2.setText(msg));
-                    // 생성된 사이퍼쿼리를 텍스트뷰에 출력해서 확인 가능
-                    binding.query.post(() -> binding.query.setText(neo4jQuery));
+//                    binding.textView2.post(() -> binding.textView2.setText(msg));
+//                    // 생성된 사이퍼쿼리를 텍스트뷰에 출력해서 확인 가능
+//                    binding.query.post(() -> binding.query.setText(neo4jQuery));
 
                     // 웹 서버에 쿼리 전송
                     webRequestManager.sendQueryToWebServer(DatabaseUtils.getPersistentDeviceDatabaseName(getContext()), neo4jQuery , new WebServerQueryCallbacks() {
