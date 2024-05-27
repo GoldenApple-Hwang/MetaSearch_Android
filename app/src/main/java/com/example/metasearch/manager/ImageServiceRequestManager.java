@@ -74,11 +74,11 @@ public class ImageServiceRequestManager {
     public void setImageAnalysisCompleteListener(ImageAnalysisCompleteListener listener) {
         this.listener = listener;
     }
-    public boolean getIsAnalyzing(){
-        return this.isAnalyzing;
-    }
+//    public boolean getIsAnalyzing(){
+//        return this.isAnalyzing;
+//    }
     public void getImagePathsAndUpload() throws IOException, ExecutionException, InterruptedException { // 갤러리 이미지 경로 / 데이터베이스의 모든 얼굴 byte 가져옴
-        this.isAnalyzing = true;
+//        this.isAnalyzing = true;
         Log.d(TAG,"getImagePathsAndUpload 함수 들어옴");
         //aiRetrofit = AIHttpService.getInstance(AIserver_BASE_URL).getRetrofit();
 //         webRetrofit = WebHttpService.getInstance(Webserver_BASE_URL).getRetrofit();
@@ -136,7 +136,7 @@ public class ImageServiceRequestManager {
                 size+=deletePaths.size();
             }
             // 알림 띄움
-            imageNotificationManager.showUpdateNotificationProgress(context, size+=addImagePaths.size()); //분석할 이미지의 개수를 size에 합침
+            //imageNotificationManager.showUpdateNotificationProgress(context, size+=addImagePaths.size()); //분석할 이미지의 개수를 size에 합침
             //imageNotificationManager.show_notificaiton(context,size+=addImagePaths.size());
 
         }
@@ -215,21 +215,23 @@ public class ImageServiceRequestManager {
                 //웹 서버에 추가 분석 이미지 전송
                 webRequestManager.uploadAddGalleryImage(addImagePaths, DBName);
                 //AI 서버에 추가 분석 이미지 전송
-                aiRequestManager.uploadAddGalleryImage(addImagePaths,DBName).thenRun(() -> {
-                    //콜백 설정
-                    //추가 이미지 경로 리스트, 삭제 이미지 경로 리스트 초기화
-                    imageAnalyzeListController.clearAddDeleteImageList();
+                try {
+                    aiRequestManager.uploadAddGalleryImage(addImagePaths,DBName).thenRun(() -> {
+                        //콜백 설정
 
-                    //AI 서버에 모든 요청이 보내졌다는 마무리 요청
-                    aiRequestManager.completeUploadImage(databaseHelper,DBName).thenRun(()->{
-                        //이미지 이름과 input 이름이 다른 것을 확인하여 neo4j서버에 csv 이름 변경을 요청함
-                        requestChangeName();
-                        informCompleteImageAnalyze();
-                        completeAnalysis();
-                        this.isAnalyzing = false;
+                        //AI 서버에 모든 요청이 보내졌다는 마무리 요청
+                        aiRequestManager.completeUploadImage(databaseHelper,DBName).thenRun(()->{
+                            //이미지 이름과 input 이름이 다른 것을 확인하여 neo4j서버에 csv 이름 변경을 요청함
+                            requestChangeName();
+                            informCompleteImageAnalyze();
+                            completeAnalysis();
+    //                        this.isAnalyzing = false;
 
+                        });
                     });
-                });
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             });
         }
         else if(!isAddExit && isDeleteExit){ //삭제 요청 o, 추가 요청 x
@@ -239,15 +241,15 @@ public class ImageServiceRequestManager {
             webRequestManager.uploadDeleteGalleryImage(deleteImagePaths,DBName);
             //AI 서버에 삭제 관련 이미지 이름 전송
             aiRequestManager.uploadDeleteGalleryImage(databaseHelper,deleteImagePaths,DBName).thenRun(() -> { //콜백 설정함
-                //추가 이미지 경로 리스트, 삭제 이미지 경로 리스트 초기화
-                imageAnalyzeListController.clearAddDeleteImageList();
+//                //추가 이미지 경로 리스트, 삭제 이미지 경로 리스트 초기화
+//                imageAnalyzeListController.clearAddDeleteImageList();
 
                 //AI 서버에 모든 요청이 마무리 되었다는 요청
                 aiRequestManager.completeUploadImage(databaseHelper,DBName).thenRun(()->{
                     Log.d(TAG,"모든 이미지 전송 완료");
 
                     completeAnalysis();
-                    this.isAnalyzing = false;
+//                    this.isAnalyzing = false;
 
                 });
             });
@@ -261,19 +263,22 @@ public class ImageServiceRequestManager {
             //AI 서버에 추가 분석 이미지 전송
             aiRequestManager.uploadAddGalleryImage(addImagePaths,DBName).thenRun(() -> {
                 //콜백 설정
-                //추가 이미지 경로 리스트, 삭제 이미지 경로 리스트 초기화
-                imageAnalyzeListController.clearAddDeleteImageList();
+//                //추가 이미지 경로 리스트, 삭제 이미지 경로 리스트 초기화
+//                imageAnalyzeListController.clearAddDeleteImageList();
                 //AI 서버에 모든 요청이 보내졌다는 마무리 요청
                 aiRequestManager.completeUploadImage(databaseHelper,DBName).thenRun(()->{
                     //이미지 이름과 input 이름이 다른 것을 확인하여 neo4j서버에 csv 이름 변경을 요청함
                     requestChangeName();
                     informCompleteImageAnalyze();
                     completeAnalysis();
-                    this.isAnalyzing = false;
+//                    this.isAnalyzing = false;
 
                 });
             });
         }
+        //추가 이미지 경로 리스트, 삭제 이미지 경로 리스트 초기화
+        imageAnalyzeListController.clearAddDeleteImageList();
+
     }
     // 이미지 분석이 완료된 후 호출
     public void completeAnalysis() {
@@ -295,12 +300,12 @@ public class ImageServiceRequestManager {
 
     //이미지 분석이 끝났다는 것을 알리는 함수
     public void informCompleteImageAnalyze(){
-        try {
-            // 해당 프로그래스 바 강제 100% 종료, runnable에서 삭제
-            imageNotificationManager.cancelProceedProgressbar();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            // 해당 프로그래스 바 강제 100% 종료, runnable에서 삭제
+//            imageNotificationManager.cancelProceedProgressbar();
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
         // imageNotificationManager.showCompleteNotification(context);
         // 완료 알림을 화면에 띄움
 
