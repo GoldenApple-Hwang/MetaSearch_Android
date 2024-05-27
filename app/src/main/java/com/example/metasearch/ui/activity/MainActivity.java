@@ -2,6 +2,7 @@ package com.example.metasearch.ui.activity;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -14,7 +15,6 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
@@ -72,33 +72,38 @@ public class MainActivity extends AppCompatActivity {
                 storagePermission
         };
 
-        boolean essentialPermissionsGranted = true;
-
-        for (String permission : essentialPermissions) {
-            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-                essentialPermissionsGranted = false;
-                break;
-            }
-        }
-
-        if (!essentialPermissionsGranted) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissionLauncher.launch(essentialPermissions);
-            } else {
-                ActivityCompat.requestPermissions(this, essentialPermissions, PERMISSIONS_REQUEST_READ_PHOTOS);
-            }
+        if (isFirstRun()) {
+            requestPermissionLauncher.launch(allPermissions);
+        } else if (!isPermissionGranted(storagePermission)) {
+            requestPermissionLauncher.launch(essentialPermissions);
         } else {
             loadAllImagesInHomeFragment();
         }
     }
 
+    private boolean isFirstRun() {
+        SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+        boolean isFirstRun = prefs.getBoolean("isFirstRun", true);
+        if (isFirstRun) {
+            prefs.edit().putBoolean("isFirstRun", false).apply();
+        }
+        return isFirstRun;
+    }
+
+    private boolean isPermissionGranted(String permission) {
+        return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
+    }
+
     private void showPermissionDeniedDialog() {
-        new AlertDialog.Builder(this, R.style.CustomAlertDialogTheme)
-                .setTitle("권한 요청")
-                .setMessage("사진 권한이 필요합니다. 앱 설정에서 권한을 허용해주세요.")
-                .setPositiveButton("설정으로 이동", (dialog, which) -> openAppSettings())
-                .setNegativeButton("취소", null)
-                .show();
+        if (!isPermissionGranted(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ?
+                Manifest.permission.READ_MEDIA_IMAGES : Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            new AlertDialog.Builder(this, R.style.CustomAlertDialogTheme)
+                    .setTitle("권한 요청")
+                    .setMessage("사진 권한이 필요합니다. 앱 설정에서 권한을 허용해주세요.")
+                    .setPositiveButton("설정으로 이동", (dialog, which) -> openAppSettings())
+                    .setNegativeButton("취소", null)
+                    .show();
+        }
     }
 
     private void openAppSettings() {
@@ -181,4 +186,3 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 }
-

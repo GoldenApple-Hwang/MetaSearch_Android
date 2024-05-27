@@ -220,6 +220,7 @@ public class ImageServiceRequestManager {
                         //이미지 이름과 input 이름이 다른 것을 확인하여 neo4j서버에 csv 이름 변경을 요청함
                         requestChangeName();
                         informCompleteImageAnalyze();
+                        completeAnalysis();
 
                     });
                 });
@@ -238,6 +239,8 @@ public class ImageServiceRequestManager {
                 //AI 서버에 모든 요청이 마무리 되었다는 요청
                 aiRequestManager.completeUploadImage(databaseHelper,DBName).thenRun(()->{
                     Log.d(TAG,"모든 이미지 전송 완료");
+
+                    completeAnalysis();
                 });
             });
         }
@@ -257,6 +260,7 @@ public class ImageServiceRequestManager {
                     //이미지 이름과 input 이름이 다른 것을 확인하여 neo4j서버에 csv 이름 변경을 요청함
                     requestChangeName();
                     informCompleteImageAnalyze();
+                    completeAnalysis();
 
 
                 });
@@ -296,7 +300,6 @@ public class ImageServiceRequestManager {
         OneTimeWorkRequest notificationWork = new OneTimeWorkRequest.Builder(NotificationWorker.class)
                 .build();
         WorkManager.getInstance(context).enqueue(notificationWork);
-
 
 
     }
