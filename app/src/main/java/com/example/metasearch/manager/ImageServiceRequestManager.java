@@ -212,6 +212,8 @@ public class ImageServiceRequestManager {
                 //AI 서버에 추가 분석 이미지 전송
                 aiRequestManager.uploadAddGalleryImage(addImagePaths,DBName).thenRun(() -> {
                     //콜백 설정
+                    //추가 이미지 경로 리스트, 삭제 이미지 경로 리스트 초기화
+                    imageAnalyzeListController.clearAddDeleteImageList();
 
                     //AI 서버에 모든 요청이 보내졌다는 마무리 요청
                     aiRequestManager.completeUploadImage(databaseHelper,DBName).thenRun(()->{
@@ -219,8 +221,6 @@ public class ImageServiceRequestManager {
                         requestChangeName();
                         informCompleteImageAnalyze();
 
-                        //추가 이미지 경로 리스트, 삭제 이미지 경로 리스트 초기화
-                        imageAnalyzeListController.clearAddDeleteImageList();
                     });
                 });
             });
@@ -232,12 +232,12 @@ public class ImageServiceRequestManager {
             webRequestManager.uploadDeleteGalleryImage(deleteImagePaths,DBName);
             //AI 서버에 삭제 관련 이미지 이름 전송
             aiRequestManager.uploadDeleteGalleryImage(databaseHelper,deleteImagePaths,DBName).thenRun(() -> { //콜백 설정함
+                //추가 이미지 경로 리스트, 삭제 이미지 경로 리스트 초기화
+                imageAnalyzeListController.clearAddDeleteImageList();
 
                 //AI 서버에 모든 요청이 마무리 되었다는 요청
                 aiRequestManager.completeUploadImage(databaseHelper,DBName).thenRun(()->{
                     Log.d(TAG,"모든 이미지 전송 완료");
-                    //추가 이미지 경로 리스트, 삭제 이미지 경로 리스트 초기화
-                    imageAnalyzeListController.clearAddDeleteImageList();
                 });
             });
         }
@@ -250,15 +250,15 @@ public class ImageServiceRequestManager {
             //AI 서버에 추가 분석 이미지 전송
             aiRequestManager.uploadAddGalleryImage(addImagePaths,DBName).thenRun(() -> {
                 //콜백 설정
-
+                //추가 이미지 경로 리스트, 삭제 이미지 경로 리스트 초기화
+                imageAnalyzeListController.clearAddDeleteImageList();
                 //AI 서버에 모든 요청이 보내졌다는 마무리 요청
                 aiRequestManager.completeUploadImage(databaseHelper,DBName).thenRun(()->{
                     //이미지 이름과 input 이름이 다른 것을 확인하여 neo4j서버에 csv 이름 변경을 요청함
                     requestChangeName();
                     informCompleteImageAnalyze();
 
-                    //추가 이미지 경로 리스트, 삭제 이미지 경로 리스트 초기화
-                    imageAnalyzeListController.clearAddDeleteImageList();
+
                 });
             });
         }
