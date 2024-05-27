@@ -41,6 +41,7 @@ import com.example.metasearch.ui.adapter.CustomArrayAdapter;
 import com.example.metasearch.ui.adapter.ImageAdapter;
 import com.example.metasearch.ui.viewmodel.ImageViewModel;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -126,24 +127,52 @@ public class SearchFragment extends Fragment
             return;  // 메서드를 여기서 종료
         }
         // 사용자가 입력한 문장(찾고 싶은 사진) + gpt가 분석할 수 있도록 지시할 문장
-        userInput = userInput + getString(R.string.user_input_kor);
+        userInput = "\"" + userInput + "\"" + "\n" + "\n" + getString(R.string.user_input_kor);
+        Log.d("nlp", userInput);
         if (userInput.length() == 0) return;
         ApiService service = HttpHelper.getInstance(OPENAI_URL).create(ApiService.class);
 
         List<Message> messages = new ArrayList<>();
         messages.add(new Message("user", userInput));
-        OpenAIRequest request = new OpenAIRequest("gpt-3.5-turbo", messages);
+        OpenAIRequest request = new OpenAIRequest("gpt-3.5-turbo", messages, 0.5, 0.7);
         String apiKey = "Bearer " + BuildConfig.OPENAI_API_KEY;
 
+        // 요청 객체 로그 출력
+        Log.d("API Request", "Model: " + request.getModel());
+        Log.d("API Request", "Temperature: " + request.getTemperature());
+        Log.d("API Request", "TopP: " + request.getTop_p());
+        for (Message message : request.getMessages()) {
+            Log.d("API Request", "Message Role: " + message.getRole() + ", Content: " + message.getContent());
+        }
+
         service.createChatCompletion(apiKey, request).enqueue(new Callback<OpenAIResponse>() {
+
             @Override
             public void onResponse(@NonNull Call<OpenAIResponse> call, @NonNull Response<OpenAIResponse> response) {
                 // 응답 처리 로직
+                if (response.body() == null) {
+                    Log.d("nlp", "Response body is null");
+                } else {
+                    Log.d("nlp", "OpenAIResponse is not null");
+                }
+                // 응답 실패 처리
+                String errorBody = null;
+                try {
+                    errorBody = response.errorBody() != null ? response.errorBody().string() : "Error body is empty";
+                } catch (IOException e) {
+                    Log.e("API Error", "Failed to parse error body", e);
+                }
+                Log.e("API Error", "HTTP Status Code: " + response.code());
+                Log.e("API Error Message", errorBody); // 실패 응답의 에러 메시지를 로그로 출력
+
                 // 성공적으로 응답을 받았을 경우
                 if (response.isSuccessful()) {
                     StringBuilder msg = new StringBuilder();
                     OpenAIResponse openAIResponse = response.body();
+                    Log.d("nlpr", openAIResponse.toString());
+                    Log.d("nlp", openAIResponse.getChoices().toString());
                     assert openAIResponse != null;
+
                     for (Choice choice : openAIResponse.getChoices()) {
                         String text = choice.getMessage().getContent().trim();
                         // 여기에서 응답 처리, 예: TextView에 출력
