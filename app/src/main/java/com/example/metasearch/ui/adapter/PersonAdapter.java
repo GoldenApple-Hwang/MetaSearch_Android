@@ -1,10 +1,10 @@
 package com.example.metasearch.ui.adapter;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,7 +31,7 @@ import io.github.muddz.styleabletoast.StyleableToast;
 public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonViewHolder>
                             implements WebServerDeleteEntityCallbacks {
     private DatabaseHelper databaseHelper;
-    private final List<Person> people;
+    private List<Person> people;
     private ImageAdapter.OnImageClickListener listener;
     private final Context context;
     private final WebRequestManager webRequestManager;
@@ -105,12 +105,17 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
     public int getItemCount() {
         return people.size();
     }
+    @SuppressLint("NotifyDataSetChanged")
     @Override
     public void onDeleteEntitySuccess(String message) {
         StyleableToast.makeText(context, "인물 등록 해제 완료", R.style.customToast).show();
         // 삭제 성공 시 화면 업데이트
         people.clear();
         people.addAll(databaseHelper.getAllPerson());
+        notifyDataSetChanged();
+    }
+    public void updateData(List<Person> newPeople) {
+        this.people = newPeople;
         notifyDataSetChanged();
     }
     @Override

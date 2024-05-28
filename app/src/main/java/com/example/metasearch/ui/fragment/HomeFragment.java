@@ -1,5 +1,6 @@
 package com.example.metasearch.ui.fragment;
 
+import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 import static com.example.metasearch.manager.GalleryImageManager.getAllGalleryImagesUri;
 
 import com.example.metasearch.R;
@@ -55,6 +56,7 @@ import com.example.metasearch.ui.adapter.ImageAdapter;
 import com.example.metasearch.databinding.FragmentHomeBinding;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -72,11 +74,11 @@ public class HomeFragment extends Fragment
 
     private FragmentHomeBinding binding;
     private DatabaseHelper databaseHelper;
-    //이미지 분석 요청 관리 객체 가져옴
     private ImageServiceRequestManager imageServiceRequestManager;
     private WebRequestManager webRequestManager;
-    private Dialog dialog; // 인물 랭킹 다이얼로그
+    private Dialog dialog;
     private static final int PERMISSIONS_REQUEST_READ_CALL_LOG = 102;
+    private PersonAdapter personAdapter;
 
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
@@ -95,54 +97,40 @@ public class HomeFragment extends Fragment
 
         init();
         setupListeners();
-        loadFaceImages(); // 홈 화면 상단에 가로 방향 RecyclerView(인물 얼굴과 이름) 로드
-        loadAllGalleryImages(); // 홈 화면 하단에 세로 방향 RecyclerView(갤러리 모든 사진) 로드
+        setupRecyclerViews();
+        loadFaceImages();
+        loadAllGalleryImages();
 
         return root;
     }
 
     private void init() {
-        // `requireContext()`를 사용하는 대신 `getContext()` 사용
         databaseHelper = DatabaseHelper.getInstance(getContext());
         imageServiceRequestManager = ImageServiceRequestManager.getInstance(getContext(), databaseHelper);
         imageServiceRequestManager.setImageAnalysisCompleteListener(this);
         webRequestManager = WebRequestManager.getWebImageUploader();
     }
 
+    private void setupRecyclerViews() {
+        personAdapter = new PersonAdapter(Collections.emptyList(), this, getContext());
+        LinearLayoutManager layoutManager = new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false);
+        binding.personRecyclerViewHorizon.setLayoutManager(layoutManager);
+        binding.personRecyclerViewHorizon.setAdapter(personAdapter);
+    }
+
     public void startImageAnalysis() {
-//        WorkRequest uploadWorkRequest = new OneTimeWorkRequest.Builder(ImageAnalysisWorker.class)
-//                .build();
-//
-//        WorkManager
-//                .getInstance(getContext())
-//                .enqueue(uploadWorkRequest);
-//        boolean isAnalyzing = imageServiceRequestManager.getIsAnalyzing();
-//        if (!isAnalyzing) {
-            Constraints constraints = new Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED) // 네트워크 연결 상태를 고려하지 않음
-                    .build();
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build();
 
-            WorkRequest uploadWorkRequest = new OneTimeWorkRequest.Builder(ImageAnalysisWorker.class)
-                    .setConstraints(constraints)
-                    .build();
+        WorkRequest uploadWorkRequest = new OneTimeWorkRequest.Builder(ImageAnalysisWorker.class)
+                .setConstraints(constraints)
+                .build();
 
-            WorkManager.getInstance(requireContext()).enqueue(uploadWorkRequest);
-       // }
-
-//        ExecutorService executor = Executors.newSingleThreadExecutor(); // 단일 스레드를 사용하는 ExecutorService 생성
-//        executor.submit(() -> {
-//            try {
-//                // 이미지 분석 시작
-//                imageServiceRequestManager.getImagePathsAndUpload();
-//            } catch (IOException | InterruptedException | ExecutionException e) {
-//                throw new RuntimeException(e);
-//            }
-//        });
-//        executor.shutdown(); // 작업을 시작한 후 ExecutorService를 종료합니다. 이는 현재 진행 중인 작업이 완료될 때까지 기다립니다.
+        WorkManager.getInstance(requireContext()).enqueue(uploadWorkRequest);
     }
 
     private void setupListeners() {
-        // 리사이클러뷰 스크롤에 따라 하단의 네비바 높이 조절
         binding.galleryRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -150,43 +138,34 @@ public class HomeFragment extends Fragment
                 MainActivity activity = (MainActivity) getActivity();
                 if (activity != null) {
                     if (dy > 0) {
-                        // 스크롤 내릴 때, 네비게이션 바 숨기기
                         activity.hideBottomNavigationView();
                     } else if (dy < 0) {
-                        // 스크롤 올릴 때, 네비게이션 바 보이기
                         activity.showBottomNavigationView();
                     }
                 }
             }
         });
-        // 화면 상단의 정보 아이콘 클릭 시 랭킹 다이얼로그 출력
+
         binding.rankingBtn.setOnClickListener(v -> {
             if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_CALL_LOG)
                     != PackageManager.PERMISSION_GRANTED) {
-                // 권한이 없으면 요청
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     requestPermissionLauncher.launch(Manifest.permission.READ_CALL_LOG);
                 } else {
                     requestPermissions(new String[]{Manifest.permission.READ_CALL_LOG}, PERMISSIONS_REQUEST_READ_CALL_LOG);
                 }
             } else {
-                // 권한이 있으면 랭킹 다이얼로그 출력
                 showRankingDialog();
             }
         });
     }
 
     private void showRankingDialog() {
-        /*
-         * 웹 서버에서 데이터(인물 빈도수) 받아와 출력
-         * 인물 정보는 인물 데이터베이스에서 가져와 출력
-         */
         dialog = new Dialog(requireContext(), R.style.CustomAlertDialogTheme);
         dialog.setContentView(R.layout.dialog_ranking_table);
         dialog.setTitle("랭킹");
 
-        // 데이터베이스에서 인물 정보(전화번호가 저장된 인물 리스트)를 가져오고, 웹 서버에 빈도수 데이터 요청
-        List<Person> persons = databaseHelper.getPersonsByCallDuration();
+        List<Person> persons = databaseHelper.getAllPersonExceptMe();
         Log.d("CALL", persons.toString());
         if (!persons.isEmpty()) {
             webRequestManager.getPersonFrequency(DatabaseUtils.getPersistentDeviceDatabaseName(getContext()), persons, this);
@@ -194,7 +173,7 @@ public class HomeFragment extends Fragment
             StyleableToast.makeText(getContext(), "인물 정보가 없습니다. 전화번호를 등록해주세요.", R.style.customToast).show();
         }
 
-        dialog.show(); // 다이얼로그를 먼저 표시하고, 데이터가 로드되면 업데이트
+        dialog.show();
     }
 
     private void showPermissionDeniedDialog() {
@@ -218,10 +197,8 @@ public class HomeFragment extends Fragment
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSIONS_REQUEST_READ_CALL_LOG) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // 권한이 허용되었으면 다시 다이얼로그 표시 메서드 호출
                 showRankingDialog();
             } else {
-                // 권한이 거부되었을 때 처리
                 showPermissionDeniedDialog();
             }
         }
@@ -241,7 +218,6 @@ public class HomeFragment extends Fragment
     }
 
     public void loadAllGalleryImages() {
-        // 갤러리의 모든 사진을 출력하는 세로 방향 RecyclerView 세팅
         ImageAdapter adapter = new ImageAdapter(getAllGalleryImagesUri(requireContext()), requireContext(), this);
         GridLayoutManager layoutManager = new GridLayoutManager(requireContext(), 5);
         binding.galleryRecyclerView.setAdapter(adapter);
@@ -255,10 +231,11 @@ public class HomeFragment extends Fragment
             return;
         }
         Log.d("inputName", people.toString());
-        PersonAdapter adapter = new PersonAdapter(people, this, getContext());
-        LinearLayoutManager layoutManager = new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false);
-        binding.personRecyclerViewHorizon.setLayoutManager(layoutManager);
-        binding.personRecyclerViewHorizon.setAdapter(adapter);
+        personAdapter.updateData(people);
+    }
+
+    private void updateFaceImages(List<Person> persons) {
+        personAdapter.updateData(persons);
     }
 
     @Override
@@ -268,37 +245,45 @@ public class HomeFragment extends Fragment
             frequencies.put(freq.getPersonName(), freq.getFrequency());
         }
 
-        List<Person> persons = databaseHelper.getPersonsByCallDuration();
+        List<Person> persons = databaseHelper.getAllPersonExceptMe();
         Map<String, Long> callDurations = new HashMap<>();
         for (Person person : persons) {
             callDurations.put(person.getInputName(), person.getTotalDuration());
+            Log.d(TAG, "Person: " + person.getInputName() + ", Total Duration: " + person.getTotalDuration());
         }
 
-        // 정규화 위해 최댓값 찾기
-        double maxCallDuration = Collections.max(callDurations.values());
-        double maxFrequency = Collections.max(frequencies.values());
+        double maxCallDuration = callDurations.isEmpty() ? 0 : Collections.max(callDurations.values());
+        double maxFrequency = frequencies.isEmpty() ? 0 : Collections.max(frequencies.values());
 
-        // 총점 계산
         Map<String, Double> scores = new HashMap<>();
         for (Person person : persons) {
             double normalizedCallDuration = maxCallDuration != 0 ? callDurations.get(person.getInputName()) / maxCallDuration : 0;
             double normalizedFrequency = maxFrequency != 0 ? frequencies.getOrDefault(person.getInputName(), 0) / maxFrequency : 0;
             double score = (normalizedCallDuration + normalizedFrequency) / 2;
             scores.put(person.getInputName(), score);
+            Log.d(TAG, "Person: " + person.getInputName() + ", Score: " + score);
         }
 
-        // 점수가 높은 인물 순으로 정렬
         Collections.sort(persons, (p1, p2) -> scores.get(p2.getInputName()).compareTo(scores.get(p1.getInputName())));
 
-        // Update UI
-        updateRankingTable(persons, scores, frequencies, callDurations);
+        // '나'라는 인물을 맨 앞에 추가
+        List<Person> sortedPersons = new ArrayList<>();
+        for (Person person : persons) {
+            if (person.getInputName().equals("나")) {
+                sortedPersons.add(0, person);
+            } else {
+                sortedPersons.add(person);
+            }
+        }
+
+        updateRankingTable(sortedPersons, scores, frequencies, callDurations);
+        updateFaceImages(sortedPersons);
     }
 
     private void updateRankingTable(List<Person> persons, Map<String, Double> scores, Map<String, Integer> frequencies, Map<String, Long> callDurations) {
         TableLayout table = dialog.findViewById(R.id.tableLayout);
         table.removeAllViews();
 
-        // 테이블 헤더 추가
         TableRow header = new TableRow(getContext());
         addTableCell(header, "이름", true);
         addTableCell(header, "사진", true);
@@ -306,7 +291,6 @@ public class HomeFragment extends Fragment
         addTableCell(header, "친밀도", true);
         table.addView(header);
 
-        // 테이블에 데이터 추가
         for (Person person : persons) {
             TableRow row = new TableRow(getContext());
             row.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
@@ -365,8 +349,8 @@ public class HomeFragment extends Fragment
     @Override
     public void onResume() {
         super.onResume();
-        loadFaceImages(); // 항상 최신 데이터 로드
-        loadAllGalleryImages(); // 항상 최신 데이터 로드
+        loadFaceImages();
+        loadAllGalleryImages();
     }
 
     @Override

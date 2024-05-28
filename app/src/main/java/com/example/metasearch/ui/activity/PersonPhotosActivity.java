@@ -96,6 +96,7 @@ public class PersonPhotosActivity extends AppCompatActivity
 
         editPersonName.setText(inputName);
         editPhoneNumber.setText(databaseHelper.getPhoneNumberById(id));
+//        editPhoneNumber.setText(databaseHelper.getPhoneNumberByName(inputName));
 
         builder.setView(dialogView)
                 .setTitle("인물 정보 수정")
