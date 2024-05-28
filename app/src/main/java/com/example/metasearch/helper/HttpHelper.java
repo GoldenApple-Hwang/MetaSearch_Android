@@ -24,9 +24,9 @@ public class HttpHelper {
     private HttpHelper(String baseUrl) {
         // OkHttpClient 설정: 연결, 읽기, 쓰기 타임아웃 설정
         OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                .connectTimeout(600, TimeUnit.SECONDS)
-                .readTimeout(600, TimeUnit.SECONDS)
-                .writeTimeout(600, TimeUnit.SECONDS)
+                .connectTimeout(6000, TimeUnit.SECONDS)
+                .readTimeout(6000, TimeUnit.SECONDS)
+                .writeTimeout(6000, TimeUnit.SECONDS)
                 .build();
         // Retrofit 인스턴스 생성
         retrofit = new Retrofit.Builder()
