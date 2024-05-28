@@ -1,13 +1,14 @@
 package com.example.metasearch.ui.adapter;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -30,7 +31,7 @@ import io.github.muddz.styleabletoast.StyleableToast;
 public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonViewHolder>
                             implements WebServerDeleteEntityCallbacks {
     private DatabaseHelper databaseHelper;
-    private final List<Person> people;
+    private List<Person> people;
     private ImageAdapter.OnImageClickListener listener;
     private final Context context;
     private final WebRequestManager webRequestManager;
@@ -42,24 +43,21 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
         this.databaseHelper = DatabaseHelper.getInstance(context);
         this.webRequestManager = WebRequestManager.getWebImageUploader();
     }
-
-    public interface OnImageClickListener {
-        void onImageClick(Uri uri);
-    }
-
     public static class PersonViewHolder extends RecyclerView.ViewHolder {
         CircleImageView imageView;
         TextView nameView;
+        ImageView deleteIcon;
 
         public PersonViewHolder(View view) {
             super(view);
             imageView = view.findViewById(R.id.face); // CircleImageView ID 수정 필요
             nameView = view.findViewById(R.id.name);
+            deleteIcon = view.findViewById(R.id.delete_icon);
         }
     }
     private void showDeletePersonDialog(String name, int personId) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.CustomAlertDialogTheme);
-        builder.setTitle("인물 리스트 수정");
+        builder.setTitle("인물 등록 해제");
 
         builder.setMessage("'" + name + "'님을 '내가 아는 사람들'에서 삭제하시겠습니까?");
         builder.setPositiveButton("삭제", (dialog, which) -> {
@@ -100,23 +98,24 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
                 context.startActivity(intent); // 클릭한 인물이 나온 사진을 모두 찾아서 보여주는 화면으로 전환
             }
         });
-
-        holder.imageView.setOnLongClickListener(v -> {
-            showDeletePersonDialog(person.getInputName(), person.getId());
-            return true; // 롱 클릭 이벤트 처리 완료
-        });
+        holder.deleteIcon.setOnClickListener(v ->
+                showDeletePersonDialog(person.getInputName(), person.getId()));
     }
     @Override
     public int getItemCount() {
         return people.size();
     }
+    @SuppressLint("NotifyDataSetChanged")
     @Override
     public void onDeleteEntitySuccess(String message) {
-//        StyleableToast.makeText(context, "삭제 성공: " + message, R.style.customToast).show();
         StyleableToast.makeText(context, "인물 등록 해제 완료", R.style.customToast).show();
         // 삭제 성공 시 화면 업데이트
         people.clear();
         people.addAll(databaseHelper.getAllPerson());
+        notifyDataSetChanged();
+    }
+    public void updateData(List<Person> newPeople) {
+        this.people = newPeople;
         notifyDataSetChanged();
     }
     @Override
