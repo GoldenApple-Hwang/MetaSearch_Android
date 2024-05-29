@@ -32,7 +32,7 @@ import io.github.muddz.styleabletoast.StyleableToast;
 
 public class PersonPhotosActivity extends AppCompatActivity
         implements WebServerPersonDataUploadCallbacks,
-                    ImageAdapter.OnImageClickListener {
+        ImageAdapter.OnImageClickListener {
     private ImageViewModel imageViewModel;
     private WebRequestManager webRequestManager;
     private ActivityPersonPhotosBinding binding;
@@ -96,7 +96,6 @@ public class PersonPhotosActivity extends AppCompatActivity
 
         editPersonName.setText(inputName);
         editPhoneNumber.setText(databaseHelper.getPhoneNumberById(id));
-//        editPhoneNumber.setText(databaseHelper.getPhoneNumberByName(inputName));
 
         builder.setView(dialogView)
                 .setTitle("인물 정보 수정")
@@ -110,30 +109,32 @@ public class PersonPhotosActivity extends AppCompatActivity
             String newPersonName = editPersonName.getText().toString();
             String newPhoneNumber = editPhoneNumber.getText().toString();
 
+            // 이름 중복 검사
             if (!newPersonName.isEmpty() && databaseHelper.isNameExists(newPersonName) && !newPersonName.equals(inputName)) {
-                // 이름 중복 경고
                 new AlertDialog.Builder(this, R.style.CustomAlertDialogTheme)
                         .setTitle("이름 중복")
                         .setMessage("이미 존재하는 이름 입니다. 그래도 저장하시겠습니까?")
                         .setPositiveButton("예", (dialogInterface, i) -> {
                             updatePersonInfo(newPersonName, newPhoneNumber);
-//                            webRequestManager.changePersonName(DatabaseUtils.getPersistentDeviceDatabaseName(this), inputName, newPersonName);
                             dialog.dismiss();
-//                            inputName = newPersonName;
                         })
                         .setNegativeButton("아니요", (dialogInterface, i) -> {
-                            // 사용자가 'No'를 선택했을 때 아무 것도 하지 않음
+                            // '아니요' 선택 시 아무것도 하지 않음
                         })
                         .show();
             } else {
-                // 이름 중복이 없거나 입력하지 않은 경우
                 updatePersonInfo(newPersonName, newPhoneNumber);
                 dialog.dismiss();
             }
         });
     }
+
     private void updatePersonInfo(String newName, String newPhone) {
-//        boolean updateSuccess = databaseHelper.updatePersonById(id, newName, newPhone);
+        // 전화번호가 비어있는 경우 빈 문자열로 설정
+        if (newPhone.trim().isEmpty()) {
+            newPhone = "";
+        }
+
         boolean updateSuccess = databaseHelper.updatePersonByName(inputName, newName, newPhone);
         if (updateSuccess) {
             StyleableToast.makeText(this, "인물 정보가 저장되었습니다.", R.style.customToast).show();

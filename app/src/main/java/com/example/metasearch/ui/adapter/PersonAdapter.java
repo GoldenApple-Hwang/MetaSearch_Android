@@ -111,7 +111,7 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
         StyleableToast.makeText(context, "인물 등록 해제 완료", R.style.customToast).show();
         // 삭제 성공 시 화면 업데이트
         people.clear();
-        people.addAll(databaseHelper.getAllPerson());
+        people.addAll(databaseHelper.getAllPersonByRank());
         notifyDataSetChanged();
     }
     public void updateData(List<Person> newPeople) {

@@ -59,6 +59,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -98,7 +99,7 @@ public class HomeFragment extends Fragment
         init();
         setupListeners();
         setupRecyclerViews();
-        loadFaceImages();
+//        loadFaceImages();
         loadAllGalleryImages();
 
         return root;
@@ -160,6 +161,7 @@ public class HomeFragment extends Fragment
         });
     }
 
+    // 인물 이름 업데이트 하느 ㄴ로직 수정
     private void showRankingDialog() {
         dialog = new Dialog(requireContext(), R.style.CustomAlertDialogTheme);
         dialog.setContentView(R.layout.dialog_ranking_table);
@@ -225,7 +227,9 @@ public class HomeFragment extends Fragment
     }
 
     private void loadFaceImages() {
-        List<Person> people = databaseHelper.getAllPerson();
+//        List<Person> people = databaseHelper.getAllPerson();
+        List<Person> people = databaseHelper.getPersonsByRank();
+        //
         if (people.isEmpty()) {
             Log.d("HomeFragment", "No face images found.");
             return;
@@ -245,7 +249,9 @@ public class HomeFragment extends Fragment
             frequencies.put(freq.getPersonName(), freq.getFrequency());
         }
 
-        List<Person> persons = databaseHelper.getAllPersonExceptMe();
+        List<Person> persons = databaseHelper.getAllPerson();
+        calculateAndUpdateRankings(persons, frequencies);
+
         Map<String, Long> callDurations = new HashMap<>();
         for (Person person : persons) {
             callDurations.put(person.getInputName(), person.getTotalDuration());
@@ -261,6 +267,9 @@ public class HomeFragment extends Fragment
             double normalizedFrequency = maxFrequency != 0 ? frequencies.getOrDefault(person.getInputName(), 0) / maxFrequency : 0;
             double score = (normalizedCallDuration + normalizedFrequency) / 2;
             scores.put(person.getInputName(), score);
+            // 데이터베이스에 랭킹 저장
+            databaseHelper.updatePersonRank(person.getId(), score);
+//            databaseHelper.updatePersonRank(person.getInputName(), score);
             Log.d(TAG, "Person: " + person.getInputName() + ", Score: " + score);
         }
 
@@ -275,9 +284,8 @@ public class HomeFragment extends Fragment
                 sortedPersons.add(person);
             }
         }
-
-        updateRankingTable(sortedPersons, scores, frequencies, callDurations);
-        updateFaceImages(sortedPersons);
+        updateRankingTable(persons, scores, frequencies, callDurations);
+        updateFaceImages(persons);
     }
 
     private void updateRankingTable(List<Person> persons, Map<String, Double> scores, Map<String, Integer> frequencies, Map<String, Long> callDurations) {
@@ -350,6 +358,8 @@ public class HomeFragment extends Fragment
     public void onResume() {
         super.onResume();
         loadFaceImages();
+//        List<Person> personList = databaseHelper.getAllPersonByRank();
+//        updateFaceImages(personList);
         loadAllGalleryImages();
     }
 
@@ -361,7 +371,77 @@ public class HomeFragment extends Fragment
     @Override
     public void onImageAnalysisComplete() {
         if (getActivity() != null) {
-            getActivity().runOnUiThread(this::loadFaceImages);
+            getActivity().runOnUiThread(() -> {
+                List<Person> persons = databaseHelper.getAllPerson();
+                if (!persons.isEmpty()) {
+                    // 서버로부터 인물 빈도수를 요청하고, 성공적으로 받아온 후에 랭킹을 계산
+                    webRequestManager.getPersonFrequency(DatabaseUtils.getPersistentDeviceDatabaseName(getContext()), persons, new WebServerPersonFrequencyUploadCallbacks() {
+                        @Override
+                        public void onPersonFrequencyUploadSuccess(PersonFrequencyResponse response) {
+                            Map<String, Integer> frequencies = new HashMap<>();
+                            for (PersonFrequencyResponse.Frequency freq : response.getFrequencies()) {
+                                frequencies.put(freq.getPersonName(), freq.getFrequency());
+                            }
+                            calculateAndUpdateRankings(persons, frequencies);
+                        }
+
+                        @Override
+                        public void onPersonFrequencyUploadFailure(String message) {
+                            Log.e("HomeFragment", "Data fetch failed: " + message);
+                            StyleableToast.makeText(getContext(), "데이터 불러오기 실패: " + message, R.style.customToast).show();
+                        }
+                    });
+                }
+            });
         }
+    }
+
+    private void calculateAndUpdateRankings(List<Person> persons, Map<String, Integer> frequencies) {
+        // 전화 통화 시간을 매핑
+        Map<String, Long> callDurations = new HashMap<>();
+        for (Person person : persons) {
+            callDurations.put(person.getInputName(), person.getTotalDuration());
+        }
+
+        // 최대 통화 시간과 빈도수 계산
+        double maxCallDuration = callDurations.isEmpty() ? 0 : Collections.max(callDurations.values());
+        double maxFrequency = frequencies.isEmpty() ? 0 : Collections.max(frequencies.values());
+
+        // 랭킹 점수 계산
+        Map<String, Double> scores = new HashMap<>();
+        for (Person person : persons) {
+            double normalizedCallDuration = maxCallDuration != 0 ? callDurations.get(person.getInputName()) / maxCallDuration : 0;
+            double normalizedFrequency = maxFrequency != 0 ? frequencies.getOrDefault(person.getInputName(), 0) / maxFrequency : 0;
+            double score = (normalizedCallDuration + normalizedFrequency) / 2;
+            scores.put(person.getInputName(), score);
+            // 데이터베이스에 랭킹 업데이트
+            databaseHelper.updatePersonRank(person.getId(), score);
+//            databaseHelper.updatePersonRank(person.getInputName(), score);
+        }
+
+        // 인물 목록을 점수 순으로 정렬
+        Collections.sort(persons, (p1, p2) -> scores.get(p2.getInputName()).compareTo(scores.get(p1.getInputName())));
+
+        // 중복 제거
+        HashSet<String> seenNames = new HashSet<>();
+        List<Person> sortedPersons = new ArrayList<>();
+
+        // '나'라는 인물을 맨 앞에 추가
+        for (Person person : persons) {
+            if (person.getInputName().equals("나") && !seenNames.contains(person.getInputName())) {
+                sortedPersons.add(0, person);
+                seenNames.add(person.getInputName());
+            }
+        }
+
+        // 중복되지 않는 나머지 인물들을 추가
+        for (Person person : persons) {
+            if (!seenNames.contains(person.getInputName())) {
+                sortedPersons.add(person);
+                seenNames.add(person.getInputName());
+            }
+        }
+
+        updateFaceImages(sortedPersons);
     }
 }
