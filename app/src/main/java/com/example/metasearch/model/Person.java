@@ -8,6 +8,7 @@ public class Person {
     private String phone; // 인물의 전화번호. 기본값은 "".
     private Integer isDelete; // 삭제된 인물인지 나타냄. 기본값은 1, 삭제되면 0
     private long totalDuration; // 총 통화 시간
+    private double rank;
     public Person(int id, String imageName, byte[] image) {
         this.id = id;
         this.imageName = imageName;
@@ -15,6 +16,7 @@ public class Person {
         this.inputName = "";
         this.phone = "";
         this.isDelete = 0;
+        this.totalDuration = 0;
     }
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
@@ -47,5 +49,12 @@ public class Person {
     }
     public void setTotalDuration(long totalDuration) {
         this.totalDuration = totalDuration;
+    }
+    public void setRank(double rank) {
+        this.rank = rank;
+    }
+
+    public double getRank() {
+        return rank;
     }
 }
