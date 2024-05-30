@@ -161,13 +161,14 @@ public class HomeFragment extends Fragment
         });
     }
 
-    // 인물 이름 업데이트 하느 ㄴ로직 수정
+    // 인물 이름 업데이트 하는 로직 수정
     private void showRankingDialog() {
         dialog = new Dialog(requireContext(), R.style.CustomAlertDialogTheme);
         dialog.setContentView(R.layout.dialog_ranking_table);
         dialog.setTitle("랭킹");
 
-        List<Person> persons = databaseHelper.getAllPersonExceptMe();
+//        List<Person> persons = databaseHelper.getAllPersonExceptMe();
+        List<Person> persons = databaseHelper.getAllPersonsExceptMeByRank();
         Log.d("CALL", persons.toString());
         if (!persons.isEmpty()) {
             webRequestManager.getPersonFrequency(DatabaseUtils.getPersistentDeviceDatabaseName(getContext()), persons, this);
@@ -228,8 +229,8 @@ public class HomeFragment extends Fragment
 
     private void loadFaceImages() {
 //        List<Person> people = databaseHelper.getAllPerson();
-        List<Person> people = databaseHelper.getPersonsByRank();
-        //
+//        List<Person> people = databaseHelper.getPersonsByRank();
+        List<Person> people = databaseHelper.getAllPersonsForDisplay();
         if (people.isEmpty()) {
             Log.d("HomeFragment", "No face images found.");
             return;
@@ -242,6 +243,7 @@ public class HomeFragment extends Fragment
         personAdapter.updateData(persons);
     }
 
+    // 웹 서버에서 사진 빈도 수 받아옴
     @Override
     public void onPersonFrequencyUploadSuccess(PersonFrequencyResponse response) {
         Map<String, Integer> frequencies = new HashMap<>();
@@ -249,44 +251,28 @@ public class HomeFragment extends Fragment
             frequencies.put(freq.getPersonName(), freq.getFrequency());
         }
 
-        List<Person> persons = databaseHelper.getAllPerson();
-        calculateAndUpdateRankings(persons, frequencies);
+        List<Person> allPersonsForUpdate = databaseHelper.getAllPersonsForUpdate();
+        calculateAndUpdateRankings(allPersonsForUpdate, frequencies);
+
+        // 랭킹이 업데이트된 후, 데이터베이스에서 정렬된 인물 목록을 가져옴
+        List<Person> sortedPersons = databaseHelper.getAllPersonsForDisplay();
 
         Map<String, Long> callDurations = new HashMap<>();
-        for (Person person : persons) {
+        for (Person person : allPersonsForUpdate) {
             callDurations.put(person.getInputName(), person.getTotalDuration());
             Log.d(TAG, "Person: " + person.getInputName() + ", Total Duration: " + person.getTotalDuration());
         }
 
-        double maxCallDuration = callDurations.isEmpty() ? 0 : Collections.max(callDurations.values());
-        double maxFrequency = frequencies.isEmpty() ? 0 : Collections.max(frequencies.values());
-
         Map<String, Double> scores = new HashMap<>();
-        for (Person person : persons) {
-            double normalizedCallDuration = maxCallDuration != 0 ? callDurations.get(person.getInputName()) / maxCallDuration : 0;
-            double normalizedFrequency = maxFrequency != 0 ? frequencies.getOrDefault(person.getInputName(), 0) / maxFrequency : 0;
-            double score = (normalizedCallDuration + normalizedFrequency) / 2;
-            scores.put(person.getInputName(), score);
-            // 데이터베이스에 랭킹 저장
-            databaseHelper.updatePersonRank(person.getId(), score);
-//            databaseHelper.updatePersonRank(person.getInputName(), score);
-            Log.d(TAG, "Person: " + person.getInputName() + ", Score: " + score);
+        for (Person person : allPersonsForUpdate) {
+            scores.put(person.getInputName(), person.getRank()); // 이미 저장된 랭킹 값을 사용
         }
 
-        Collections.sort(persons, (p1, p2) -> scores.get(p2.getInputName()).compareTo(scores.get(p1.getInputName())));
-
-        // '나'라는 인물을 맨 앞에 추가
-        List<Person> sortedPersons = new ArrayList<>();
-        for (Person person : persons) {
-            if (person.getInputName().equals("나")) {
-                sortedPersons.add(0, person);
-            } else {
-                sortedPersons.add(person);
-            }
-        }
-        updateRankingTable(persons, scores, frequencies, callDurations);
-        updateFaceImages(persons);
+        // 랭킹 테이블과 페이스 이미지를 업데이트
+        updateRankingTable(sortedPersons, scores, frequencies, callDurations);
+        updateFaceImages(sortedPersons);
     }
+
 
     private void updateRankingTable(List<Person> persons, Map<String, Double> scores, Map<String, Integer> frequencies, Map<String, Long> callDurations) {
         TableLayout table = dialog.findViewById(R.id.tableLayout);
@@ -372,7 +358,7 @@ public class HomeFragment extends Fragment
     public void onImageAnalysisComplete() {
         if (getActivity() != null) {
             getActivity().runOnUiThread(() -> {
-                List<Person> persons = databaseHelper.getAllPerson();
+                List<Person> persons = databaseHelper.getAllPersonsForUpdate();
                 if (!persons.isEmpty()) {
                     // 서버로부터 인물 빈도수를 요청하고, 성공적으로 받아온 후에 랭킹을 계산
                     webRequestManager.getPersonFrequency(DatabaseUtils.getPersistentDeviceDatabaseName(getContext()), persons, new WebServerPersonFrequencyUploadCallbacks() {
@@ -416,32 +402,10 @@ public class HomeFragment extends Fragment
             scores.put(person.getInputName(), score);
             // 데이터베이스에 랭킹 업데이트
             databaseHelper.updatePersonRank(person.getId(), score);
-//            databaseHelper.updatePersonRank(person.getInputName(), score);
         }
 
-        // 인물 목록을 점수 순으로 정렬
-        Collections.sort(persons, (p1, p2) -> scores.get(p2.getInputName()).compareTo(scores.get(p1.getInputName())));
-
-        // 중복 제거
-        HashSet<String> seenNames = new HashSet<>();
-        List<Person> sortedPersons = new ArrayList<>();
-
-        // '나'라는 인물을 맨 앞에 추가
-        for (Person person : persons) {
-            if (person.getInputName().equals("나") && !seenNames.contains(person.getInputName())) {
-                sortedPersons.add(0, person);
-                seenNames.add(person.getInputName());
-            }
-        }
-
-        // 중복되지 않는 나머지 인물들을 추가
-        for (Person person : persons) {
-            if (!seenNames.contains(person.getInputName())) {
-                sortedPersons.add(person);
-                seenNames.add(person.getInputName());
-            }
-        }
-
-        updateFaceImages(sortedPersons);
+        List<Person> personList = databaseHelper.getAllPersonsForDisplay();
+        updateFaceImages(personList);
     }
 }
+

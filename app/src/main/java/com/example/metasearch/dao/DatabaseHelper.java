@@ -243,29 +243,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return result != -1; // 삭제된 행의 수가 0보다 크면 true를 반환
     }
-    // 데이터베이스에서 모든 이미지와 이름을 선택하여 반환
-//    public Map<String, byte[]> getAllImages() {
-//        Map<String, byte[]> imagesMap = new HashMap<>();
-//        // 데이터베이스에서 모든 이미지와 이름을 선택하는 쿼리
-//        String selectQuery = "SELECT * FROM " + TABLE_NAME;
-//        SQLiteDatabase db = this.getReadableDatabase();
-//        Cursor cursor = db.rawQuery(selectQuery, null);
-//        if (cursor.moveToFirst()) {
-//            int nameColumnIndex = cursor.getColumnIndex(COLUMN_NAME); // 이름 컬럼 인덱스
-//            int imageColumnIndex = cursor.getColumnIndex(COLUMN_IMAGE); // 이미지 컬럼 인덱스
-//            do {
-//                // 각 컬럼에서 데이터를 읽음
-//                String imageName = cursor.getString(nameColumnIndex);
-//                byte[] imageData = cursor.getBlob(imageColumnIndex);
-//                // 읽은 데이터를 HashMap에 추가
-//                imagesMap.put(imageName, imageData);
-//            } while (cursor.moveToNext());
-//        }
-//        cursor.close();
-//        db.close();
-//        // 이미지 데이터가 담긴 HashMap 반환
-//        return imagesMap;
-//    }
     public Map<String, byte[]> getAllImages() {
         Map<String, byte[]> imagesMap = new HashMap<>();
         // 데이터베이스에서 모든 이미지 이름을 선택하는 쿼리
@@ -297,112 +274,46 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public String normalizePhoneNumber(String phoneNumber) {
         return phoneNumber.replaceAll("[^0-9]", "");
     }
-//    @SuppressLint("Range")
-//    private long getTotalCallDurationForNumber(String phoneNumber) {
-//        long totalDuration = 0;
-//        phoneNumber = normalizePhoneNumber(phoneNumber); // 전화번호 정규화
-//        Log.d(TAG, "getTotalCallDurationForNumber - normalized phoneNumber: " + phoneNumber); // 로그 추가
-//
-//        Cursor cursor = context.getContentResolver().query(
-//                CallLog.Calls.CONTENT_URI,
-//                new String[]{CallLog.Calls.DURATION, CallLog.Calls.NUMBER},
-//                CallLog.Calls.NUMBER + " LIKE ?",
-//                new String[]{"%" + phoneNumber + "%"},
-//                null);
-//
-//        if (cursor != null) {
-//            if (cursor.moveToFirst()) {
-//                do {
-//                    String logNumber = cursor.getString(cursor.getColumnIndex(CallLog.Calls.NUMBER));
-//                    long duration = cursor.getLong(cursor.getColumnIndex(CallLog.Calls.DURATION));
-//                    Log.d(TAG, "logNumber: " + logNumber + ", duration: " + duration); // 로그 추가
-//                    totalDuration += duration;
-//                } while (cursor.moveToNext());
-//            } else {
-//                Log.d(TAG, "Cursor is empty for phoneNumber: " + phoneNumber); // 로그 추가
-//            }
-//            cursor.close();
-//        } else {
-//            Log.d(TAG, "Cursor is null for phoneNumber: " + phoneNumber); // 로그 추가
-//        }
-//
-//        Log.d(TAG, "Total call duration for phoneNumber " + phoneNumber + ": " + totalDuration); // 로그 추가
-//        return totalDuration;
-//    }
-@SuppressLint("Range")
-private long getTotalCallDurationForNumber(String phoneNumber, int months) {
-    long totalDuration = 0;
+    @SuppressLint("Range")
+    private long getTotalCallDurationForNumber(String phoneNumber, int months) {
+        long totalDuration = 0;
 
-    // 전화번호가 비어있다면 바로 0을 반환
-    if (phoneNumber == null || phoneNumber.isEmpty()) {
+        // 전화번호가 비어있다면 바로 0을 반환
+        if (phoneNumber == null || phoneNumber.isEmpty()) {
+            return totalDuration;
+        }
+
+        phoneNumber = normalizePhoneNumber(phoneNumber); // 전화번호 정규화
+        Log.d(TAG, "getTotalCallDurationForNumber - normalized phoneNumber: " + phoneNumber);
+
+        // 현재 날짜에서 주어진 월 수만큼 이전의 날짜를 계산
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.MONTH, -months);
+        long fromDate = calendar.getTimeInMillis();
+
+        // 쿼리에 날짜 필터 추가
+        String selection = CallLog.Calls.NUMBER + " LIKE ? AND " + CallLog.Calls.DATE + " >= ?";
+        String[] selectionArgs = {"%" + phoneNumber + "%", String.valueOf(fromDate)};
+
+        Cursor cursor = context.getContentResolver().query(
+                CallLog.Calls.CONTENT_URI,
+                new String[]{CallLog.Calls.DURATION, CallLog.Calls.NUMBER, CallLog.Calls.DATE},
+                selection,
+                selectionArgs,
+                CallLog.Calls.DATE + " DESC"
+        );
+
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                long duration = cursor.getLong(cursor.getColumnIndex(CallLog.Calls.DURATION));
+                totalDuration += duration;
+            }
+            cursor.close();
+        }
+
+        Log.d(TAG, "Total call duration for phoneNumber " + phoneNumber + ": " + totalDuration);
         return totalDuration;
     }
-
-    phoneNumber = normalizePhoneNumber(phoneNumber); // 전화번호 정규화
-    Log.d(TAG, "getTotalCallDurationForNumber - normalized phoneNumber: " + phoneNumber);
-
-    // 현재 날짜에서 주어진 월 수만큼 이전의 날짜를 계산
-    Calendar calendar = Calendar.getInstance();
-    calendar.add(Calendar.MONTH, -months);
-    long fromDate = calendar.getTimeInMillis();
-
-    // 쿼리에 날짜 필터 추가
-    String selection = CallLog.Calls.NUMBER + " LIKE ? AND " + CallLog.Calls.DATE + " >= ?";
-    String[] selectionArgs = {"%" + phoneNumber + "%", String.valueOf(fromDate)};
-
-    Cursor cursor = context.getContentResolver().query(
-            CallLog.Calls.CONTENT_URI,
-            new String[]{CallLog.Calls.DURATION, CallLog.Calls.NUMBER, CallLog.Calls.DATE},
-            selection,
-            selectionArgs,
-            CallLog.Calls.DATE + " DESC"
-    );
-
-    if (cursor != null) {
-        while (cursor.moveToNext()) {
-            long duration = cursor.getLong(cursor.getColumnIndex(CallLog.Calls.DURATION));
-            totalDuration += duration;
-        }
-        cursor.close();
-    }
-
-    Log.d(TAG, "Total call duration for phoneNumber " + phoneNumber + ": " + totalDuration);
-    return totalDuration;
-}
-    public List<Person> getPersonsByCallDuration(int months) {
-        List<Person> persons = new ArrayList<>();
-        Set<String> processedNames = new HashSet<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        String selection = "PHONENUMBER <> '' AND INPUTNAME <> '나'";
-        Cursor personCursor = db.query(TABLE_NAME, new String[]{"ID", "NAME", "INPUTNAME", "PHONENUMBER"}, selection, null, null, null, null);
-
-        if (personCursor.moveToFirst()) {
-            do {
-                @SuppressLint("Range") int id = personCursor.getInt(personCursor.getColumnIndex("ID"));
-                @SuppressLint("Range") String name = personCursor.getString(personCursor.getColumnIndex("NAME"));
-                @SuppressLint("Range") String inputName = personCursor.getString(personCursor.getColumnIndex("INPUTNAME"));
-                @SuppressLint("Range") String phoneNumber = personCursor.getString(personCursor.getColumnIndex("PHONENUMBER"));
-                byte[] image = getImageData(id);
-
-                if (!processedNames.contains(name)) {
-                    long totalDuration = phoneNumber.isEmpty() ? 0 : getTotalCallDurationForNumber(phoneNumber, months);
-                    Person person = new Person(id, name, image);
-                    person.setInputName(inputName);
-                    person.setPhone(phoneNumber);
-                    person.setTotalDuration(totalDuration);
-                    persons.add(person);
-                    processedNames.add(name);
-                }
-            } while (personCursor.moveToNext());
-        }
-        personCursor.close();
-        db.close();
-
-        Collections.sort(persons, (p1, p2) -> Long.compare(p2.getTotalDuration(), p1.getTotalDuration()));
-        return persons;
-    }
-
     // inputname을 통해 해당 컬럼 삭제
     public void deletePersonByName(String inputName) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -461,6 +372,40 @@ private long getTotalCallDurationForNumber(String phoneNumber, int months) {
         db.close();
 
         return result > 0;
+    }
+    public List<Person> getAllPersonsExceptMeByRank() {
+        List<Person> people = new ArrayList<>();
+        HashSet<String> seenNames = new HashSet<>(); // 중복 이름 추적을 위한 HashSet
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT ID, NAME, INPUTNAME, PHONENUMBER, RANK, IMAGE FROM " + TABLE_NAME, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex("ID"));
+                @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
+                @SuppressLint("Range") String inputName = cursor.getString(cursor.getColumnIndex(COLUMN_INPUTNAME));
+                @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(COLUMN_PHONENUMBER));
+                @SuppressLint("Range") double rank = cursor.getDouble(cursor.getColumnIndex("RANK"));
+                @SuppressLint("Range") byte[] image = cursor.getBlob(cursor.getColumnIndex(COLUMN_IMAGE));
+
+                if (!inputName.equals("나") && !seenNames.contains(inputName)) {
+                    Person person = new Person(id, name, image);
+                    person.setInputName(inputName);
+                    person.setPhone(phoneNumber);
+                    person.setRank(rank);
+
+                    people.add(person);
+                    seenNames.add(inputName); // 처리된 이름을 추가
+                }
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+
+        // 인물들을 랭킹 순으로 정렬
+        Collections.sort(people, (p1, p2) -> Double.compare(p2.getRank(), p1.getRank()));
+
+        return people;
     }
 
     public List<Person> getAllPersonExceptMe() {
@@ -583,6 +528,78 @@ private long getTotalCallDurationForNumber(String phoneNumber, int months) {
 
         return people;
     }
+    // 모든 인물을 가져오는 메서드 (업데이트를 위해)
+    public List<Person> getAllPersonsForUpdate() {
+        List<Person> people = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT ID, NAME, INPUTNAME, PHONENUMBER, RANK, IMAGE FROM " + TABLE_NAME, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex("ID"));
+                @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
+                @SuppressLint("Range") String inputName = cursor.getString(cursor.getColumnIndex(COLUMN_INPUTNAME));
+                @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(COLUMN_PHONENUMBER));
+                @SuppressLint("Range") double rank = cursor.getDouble(cursor.getColumnIndex("RANK"));
+                @SuppressLint("Range") byte[] image = cursor.getBlob(cursor.getColumnIndex(COLUMN_IMAGE));
+
+                Person person = new Person(id, name, image);
+                person.setInputName(inputName);
+                person.setPhone(phoneNumber);
+                person.setRank(rank);
+
+                people.add(person);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+
+        return people;
+    }
+    // 중복 제거와 '나' 인물을 맨 앞에 두고 랭킹 순으로 인물 정렬  후 리턴 (화면 표시를 위해)
+    public List<Person> getAllPersonsForDisplay() {
+        List<Person> people = new ArrayList<>();
+        List<Person> otherPeople = new ArrayList<>();
+        HashSet<String> seenNames = new HashSet<>(); // 중복 이름 추적을 위한 HashSet
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT ID, NAME, INPUTNAME, PHONENUMBER, RANK, IMAGE FROM " + TABLE_NAME, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex("ID"));
+                @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
+                @SuppressLint("Range") String inputName = cursor.getString(cursor.getColumnIndex(COLUMN_INPUTNAME));
+                @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(COLUMN_PHONENUMBER));
+                @SuppressLint("Range") double rank = cursor.getDouble(cursor.getColumnIndex("RANK"));
+                @SuppressLint("Range") byte[] image = cursor.getBlob(cursor.getColumnIndex(COLUMN_IMAGE));
+
+                if (!seenNames.contains(inputName)) {
+                    Person person = new Person(id, name, image);
+                    person.setInputName(inputName);
+                    person.setPhone(phoneNumber);
+                    person.setRank(rank);
+
+                    if (inputName.equals("나")) {
+                        people.add(0, person); // '나' 인물을 리스트의 맨 앞에 추가
+                    } else {
+                        otherPeople.add(person);
+                    }
+                    seenNames.add(inputName); // 처리된 이름을 추가
+                }
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+
+        // 나머지 인물들을 랭킹 순으로 정렬
+        Collections.sort(otherPeople, (p1, p2) -> Double.compare(p2.getRank(), p1.getRank()));
+
+        // '나' 인물 뒤에 나머지 인물들을 추가
+        people.addAll(otherPeople);
+
+        return people;
+    }
+
     public List<Person> getAllPerson() {
         List<Person> people = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -595,7 +612,7 @@ private long getTotalCallDurationForNumber(String phoneNumber, int months) {
                 @SuppressLint("Range") String inputName = cursor.getString(cursor.getColumnIndex(COLUMN_INPUTNAME));
                 @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(COLUMN_PHONENUMBER));
                 @SuppressLint("Range") double rank = cursor.getDouble(cursor.getColumnIndex("RANK"));
-                byte[] image = cursor.getBlob(cursor.getColumnIndex(COLUMN_IMAGE));
+                @SuppressLint("Range") byte[] image = cursor.getBlob(cursor.getColumnIndex(COLUMN_IMAGE));
 
                 Person person = new Person(id, name, image);
                 person.setInputName(inputName);
