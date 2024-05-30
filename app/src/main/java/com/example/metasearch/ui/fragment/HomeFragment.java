@@ -63,6 +63,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -259,31 +260,10 @@ public class HomeFragment extends Fragment
             Log.d(TAG, "Person: " + person.getInputName() + ", Total Duration: " + totalDuration);
         }
 
+        // 업데이트된 allPersonsForUpdate를 사용하여 랭킹을 계산하고 테이블을 업데이트
         calculateAndUpdateRankings(allPersonsForUpdate, frequencies);
-
-        // 랭킹이 업데이트된 후, 데이터베이스에서 정렬된 인물 목록을 가져옴
-        List<Person> sortedPersons = databaseHelper.getAllPersonsForDisplay();
-
-        // "나"를 제외한 리스트 생성
-        List<Person> sortedPersonsExcludingMe = new ArrayList<>();
-        Map<String, Long> callDurationsExcludingMe = new HashMap<>();
-        Map<String, Double> scoresExcludingMe = new HashMap<>();
-        Map<String, Integer> frequenciesExcludingMe = new HashMap<>();
-
-        for (Person person : sortedPersons) {
-            if (!person.getInputName().equals("나")) {
-
-                sortedPersonsExcludingMe.add(person);
-                callDurationsExcludingMe.put(person.getInputName(), person.getTotalDuration());
-                scoresExcludingMe.put(person.getInputName(), person.getRank());
-                frequenciesExcludingMe.put(person.getInputName(), frequencies.getOrDefault(person.getInputName(), 0));
-            }
-        }
-
-        // 랭킹 테이블과 페이스 이미지를 업데이트
-        updateRankingTable(sortedPersonsExcludingMe, scoresExcludingMe, frequenciesExcludingMe, callDurationsExcludingMe);
-        updateFaceImages(sortedPersons);
     }
+
     private void calculateAndUpdateRankings(List<Person> persons, Map<String, Integer> frequencies) {
         // 전화 통화 시간을 매핑
         Map<String, Long> callDurations = new HashMap<>();
@@ -315,10 +295,27 @@ public class HomeFragment extends Fragment
             databaseHelper.updatePersonRank(person.getId(), score);
         }
 
-        List<Person> personList = databaseHelper.getAllPersonsForDisplay();
-        updateFaceImages(personList);
+        // 업데이트된 persons 리스트를 사용하여 랭킹 테이블을 업데이트
+        updateRankingTable(persons, scores, frequencies, callDurations);
     }
     private void updateRankingTable(List<Person> persons, Map<String, Double> scores, Map<String, Integer> frequencies, Map<String, Long> callDurations) {
+        // 중복 이름을 제외하고 '나'를 제외하는 리스트
+        Set<String> uniqueNames = new HashSet<>();
+        List<Person> filteredPersons = new ArrayList<>();
+
+        for (Person person : persons) {
+            if (!person.getInputName().equals("나") && uniqueNames.add(person.getInputName())) {
+                filteredPersons.add(person);
+            }
+        }
+
+        // filteredPersons 리스트를 친밀도 순서로 정렬
+        filteredPersons.sort((p1, p2) -> {
+            double score1 = scores.getOrDefault(p1.getInputName(), 0.0);
+            double score2 = scores.getOrDefault(p2.getInputName(), 0.0);
+            return Double.compare(score2, score1); // 내림차순 정렬
+        });
+
         TableLayout table = dialog.findViewById(R.id.tableLayout);
         table.removeAllViews();
 
@@ -329,7 +326,7 @@ public class HomeFragment extends Fragment
         addTableCell(header, "친밀도", true);
         table.addView(header);
 
-        for (Person person : persons) {
+        for (Person person : filteredPersons) {
             TableRow row = new TableRow(getContext());
             row.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
 
@@ -343,9 +340,8 @@ public class HomeFragment extends Fragment
 
             TextView durationView = new TextView(getContext());
             Long durationInSeconds = callDurations.getOrDefault(person.getInputName(), 0L);
-            Log.d(TAG, "Person: " + person.getInputName() + ", Duration: " + durationInSeconds); // 확인을 위해 로그 추가
+            Log.d(TAG, "Updating table - Person: " + person.getInputName() + ", Duration: " + durationInSeconds);
             durationView.setText(formatDuration(durationInSeconds));
-//            durationView.setText(formatDuration(durationInSeconds));
             durationView.setGravity(Gravity.CENTER);
 
             TextView scoreView = new TextView(getContext());
