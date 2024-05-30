@@ -247,7 +247,8 @@ public class ImageServiceRequestManager {
                 //AI 서버에 모든 요청이 마무리 되었다는 요청
                 aiRequestManager.completeUploadImage(databaseHelper,DBName).thenRun(()->{
                     Log.d(TAG,"모든 이미지 전송 완료");
-
+                    requestChangeName();
+                    informCompleteImageAnalyze();
                     completeAnalysis();
 //                    this.isAnalyzing = false;
 

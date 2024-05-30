@@ -128,7 +128,6 @@ public class PersonPhotosActivity extends AppCompatActivity
             }
         });
     }
-
     private void updatePersonInfo(String newName, String newPhone) {
         // 전화번호가 비어있는 경우 빈 문자열로 설정
         if (newPhone.trim().isEmpty()) {

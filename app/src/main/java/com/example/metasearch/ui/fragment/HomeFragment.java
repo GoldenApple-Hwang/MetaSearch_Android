@@ -212,7 +212,6 @@ public class HomeFragment extends Fragment
         Log.e("HomeFragment", "Data fetch failed: " + message);
         StyleableToast.makeText(getContext(), "데이터 불러오기 실패: " + message, R.style.customToast).show();
     }
-
     private String formatDuration(Long durationInSeconds) {
         long hours = durationInSeconds / 3600;
         long minutes = (durationInSeconds % 3600) / 60;
@@ -252,28 +251,73 @@ public class HomeFragment extends Fragment
         }
 
         List<Person> allPersonsForUpdate = databaseHelper.getAllPersonsForUpdate();
+
+        // 통화 기록을 업데이트하기 전에 모든 인물의 통화 기록을 다시 계산
+        for (Person person : allPersonsForUpdate) {
+            long totalDuration = databaseHelper.getTotalCallDurationForNumber(person.getPhone(), 3);
+            person.setTotalDuration(totalDuration);
+            Log.d(TAG, "Person: " + person.getInputName() + ", Total Duration: " + totalDuration);
+        }
+
         calculateAndUpdateRankings(allPersonsForUpdate, frequencies);
 
         // 랭킹이 업데이트된 후, 데이터베이스에서 정렬된 인물 목록을 가져옴
         List<Person> sortedPersons = databaseHelper.getAllPersonsForDisplay();
 
-        Map<String, Long> callDurations = new HashMap<>();
-        for (Person person : allPersonsForUpdate) {
-            callDurations.put(person.getInputName(), person.getTotalDuration());
-            Log.d(TAG, "Person: " + person.getInputName() + ", Total Duration: " + person.getTotalDuration());
-        }
+        // "나"를 제외한 리스트 생성
+        List<Person> sortedPersonsExcludingMe = new ArrayList<>();
+        Map<String, Long> callDurationsExcludingMe = new HashMap<>();
+        Map<String, Double> scoresExcludingMe = new HashMap<>();
+        Map<String, Integer> frequenciesExcludingMe = new HashMap<>();
 
-        Map<String, Double> scores = new HashMap<>();
-        for (Person person : allPersonsForUpdate) {
-            scores.put(person.getInputName(), person.getRank()); // 이미 저장된 랭킹 값을 사용
+        for (Person person : sortedPersons) {
+            if (!person.getInputName().equals("나")) {
+
+                sortedPersonsExcludingMe.add(person);
+                callDurationsExcludingMe.put(person.getInputName(), person.getTotalDuration());
+                scoresExcludingMe.put(person.getInputName(), person.getRank());
+                frequenciesExcludingMe.put(person.getInputName(), frequencies.getOrDefault(person.getInputName(), 0));
+            }
         }
 
         // 랭킹 테이블과 페이스 이미지를 업데이트
-        updateRankingTable(sortedPersons, scores, frequencies, callDurations);
+        updateRankingTable(sortedPersonsExcludingMe, scoresExcludingMe, frequenciesExcludingMe, callDurationsExcludingMe);
         updateFaceImages(sortedPersons);
     }
+    private void calculateAndUpdateRankings(List<Person> persons, Map<String, Integer> frequencies) {
+        // 전화 통화 시간을 매핑
+        Map<String, Long> callDurations = new HashMap<>();
+        for (Person person : persons) {
+            if (person.getPhone() == null || person.getPhone().isEmpty()) {
+                Log.d(TAG, "Phone number is empty or null for person: " + person.getInputName());
+                callDurations.put(person.getInputName(), 0L); // 통화 시간이 0임을 명시적으로 설정
+                person.setTotalDuration(0L);
+            } else {
+                long totalDuration = databaseHelper.getTotalCallDurationForNumber(person.getPhone(), 3);
+                callDurations.put(person.getInputName(), totalDuration);
+                person.setTotalDuration(totalDuration);
+                Log.d(TAG, "Person: " + person.getInputName() + ", Total Duration: " + totalDuration);
+            }
+        }
 
+        // 최대 통화 시간과 빈도수 계산
+        double maxCallDuration = callDurations.isEmpty() ? 0 : Collections.max(callDurations.values());
+        double maxFrequency = frequencies.isEmpty() ? 0 : Collections.max(frequencies.values());
 
+        // 랭킹 점수 계산
+        Map<String, Double> scores = new HashMap<>();
+        for (Person person : persons) {
+            double normalizedCallDuration = maxCallDuration != 0 ? callDurations.get(person.getInputName()) / maxCallDuration : 0;
+            double normalizedFrequency = maxFrequency != 0 ? frequencies.getOrDefault(person.getInputName(), 0) / maxFrequency : 0;
+            double score = (normalizedCallDuration + normalizedFrequency) / 2;
+            scores.put(person.getInputName(), score);
+            // 데이터베이스에 랭킹 업데이트
+            databaseHelper.updatePersonRank(person.getId(), score);
+        }
+
+        List<Person> personList = databaseHelper.getAllPersonsForDisplay();
+        updateFaceImages(personList);
+    }
     private void updateRankingTable(List<Person> persons, Map<String, Double> scores, Map<String, Integer> frequencies, Map<String, Long> callDurations) {
         TableLayout table = dialog.findViewById(R.id.tableLayout);
         table.removeAllViews();
@@ -299,7 +343,9 @@ public class HomeFragment extends Fragment
 
             TextView durationView = new TextView(getContext());
             Long durationInSeconds = callDurations.getOrDefault(person.getInputName(), 0L);
+            Log.d(TAG, "Person: " + person.getInputName() + ", Duration: " + durationInSeconds); // 확인을 위해 로그 추가
             durationView.setText(formatDuration(durationInSeconds));
+//            durationView.setText(formatDuration(durationInSeconds));
             durationView.setGravity(Gravity.CENTER);
 
             TextView scoreView = new TextView(getContext());
@@ -381,31 +427,31 @@ public class HomeFragment extends Fragment
             });
         }
     }
-
-    private void calculateAndUpdateRankings(List<Person> persons, Map<String, Integer> frequencies) {
-        // 전화 통화 시간을 매핑
-        Map<String, Long> callDurations = new HashMap<>();
-        for (Person person : persons) {
-            callDurations.put(person.getInputName(), person.getTotalDuration());
-        }
-
-        // 최대 통화 시간과 빈도수 계산
-        double maxCallDuration = callDurations.isEmpty() ? 0 : Collections.max(callDurations.values());
-        double maxFrequency = frequencies.isEmpty() ? 0 : Collections.max(frequencies.values());
-
-        // 랭킹 점수 계산
-        Map<String, Double> scores = new HashMap<>();
-        for (Person person : persons) {
-            double normalizedCallDuration = maxCallDuration != 0 ? callDurations.get(person.getInputName()) / maxCallDuration : 0;
-            double normalizedFrequency = maxFrequency != 0 ? frequencies.getOrDefault(person.getInputName(), 0) / maxFrequency : 0;
-            double score = (normalizedCallDuration + normalizedFrequency) / 2;
-            scores.put(person.getInputName(), score);
-            // 데이터베이스에 랭킹 업데이트
-            databaseHelper.updatePersonRank(person.getId(), score);
-        }
-
-        List<Person> personList = databaseHelper.getAllPersonsForDisplay();
-        updateFaceImages(personList);
-    }
+//
+//    private void calculateAndUpdateRankings(List<Person> persons, Map<String, Integer> frequencies) {
+//        // 전화 통화 시간을 매핑
+//        Map<String, Long> callDurations = new HashMap<>();
+//        for (Person person : persons) {
+//            callDurations.put(person.getInputName(), person.getTotalDuration());
+//        }
+//
+//        // 최대 통화 시간과 빈도수 계산
+//        double maxCallDuration = callDurations.isEmpty() ? 0 : Collections.max(callDurations.values());
+//        double maxFrequency = frequencies.isEmpty() ? 0 : Collections.max(frequencies.values());
+//
+//        // 랭킹 점수 계산
+//        Map<String, Double> scores = new HashMap<>();
+//        for (Person person : persons) {
+//            double normalizedCallDuration = maxCallDuration != 0 ? callDurations.get(person.getInputName()) / maxCallDuration : 0;
+//            double normalizedFrequency = maxFrequency != 0 ? frequencies.getOrDefault(person.getInputName(), 0) / maxFrequency : 0;
+//            double score = (normalizedCallDuration + normalizedFrequency) / 2;
+//            scores.put(person.getInputName(), score);
+//            // 데이터베이스에 랭킹 업데이트
+//            databaseHelper.updatePersonRank(person.getId(), score);
+//        }
+//
+//        List<Person> personList = databaseHelper.getAllPersonsForDisplay();
+//        updateFaceImages(personList);
+//    }
 }
 

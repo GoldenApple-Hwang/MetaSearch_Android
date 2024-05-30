@@ -15,6 +15,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.ParcelFileDescriptor;
 import android.provider.CallLog;
+import android.telephony.PhoneNumberUtils;
 import android.util.Log;
 
 import com.example.metasearch.model.Person;
@@ -26,9 +27,11 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -274,26 +277,29 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public String normalizePhoneNumber(String phoneNumber) {
         return phoneNumber.replaceAll("[^0-9]", "");
     }
-    @SuppressLint("Range")
-    private long getTotalCallDurationForNumber(String phoneNumber, int months) {
+    public long getTotalCallDurationForNumber(String phoneNumber, int months) {
         long totalDuration = 0;
 
         // 전화번호가 비어있다면 바로 0을 반환
         if (phoneNumber == null || phoneNumber.isEmpty()) {
+            Log.d(TAG, "Phone number is empty or null.");
             return totalDuration;
         }
 
-        phoneNumber = normalizePhoneNumber(phoneNumber); // 전화번호 정규화
+        phoneNumber = normalizeToInternational(phoneNumber); // 전화번호를 국제 형식으로 변환
         Log.d(TAG, "getTotalCallDurationForNumber - normalized phoneNumber: " + phoneNumber);
 
         // 현재 날짜에서 주어진 월 수만큼 이전의 날짜를 계산
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.MONTH, -months);
         long fromDate = calendar.getTimeInMillis();
+        Log.d(TAG, "Query from date: " + fromDate + " (" + new Date(fromDate) + ")");
 
         // 쿼리에 날짜 필터 추가
         String selection = CallLog.Calls.NUMBER + " LIKE ? AND " + CallLog.Calls.DATE + " >= ?";
         String[] selectionArgs = {"%" + phoneNumber + "%", String.valueOf(fromDate)};
+        Log.d(TAG, "Query selection: " + selection);
+        Log.d(TAG, "Query selection args: " + selectionArgs[0] + ", " + selectionArgs[1]);
 
         Cursor cursor = context.getContentResolver().query(
                 CallLog.Calls.CONTENT_URI,
@@ -305,15 +311,29 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         if (cursor != null) {
             while (cursor.moveToNext()) {
-                long duration = cursor.getLong(cursor.getColumnIndex(CallLog.Calls.DURATION));
+                @SuppressLint("Range") long duration = cursor.getLong(cursor.getColumnIndex(CallLog.Calls.DURATION));
                 totalDuration += duration;
+                Log.d(TAG, "Call duration: " + duration);
             }
             cursor.close();
+        } else {
+            Log.d(TAG, "Cursor is null.");
         }
 
         Log.d(TAG, "Total call duration for phoneNumber " + phoneNumber + ": " + totalDuration);
         return totalDuration;
     }
+
+    private String normalizeToInternational(String phoneNumber) {
+        // 국가 코드 (예: 한국의 경우 "KR" 사용)
+        String countryCode = Locale.getDefault().getCountry();
+        // 전화번호를 국제 형식으로 변환
+        String internationalNumber = PhoneNumberUtils.formatNumberToE164(phoneNumber, countryCode);
+
+        return internationalNumber != null ? internationalNumber : phoneNumber;
+    }
+
+
     // inputname을 통해 해당 컬럼 삭제
     public void deletePersonByName(String inputName) {
         SQLiteDatabase db = this.getWritableDatabase();

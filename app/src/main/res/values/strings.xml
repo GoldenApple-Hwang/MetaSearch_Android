@@ -117,7 +117,7 @@
 
     <string name="title_text_no_image"><font color="#374F76">분석할 이미지 없음</font></string>
 
-    <string name="ranking_description_title">랭킹 산정 방법</string>
+    <string name="ranking_description_title">친밀도 랭킹</string>
     <string name="ranking_description_text">본 랭킹은 \'인물 빈도\'와 \'전화 시간\' 두 가지 지표를 기반으로 합니다.
         \'인물 빈도\'는 갤러리의 사진 속에서 해당 인물이 나타난 횟수를 기준으로 하며,
         \'전화 시간\'은 해당 인물과의 총 통화 시간을 나타냅니다. 각 지표별로 독립적인 랭킹을 매긴 후,
