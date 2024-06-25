@@ -447,50 +447,74 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     '나'를 맨 앞에 리턴하고, 나머지는 일단 이름 중복없도록
     인물 리스트 반환
      */
+//    public List<Person> getAllPerson() {
+//        List<Person> people = new ArrayList<>();
+//        SQLiteDatabase db = this.getReadableDatabase();
+//        Cursor cursor = db.rawQuery("SELECT ID, NAME, INPUTNAME, PHONENUMBER  FROM " + TABLE_NAME, null);
+//        HashSet<String> seenNames = new HashSet<>(); // 중복 이름 추적을 위한 HashSet
+//        boolean isMyPersonAdded = false; // '나' 인물이 추가되었는지 여부
+//
+//        if (cursor.moveToFirst()) {
+//            do {
+//                @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex("ID"));
+//                @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
+//                @SuppressLint("Range") String inputName = cursor.getString(cursor.getColumnIndex(COLUMN_INPUTNAME));
+//                @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(COLUMN_PHONENUMBER));
+//
+//                byte[] image = getImageData(id); // 이미지 데이터 스트리밍을 통해 가져오기
+//
+//                if (inputName.equals("나")) {
+//                    // '나' 인물이 이미 추가되었는지 확인
+//                    if (!isMyPersonAdded) {
+//                        // '나' 인물을 리스트에 추가
+//                        Person myPerson = new Person(id, name, image);
+//                        myPerson.setInputName(inputName);
+//                        myPerson.setPhone(phoneNumber);
+//                        people.add(0, myPerson); // '나' 인물을 리스트의 맨 앞에 추가
+//                        isMyPersonAdded = true; // '나' 인물이 추가되었음을 표시
+//                    }
+//                } else if (!seenNames.contains(inputName)) {
+//                    long totalDuration = getTotalCallDurationForNumber(phoneNumber);
+//                    // 이미 처리한 이름이 아니면 추가
+//                    Person person = new Person(id, name, image);
+//                    person.setInputName(inputName);
+//                    person.setPhone(phoneNumber);
+//                    person.setTotalDuration(totalDuration); // 통화량 추가
+//                    people.add(person);
+//                    seenNames.add(inputName); // 처리된 이름을 추가
+//                }
+//            } while (cursor.moveToNext());
+//        }
+//        cursor.close();
+//        db.close();
+//
+//        return people;
+//    }
     public List<Person> getAllPerson() {
         List<Person> people = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT ID, NAME, INPUTNAME, PHONENUMBER  FROM " + TABLE_NAME, null);
-        HashSet<String> seenNames = new HashSet<>(); // 중복 이름 추적을 위한 HashSet
-        boolean isMyPersonAdded = false; // '나' 인물이 추가되었는지 여부
+        Cursor cursor = db.rawQuery("SELECT ID, NAME, INPUTNAME, PHONENUMBER, IMAGE FROM " + TABLE_NAME, null);
 
         if (cursor.moveToFirst()) {
             do {
                 @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex("ID"));
-                @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
-                @SuppressLint("Range") String inputName = cursor.getString(cursor.getColumnIndex(COLUMN_INPUTNAME));
-                @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(COLUMN_PHONENUMBER));
+                @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex("NAME"));
+                @SuppressLint("Range") String inputName = cursor.getString(cursor.getColumnIndex("INPUTNAME"));
+                @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex("PHONENUMBER"));
+                @SuppressLint("Range") byte[] image = cursor.getBlob(cursor.getColumnIndex("IMAGE"));
 
-                byte[] image = getImageData(id); // 이미지 데이터 스트리밍을 통해 가져오기
-
-                if (inputName.equals("나")) {
-                    // '나' 인물이 이미 추가되었는지 확인
-                    if (!isMyPersonAdded) {
-                        // '나' 인물을 리스트에 추가
-                        Person myPerson = new Person(id, name, image);
-                        myPerson.setInputName(inputName);
-                        myPerson.setPhone(phoneNumber);
-                        people.add(0, myPerson); // '나' 인물을 리스트의 맨 앞에 추가
-                        isMyPersonAdded = true; // '나' 인물이 추가되었음을 표시
-                    }
-                } else if (!seenNames.contains(inputName)) {
-                    long totalDuration = getTotalCallDurationForNumber(phoneNumber);
-                    // 이미 처리한 이름이 아니면 추가
-                    Person person = new Person(id, name, image);
-                    person.setInputName(inputName);
-                    person.setPhone(phoneNumber);
-                    person.setTotalDuration(totalDuration); // 통화량 추가
-                    people.add(person);
-                    seenNames.add(inputName); // 처리된 이름을 추가
-                }
+                Person person = new Person(id, name, image);
+                person.setInputName(inputName);
+                person.setPhone(phoneNumber);
+                people.add(person);
             } while (cursor.moveToNext());
         }
+
         cursor.close();
         db.close();
 
         return people;
     }
-
     private byte[] getImageData(int personId) {
         SQLiteDatabase db = this.getReadableDatabase();
         SQLiteStatement statement = db.compileStatement("SELECT IMAGE FROM " + TABLE_NAME + " WHERE ID = ?");
