@@ -32,7 +32,8 @@ import io.github.muddz.styleabletoast.StyleableToast;
 
 public class PersonPhotosActivity extends AppCompatActivity
         implements WebServerPersonDataUploadCallbacks,
-                    ImageAdapter.OnImageClickListener {
+        ImageAdapter.OnImageClickListener {
+
     private ImageViewModel imageViewModel;
     private WebRequestManager webRequestManager;
     private ActivityPersonPhotosBinding binding;
@@ -41,42 +42,54 @@ public class PersonPhotosActivity extends AppCompatActivity
     private String inputName;
     private byte[] imageData;
     private DatabaseHelper databaseHelper;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        binding = ActivityPersonPhotosBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
         init();
         setupUI();
         setupListeners(); // 인물 정보 수정 버튼
         loadImages(); // 리사이클러뷰에 관련 인물 사진 모두 출력
     }
+
     private void loadImages() {
-        webRequestManager.sendPersonData(inputName, DatabaseUtils.getPersistentDeviceDatabaseName(this), this);
+        if (inputName != null) {
+            webRequestManager.sendPersonData(inputName, DatabaseUtils.getPersistentDeviceDatabaseName(this), this);
+        }
     }
+
     private void setupRecyclerView() {
         ImageAdapter adapter = new ImageAdapter(new ArrayList<>(), this, this);
         binding.recyclerViewPerson.setLayoutManager(new GridLayoutManager(this, 5));
         binding.recyclerViewPerson.setAdapter(adapter);
     }
+
     private void setupUI() {
-        binding = ActivityPersonPhotosBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
         // 화면 상단에 인물 이름 출력
         binding.personName.setText(inputName);
-        // 바이트 배열을 Bitmap으로 변환
-        Bitmap imageBitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
-
-        binding.face.setImageBitmap(imageBitmap);
+        // 바이트 배열을 Bitmap으로 변환하고 이미지 뷰에 설정
+        if (imageData != null && imageData.length > 0) {
+            Bitmap imageBitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
+            binding.face.setImageBitmap(imageBitmap);
+        } else {
+            binding.face.setImageResource(R.drawable.ic_launcher_foreground); // 기본 이미지 설정
+        }
         setupRecyclerView();
     }
+
     private void setupListeners() {
         binding.editbtn.setOnClickListener(v -> showEditPersonDialog());
     }
+
     private void init() {
         webRequestManager = WebRequestManager.getWebImageUploader();
         databaseHelper = DatabaseHelper.getInstance(this);
 
-        id = getIntent().getIntExtra("id", -1);
+        id = getIntent().getIntExtra("person_id", -1);
         if (id != -1) {
             Person person = databaseHelper.getPersonById(id);
             if (person != null) {
@@ -86,6 +99,7 @@ public class PersonPhotosActivity extends AppCompatActivity
             }
         }
     }
+
     private void showEditPersonDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomAlertDialogTheme);
         LayoutInflater inflater = getLayoutInflater();
@@ -96,7 +110,6 @@ public class PersonPhotosActivity extends AppCompatActivity
 
         editPersonName.setText(inputName);
         editPhoneNumber.setText(databaseHelper.getPhoneNumberById(id));
-//        editPhoneNumber.setText(databaseHelper.getPhoneNumberByName(inputName));
 
         builder.setView(dialogView)
                 .setTitle("인물 정보 수정")
@@ -117,9 +130,7 @@ public class PersonPhotosActivity extends AppCompatActivity
                         .setMessage("이미 존재하는 이름 입니다. 그래도 저장하시겠습니까?")
                         .setPositiveButton("예", (dialogInterface, i) -> {
                             updatePersonInfo(newPersonName, newPhoneNumber);
-//                            webRequestManager.changePersonName(DatabaseUtils.getPersistentDeviceDatabaseName(this), inputName, newPersonName);
                             dialog.dismiss();
-//                            inputName = newPersonName;
                         })
                         .setNegativeButton("아니요", (dialogInterface, i) -> {
                             // 사용자가 'No'를 선택했을 때 아무 것도 하지 않음
@@ -132,8 +143,8 @@ public class PersonPhotosActivity extends AppCompatActivity
             }
         });
     }
+
     private void updatePersonInfo(String newName, String newPhone) {
-//        boolean updateSuccess = databaseHelper.updatePersonById(id, newName, newPhone);
         boolean updateSuccess = databaseHelper.updatePersonByName(inputName, newName, newPhone);
         if (updateSuccess) {
             StyleableToast.makeText(this, "인물 정보가 저장되었습니다.", R.style.customToast).show();
@@ -160,13 +171,12 @@ public class PersonPhotosActivity extends AppCompatActivity
             StyleableToast.makeText(this, "관련 사진이 없습니다.", R.style.customToast).show();
         }
     }
+
     private void updateRecyclerViewWithResponse(List<String> photoResponse) {
         List<Uri> matchedUris = new ArrayList<>();
         if (photoResponse != null) {
-            // 이미지 이름 리스트에서 확장자를 제거하지 않고 사용
             matchedUris = GalleryImageManager.findMatchedUris(photoResponse, this);
         }
-        System.out.println(matchedUris);
 
         ImageAdapter imageAdapter = new ImageAdapter(matchedUris, this, this);
         binding.recyclerViewPerson.setAdapter(imageAdapter);
@@ -174,17 +184,15 @@ public class PersonPhotosActivity extends AppCompatActivity
         updateUIWithMatchedUris(matchedUris);
     }
 
-    // UI 업데이트
     @Override
     public void onPersonDataUploadSuccess(List<String> personImages) {
-        runOnUiThread(() -> {
-            updateRecyclerViewWithResponse(personImages);
-        });
+        runOnUiThread(() -> updateRecyclerViewWithResponse(personImages));
     }
+
     @Override
     public void onPersonDataUploadFailure(String message) {
-
     }
+
     @Override
     public void onImageClick(Uri uri) {
         Intent intent = new Intent(this, ImageDisplayActivity.class);
