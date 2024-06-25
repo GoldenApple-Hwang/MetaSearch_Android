@@ -5,6 +5,11 @@
     android:id="@+id/mobile_navigation"
     app:startDestination="@+id/navigation_home">
     <fragment
+        android:id="@+id/navigation_person"
+        android:name="com.example.metasearch.ui.fragment.PersonFragment"
+        android:label="@string/title_person"
+        tools:layout="@layout/fragment_person" />
+    <fragment
         android:id="@+id/navigation_home"
         android:name="com.example.metasearch.ui.fragment.HomeFragment"
         android:label="@string/app_name"

@@ -116,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
     private void setupNavigation() {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.navigation_home, R.id.navigation_search, R.id.navigation_graph
+                R.id.navigation_person, R.id.navigation_home, R.id.navigation_search, R.id.navigation_graph
         ).build();
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
