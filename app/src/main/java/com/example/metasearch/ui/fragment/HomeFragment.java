@@ -54,6 +54,7 @@ import androidx.work.WorkRequest;
 
 import com.example.metasearch.ui.adapter.ImageAdapter;
 import com.example.metasearch.databinding.FragmentHomeBinding;
+import com.example.metasearch.ui.viewmodel.PersonViewModel;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -79,15 +80,16 @@ public class HomeFragment extends Fragment
     private Dialog dialog;
     private static final int PERMISSIONS_REQUEST_READ_CALL_LOG = 102;
     private PersonAdapter personAdapter;
+    private PersonViewModel personViewModel;
 
-    private final ActivityResultLauncher<String> requestPermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                if (isGranted) {
-                    showRankingDialog();
-                } else {
-                    showPermissionDeniedDialog();
-                }
-            });
+//    private final ActivityResultLauncher<String> requestPermissionLauncher =
+//            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+//                if (isGranted) {
+//                    showRankingDialog();
+//                } else {
+//                    showPermissionDeniedDialog();
+//                }
+//            });
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -98,7 +100,7 @@ public class HomeFragment extends Fragment
         init();
         setupListeners();
         setupRecyclerViews();
-        loadFaceImages();
+//        loadFaceImages();
         loadAllGalleryImages();
 
         return root;
@@ -112,7 +114,7 @@ public class HomeFragment extends Fragment
     }
 
     private void setupRecyclerViews() {
-        personAdapter = new PersonAdapter(Collections.emptyList(), this, getContext());
+        personAdapter = new PersonAdapter(getContext(), personViewModel);
         LinearLayoutManager layoutManager = new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false);
         binding.personRecyclerViewHorizon.setLayoutManager(layoutManager);
         binding.personRecyclerViewHorizon.setAdapter(personAdapter);
@@ -146,76 +148,76 @@ public class HomeFragment extends Fragment
             }
         });
 
-        binding.rankingBtn.setOnClickListener(v -> {
-            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_CALL_LOG)
-                    != PackageManager.PERMISSION_GRANTED) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    requestPermissionLauncher.launch(Manifest.permission.READ_CALL_LOG);
-                } else {
-                    requestPermissions(new String[]{Manifest.permission.READ_CALL_LOG}, PERMISSIONS_REQUEST_READ_CALL_LOG);
-                }
-            } else {
-                showRankingDialog();
-            }
-        });
+//        binding.rankingBtn.setOnClickListener(v -> {
+//            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_CALL_LOG)
+//                    != PackageManager.PERMISSION_GRANTED) {
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//                    requestPermissionLauncher.launch(Manifest.permission.READ_CALL_LOG);
+//                } else {
+//                    requestPermissions(new String[]{Manifest.permission.READ_CALL_LOG}, PERMISSIONS_REQUEST_READ_CALL_LOG);
+//                }
+//            } else {
+//                showRankingDialog();
+//            }
+//        });
     }
 
-    private void showRankingDialog() {
-        dialog = new Dialog(requireContext(), R.style.CustomAlertDialogTheme);
-        dialog.setContentView(R.layout.dialog_ranking_table);
-        dialog.setTitle("랭킹");
+//    private void showRankingDialog() {
+//        dialog = new Dialog(requireContext(), R.style.CustomAlertDialogTheme);
+//        dialog.setContentView(R.layout.dialog_ranking_table);
+//        dialog.setTitle("랭킹");
+//
+//        List<Person> persons = databaseHelper.getAllPersonExceptMe();
+//        Log.d("CALL", persons.toString());
+//        if (!persons.isEmpty()) {
+//            webRequestManager.getPersonFrequency(DatabaseUtils.getPersistentDeviceDatabaseName(getContext()), persons, this);
+//        } else {
+//            StyleableToast.makeText(getContext(), "인물 정보가 없습니다. 전화번호를 등록해주세요.", R.style.customToast).show();
+//        }
+//
+//        dialog.show();
+//    }
 
-        List<Person> persons = databaseHelper.getAllPersonExceptMe();
-        Log.d("CALL", persons.toString());
-        if (!persons.isEmpty()) {
-            webRequestManager.getPersonFrequency(DatabaseUtils.getPersistentDeviceDatabaseName(getContext()), persons, this);
-        } else {
-            StyleableToast.makeText(getContext(), "인물 정보가 없습니다. 전화번호를 등록해주세요.", R.style.customToast).show();
-        }
+//    private void showPermissionDeniedDialog() {
+//        new AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogTheme)
+//                .setTitle("권한 요청")
+//                .setMessage("통화 기록 권한이 필요합니다. 앱 설정에서 권한을 허용해주세요.")
+//                .setPositiveButton("설정으로 이동", (dialog, which) -> openAppSettings())
+//                .setNegativeButton("취소", null)
+//                .show();
+//    }
 
-        dialog.show();
-    }
+//    private void openAppSettings() {
+//        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+//        Uri uri = Uri.fromParts("package", requireContext().getPackageName(), null);
+//        intent.setData(uri);
+//        startActivity(intent);
+//    }
 
-    private void showPermissionDeniedDialog() {
-        new AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogTheme)
-                .setTitle("권한 요청")
-                .setMessage("통화 기록 권한이 필요합니다. 앱 설정에서 권한을 허용해주세요.")
-                .setPositiveButton("설정으로 이동", (dialog, which) -> openAppSettings())
-                .setNegativeButton("취소", null)
-                .show();
-    }
-
-    private void openAppSettings() {
-        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-        Uri uri = Uri.fromParts("package", requireContext().getPackageName(), null);
-        intent.setData(uri);
-        startActivity(intent);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == PERMISSIONS_REQUEST_READ_CALL_LOG) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                showRankingDialog();
-            } else {
-                showPermissionDeniedDialog();
-            }
-        }
-    }
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+//        if (requestCode == PERMISSIONS_REQUEST_READ_CALL_LOG) {
+//            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                showRankingDialog();
+//            } else {
+//                showPermissionDeniedDialog();
+//            }
+//        }
+//    }
 
     @Override
     public void onPersonFrequencyUploadFailure(String message) {
-        Log.e("HomeFragment", "Data fetch failed: " + message);
-        StyleableToast.makeText(getContext(), "데이터 불러오기 실패: " + message, R.style.customToast).show();
+//        Log.e("HomeFragment", "Data fetch failed: " + message);
+//        StyleableToast.makeText(getContext(), "데이터 불러오기 실패: " + message, R.style.customToast).show();
     }
 
-    private String formatDuration(Long durationInSeconds) {
-        long hours = durationInSeconds / 3600;
-        long minutes = (durationInSeconds % 3600) / 60;
-        long seconds = durationInSeconds % 60;
-        return String.format("%02d:%02d:%02d", hours, minutes, seconds);
-    }
+//    private String formatDuration(Long durationInSeconds) {
+//        long hours = durationInSeconds / 3600;
+//        long minutes = (durationInSeconds % 3600) / 60;
+//        long seconds = durationInSeconds % 60;
+//        return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+//    }
 
     public void loadAllGalleryImages() {
         ImageAdapter adapter = new ImageAdapter(getAllGalleryImagesUri(requireContext()), requireContext(), this);
@@ -224,114 +226,114 @@ public class HomeFragment extends Fragment
         binding.galleryRecyclerView.setLayoutManager(layoutManager);
     }
 
-    private void loadFaceImages() {
-        List<Person> people = databaseHelper.getAllPerson();
-        if (people.isEmpty()) {
-            Log.d("HomeFragment", "No face images found.");
-            return;
-        }
-        Log.d("inputName", people.toString());
-        personAdapter.updateData(people);
-    }
+//    private void loadFaceImages() {
+//        List<Person> people = databaseHelper.getAllPerson();
+//        if (people.isEmpty()) {
+//            Log.d("HomeFragment", "No face images found.");
+//            return;
+//        }
+//        Log.d("inputName", people.toString());
+//        personAdapter.updateData(people);
+//    }
 
-    private void updateFaceImages(List<Person> persons) {
-        personAdapter.updateData(persons);
-    }
+//    private void updateFaceImages(List<Person> persons) {
+//        personAdapter.updateData(persons);
+//    }
 
     @Override
     public void onPersonFrequencyUploadSuccess(PersonFrequencyResponse response) {
-        Map<String, Integer> frequencies = new HashMap<>();
-        for (PersonFrequencyResponse.Frequency freq : response.getFrequencies()) {
-            frequencies.put(freq.getPersonName(), freq.getFrequency());
-        }
-
-        List<Person> persons = databaseHelper.getAllPersonExceptMe();
-        Map<String, Long> callDurations = new HashMap<>();
-        for (Person person : persons) {
-            callDurations.put(person.getInputName(), person.getTotalDuration());
-            Log.d(TAG, "Person: " + person.getInputName() + ", Total Duration: " + person.getTotalDuration());
-        }
-
-        double maxCallDuration = callDurations.isEmpty() ? 0 : Collections.max(callDurations.values());
-        double maxFrequency = frequencies.isEmpty() ? 0 : Collections.max(frequencies.values());
-
-        Map<String, Double> scores = new HashMap<>();
-        for (Person person : persons) {
-            double normalizedCallDuration = maxCallDuration != 0 ? callDurations.get(person.getInputName()) / maxCallDuration : 0;
-            double normalizedFrequency = maxFrequency != 0 ? frequencies.getOrDefault(person.getInputName(), 0) / maxFrequency : 0;
-            double score = (normalizedCallDuration + normalizedFrequency) / 2;
-            scores.put(person.getInputName(), score);
-            Log.d(TAG, "Person: " + person.getInputName() + ", Score: " + score);
-        }
-
-        Collections.sort(persons, (p1, p2) -> scores.get(p2.getInputName()).compareTo(scores.get(p1.getInputName())));
-
-        // '나'라는 인물을 맨 앞에 추가
-        List<Person> sortedPersons = new ArrayList<>();
-        for (Person person : persons) {
-            if (person.getInputName().equals("나")) {
-                sortedPersons.add(0, person);
-            } else {
-                sortedPersons.add(person);
-            }
-        }
-
-        updateRankingTable(sortedPersons, scores, frequencies, callDurations);
-        updateFaceImages(sortedPersons);
+//        Map<String, Integer> frequencies = new HashMap<>();
+//        for (PersonFrequencyResponse.Frequency freq : response.getFrequencies()) {
+//            frequencies.put(freq.getPersonName(), freq.getFrequency());
+//        }
+//
+//        List<Person> persons = databaseHelper.getAllPersonExceptMe();
+//        Map<String, Long> callDurations = new HashMap<>();
+//        for (Person person : persons) {
+//            callDurations.put(person.getInputName(), person.getTotalDuration());
+//            Log.d(TAG, "Person: " + person.getInputName() + ", Total Duration: " + person.getTotalDuration());
+//        }
+//
+//        double maxCallDuration = callDurations.isEmpty() ? 0 : Collections.max(callDurations.values());
+//        double maxFrequency = frequencies.isEmpty() ? 0 : Collections.max(frequencies.values());
+//
+//        Map<String, Double> scores = new HashMap<>();
+//        for (Person person : persons) {
+//            double normalizedCallDuration = maxCallDuration != 0 ? callDurations.get(person.getInputName()) / maxCallDuration : 0;
+//            double normalizedFrequency = maxFrequency != 0 ? frequencies.getOrDefault(person.getInputName(), 0) / maxFrequency : 0;
+//            double score = (normalizedCallDuration + normalizedFrequency) / 2;
+//            scores.put(person.getInputName(), score);
+//            Log.d(TAG, "Person: " + person.getInputName() + ", Score: " + score);
+//        }
+//
+//        Collections.sort(persons, (p1, p2) -> scores.get(p2.getInputName()).compareTo(scores.get(p1.getInputName())));
+//
+//        // '나'라는 인물을 맨 앞에 추가
+//        List<Person> sortedPersons = new ArrayList<>();
+//        for (Person person : persons) {
+//            if (person.getInputName().equals("나")) {
+//                sortedPersons.add(0, person);
+//            } else {
+//                sortedPersons.add(person);
+//            }
+//        }
+//
+//        updateRankingTable(sortedPersons, scores, frequencies, callDurations);
+//        updateFaceImages(sortedPersons);
     }
 
-    private void updateRankingTable(List<Person> persons, Map<String, Double> scores, Map<String, Integer> frequencies, Map<String, Long> callDurations) {
-        TableLayout table = dialog.findViewById(R.id.tableLayout);
-        table.removeAllViews();
-
-        TableRow header = new TableRow(getContext());
-        addTableCell(header, "이름", true);
-        addTableCell(header, "사진", true);
-        addTableCell(header, "통화", true);
-        addTableCell(header, "친밀도", true);
-        table.addView(header);
-
-        for (Person person : persons) {
-            TableRow row = new TableRow(getContext());
-            row.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
-
-            TextView nameView = new TextView(getContext());
-            nameView.setText(person.getInputName());
-            nameView.setGravity(Gravity.CENTER);
-
-            TextView frequencyView = new TextView(getContext());
-            frequencyView.setText(String.valueOf(frequencies.getOrDefault(person.getInputName(), 0)));
-            frequencyView.setGravity(Gravity.CENTER);
-
-            TextView durationView = new TextView(getContext());
-            Long durationInSeconds = callDurations.getOrDefault(person.getInputName(), 0L);
-            durationView.setText(formatDuration(durationInSeconds));
-            durationView.setGravity(Gravity.CENTER);
-
-            TextView scoreView = new TextView(getContext());
-            scoreView.setText(String.format(Locale.US, "%.2f", scores.get(person.getInputName())));
-            scoreView.setGravity(Gravity.CENTER);
-
-            row.addView(nameView);
-            row.addView(frequencyView);
-            row.addView(durationView);
-            row.addView(scoreView);
-
-            table.addView(row);
-        }
-    }
-
-    private void addTableCell(TableRow row, String text, boolean isHeader) {
-        TextView tv = new TextView(getContext());
-        tv.setText(text);
-        tv.setGravity(Gravity.CENTER);
-        tv.setPadding(5, 10, 5, 10);
-        if (isHeader) {
-            tv.setTypeface(null, Typeface.BOLD);
-            tv.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.pink_grey));
-        }
-        row.addView(tv);
-    }
+//    private void updateRankingTable(List<Person> persons, Map<String, Double> scores, Map<String, Integer> frequencies, Map<String, Long> callDurations) {
+//        TableLayout table = dialog.findViewById(R.id.tableLayout);
+//        table.removeAllViews();
+//
+//        TableRow header = new TableRow(getContext());
+//        addTableCell(header, "이름", true);
+//        addTableCell(header, "사진", true);
+//        addTableCell(header, "통화", true);
+//        addTableCell(header, "친밀도", true);
+//        table.addView(header);
+//
+//        for (Person person : persons) {
+//            TableRow row = new TableRow(getContext());
+//            row.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+//
+//            TextView nameView = new TextView(getContext());
+//            nameView.setText(person.getInputName());
+//            nameView.setGravity(Gravity.CENTER);
+//
+//            TextView frequencyView = new TextView(getContext());
+//            frequencyView.setText(String.valueOf(frequencies.getOrDefault(person.getInputName(), 0)));
+//            frequencyView.setGravity(Gravity.CENTER);
+//
+//            TextView durationView = new TextView(getContext());
+//            Long durationInSeconds = callDurations.getOrDefault(person.getInputName(), 0L);
+//            durationView.setText(formatDuration(durationInSeconds));
+//            durationView.setGravity(Gravity.CENTER);
+//
+//            TextView scoreView = new TextView(getContext());
+//            scoreView.setText(String.format(Locale.US, "%.2f", scores.get(person.getInputName())));
+//            scoreView.setGravity(Gravity.CENTER);
+//
+//            row.addView(nameView);
+//            row.addView(frequencyView);
+//            row.addView(durationView);
+//            row.addView(scoreView);
+//
+//            table.addView(row);
+//        }
+//    }
+//
+//    private void addTableCell(TableRow row, String text, boolean isHeader) {
+//        TextView tv = new TextView(getContext());
+//        tv.setText(text);
+//        tv.setGravity(Gravity.CENTER);
+//        tv.setPadding(5, 10, 5, 10);
+//        if (isHeader) {
+//            tv.setTypeface(null, Typeface.BOLD);
+//            tv.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.pink_grey));
+//        }
+//        row.addView(tv);
+//    }
 
     @Override
     public void onImageClick(Uri uri) {
@@ -349,7 +351,7 @@ public class HomeFragment extends Fragment
     @Override
     public void onResume() {
         super.onResume();
-        loadFaceImages();
+//        loadFaceImages();
         loadAllGalleryImages();
     }
 
@@ -360,8 +362,8 @@ public class HomeFragment extends Fragment
 
     @Override
     public void onImageAnalysisComplete() {
-        if (getActivity() != null) {
-            getActivity().runOnUiThread(this::loadFaceImages);
-        }
+//        if (getActivity() != null) {
+//            getActivity().runOnUiThread(this::loadFaceImages);
+//        }
     }
 }
