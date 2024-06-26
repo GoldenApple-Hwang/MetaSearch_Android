@@ -15,6 +15,13 @@
     <string name="title_comment">설명</string>
     <string name="title_share">공유</string>
 
+    <string-array name="filter_options">
+        <item>가나다 순</item>
+        <item>통화량 순</item>
+        <item>사진 개수 순</item>
+        <item>홈 화면에 추가한 인물</item>
+    </string-array>
+
     <string name="user_input_eng">. 이 사진을 찾을 때 필요한 속성인 entity와 relationship을 추출할거야.
         entity는 사람이나 사물의 이름 또는 감정, 인종, 성별을 나타내는 단어이고,
         relationship은 entity가 속하는 카테고리로 \"person, color, animal, furniture, fruit, food, beverage, dessert, ice cream, clothing, jewelry, electronic_equipment, footwear, flower, street,
