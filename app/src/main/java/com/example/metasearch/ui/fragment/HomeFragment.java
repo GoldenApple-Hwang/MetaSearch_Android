@@ -169,6 +169,7 @@ public class HomeFragment extends Fragment
     public void onResume() {
         super.onResume();
         personViewModel.fetchPeopleFromLocalDatabase();
+        personViewModel.filterHomeScreen();
         loadAllGalleryImages();
     }
 
