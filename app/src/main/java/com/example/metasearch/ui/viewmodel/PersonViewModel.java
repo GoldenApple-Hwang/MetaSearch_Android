@@ -45,7 +45,7 @@ public class PersonViewModel extends AndroidViewModel implements WebServerPerson
     }
 
     public void fetchPeopleFromLocalDatabase() {
-        allPeople = databaseHelper.getAllPerson();
+        allPeople = databaseHelper.getUniquePersons();
         fetchPersonFrequencies();
     }
 
@@ -110,7 +110,7 @@ public class PersonViewModel extends AndroidViewModel implements WebServerPerson
     }
 
     private void fetchPersonFrequencies() {
-        List<Person> persons = databaseHelper.getAllPerson();
+        List<Person> persons = databaseHelper.getUniquePersons();
         if (!persons.isEmpty()) {
             webRequestManager.getPersonFrequency(DatabaseUtils.getPersistentDeviceDatabaseName(getApplication()), persons, this);
         }
