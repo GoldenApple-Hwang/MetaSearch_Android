@@ -23,6 +23,6 @@
         android:id="@+id/checkBoxHomeDisplay"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="친한 친구 등록"/>
+        android:text="내가 좋아하는 사람"/>
 
 </LinearLayout>
