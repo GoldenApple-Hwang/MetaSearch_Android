@@ -408,6 +408,39 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return people;
     }
+    public List<Person> getUniquePersons() {
+        List<Person> people = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT ID, NAME, INPUTNAME, PHONENUMBER, IMAGE, HOMEDISPLAY FROM " + TABLE_NAME, null);
+
+        if (cursor.moveToFirst()) {
+            Set<String> uniqueNames = new HashSet<>();
+            do {
+                @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex("ID"));
+                @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex("NAME"));
+                @SuppressLint("Range") String inputName = cursor.getString(cursor.getColumnIndex("INPUTNAME"));
+                @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex("PHONENUMBER"));
+                @SuppressLint("Range") byte[] image = cursor.getBlob(cursor.getColumnIndex("IMAGE"));
+                @SuppressLint("Range") boolean homeDisplay = cursor.getInt(cursor.getColumnIndex("HOMEDISPLAY")) == 1;
+
+                // 중복된 이름 제거
+                if (uniqueNames.add(inputName)) {
+                    Person person = new Person(id, name, image);
+                    person.setInputName(inputName);
+                    person.setPhone(phoneNumber);
+                    person.setHomeDisplay(homeDisplay);
+
+                    people.add(person);
+                }
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+
+        return people;
+    }
+
+
     public boolean getHomeDisplayById(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
         boolean homeDisplay = false;
