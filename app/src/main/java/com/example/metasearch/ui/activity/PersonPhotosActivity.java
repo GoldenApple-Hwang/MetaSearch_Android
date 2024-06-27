@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.EditText;
 
 import androidx.appcompat.app.AlertDialog;
@@ -38,7 +39,6 @@ public class PersonPhotosActivity extends AppCompatActivity
     private WebRequestManager webRequestManager;
     private ActivityPersonPhotosBinding binding;
     private Integer id;
-    private String imageName;
     private String inputName;
     private byte[] imageData;
     private DatabaseHelper databaseHelper;
@@ -93,27 +93,26 @@ public class PersonPhotosActivity extends AppCompatActivity
         if (id != -1) {
             Person person = databaseHelper.getPersonById(id);
             if (person != null) {
-                imageName = person.getImageName();
                 inputName = person.getInputName();
                 imageData = person.getImage();
             }
         }
-    }
-
-    private void showEditPersonDialog() {
+    }private void showEditPersonDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomAlertDialogTheme);
         LayoutInflater inflater = getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_edit_person, null);
 
         EditText editPersonName = dialogView.findViewById(R.id.editPersonName);
         EditText editPhoneNumber = dialogView.findViewById(R.id.editPhoneNumber);
+        CheckBox checkBoxHomeDisplay = dialogView.findViewById(R.id.checkBoxHomeDisplay); // 체크박스 찾기
 
         editPersonName.setText(inputName);
         editPhoneNumber.setText(databaseHelper.getPhoneNumberById(id));
+        checkBoxHomeDisplay.setChecked(databaseHelper.getHomeDisplayById(id)); // 체크박스 상태 설정
 
         builder.setView(dialogView)
                 .setTitle("인물 정보 수정")
-                .setPositiveButton("저장", null) // 일단 리스너를 null로 설정
+                .setPositiveButton("저장", null)
                 .setNegativeButton("취소", (dialog, which) -> dialog.dismiss());
 
         AlertDialog dialog = builder.create();
@@ -122,6 +121,7 @@ public class PersonPhotosActivity extends AppCompatActivity
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String newPersonName = editPersonName.getText().toString();
             String newPhoneNumber = editPhoneNumber.getText().toString();
+            boolean newHomeDisplay = checkBoxHomeDisplay.isChecked(); // 새로운 체크 상태 가져오기
 
             if (!newPersonName.isEmpty() && databaseHelper.isNameExists(newPersonName) && !newPersonName.equals(inputName)) {
                 // 이름 중복 경고
@@ -129,23 +129,21 @@ public class PersonPhotosActivity extends AppCompatActivity
                         .setTitle("이름 중복")
                         .setMessage("이미 존재하는 이름 입니다. 그래도 저장하시겠습니까?")
                         .setPositiveButton("예", (dialogInterface, i) -> {
-                            updatePersonInfo(newPersonName, newPhoneNumber);
+                            updatePersonInfo(newPersonName, newPhoneNumber, newHomeDisplay);
                             dialog.dismiss();
                         })
-                        .setNegativeButton("아니요", (dialogInterface, i) -> {
-                            // 사용자가 'No'를 선택했을 때 아무 것도 하지 않음
-                        })
+                        .setNegativeButton("아니요", null)
                         .show();
             } else {
                 // 이름 중복이 없거나 입력하지 않은 경우
-                updatePersonInfo(newPersonName, newPhoneNumber);
+                updatePersonInfo(newPersonName, newPhoneNumber, newHomeDisplay);
                 dialog.dismiss();
             }
         });
     }
 
-    private void updatePersonInfo(String newName, String newPhone) {
-        boolean updateSuccess = databaseHelper.updatePersonByName(inputName, newName, newPhone);
+    private void updatePersonInfo(String newName, String newPhone, boolean newHomeDisplay) {
+        boolean updateSuccess = databaseHelper.updatePersonByName(inputName, newName, newPhone, newHomeDisplay);
         if (updateSuccess) {
             StyleableToast.makeText(this, "인물 정보가 저장되었습니다.", R.style.customToast).show();
             webRequestManager.changePersonName(DatabaseUtils.getPersistentDeviceDatabaseName(this), inputName, newName);
