@@ -17,7 +17,7 @@
             android:id="@+id/face"
             android:layout_width="65dp"
             android:layout_height="65dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="4dp"
             android:src="@drawable/ic_launcher_foreground"
             app:civ_border_color="@color/semi_transparent_black_50"
             app:civ_border_overlay="false"
@@ -39,17 +39,17 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/face" />
 
-        <ImageView
-            android:id="@+id/delete_icon"
-            android:layout_width="10dp"
-            android:layout_height="10dp"
-            android:layout_marginStart="4dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:src="@drawable/icon_x"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/face"
-            app:layout_constraintTop_toTopOf="@+id/face" />
+<!--        <ImageView-->
+<!--            android:id="@+id/delete_icon"-->
+<!--            android:layout_width="10dp"-->
+<!--            android:layout_height="10dp"-->
+<!--            android:layout_marginStart="4dp"-->
+<!--            android:clickable="true"-->
+<!--            android:focusable="true"-->
+<!--            android:src="@drawable/icon_x"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            app:layout_constraintStart_toEndOf="@+id/face"-->
+<!--            app:layout_constraintTop_toTopOf="@+id/face" />-->
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
