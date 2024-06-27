@@ -7,12 +7,18 @@ public class Person {
     private byte[] image; // 홈 화면 상단에 작게 표시되는 얼굴 이미지를 위한 데이터
     private String phone; // 인물의 전화번호. 기본값은 "".
     private long totalDuration; // 총 통화 시간
+    private boolean homeDisplay; // 홈 화면에 표시할지 여부
+
+    private int photoCount; // 사진 개수
     public Person(int id, String imageName, byte[] image) {
         this.id = id;
         this.imageName = imageName;
         this.image = image;
         this.inputName = "";
         this.phone = "";
+        this.homeDisplay = false; // 기본값은 false로 설정
+
+        this.photoCount = 0; // 기본값 설정
     }
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
@@ -41,5 +47,17 @@ public class Person {
     }
     public void setTotalDuration(long totalDuration) {
         this.totalDuration = totalDuration;
+    }
+    public boolean isHomeDisplay() {
+        return homeDisplay;
+    }
+    public void setHomeDisplay(boolean homeDisplay) {
+        this.homeDisplay = homeDisplay;
+    }
+    public int getPhotoCount() {
+        return photoCount;
+    }
+    public void setPhotoCount(int photoCount) {
+        this.photoCount = photoCount;
     }
 }
