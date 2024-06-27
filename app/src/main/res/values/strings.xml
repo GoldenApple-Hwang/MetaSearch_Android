@@ -18,7 +18,7 @@
     <string-array name="filter_options">
         <item>가나다 순</item>
         <item>사진 많은 순</item>
-        <item>내가 좋아하는 사람들</item>
+        <item>내가 좋아하는 사람</item>
     </string-array>
 
     <string name="user_input_eng">. 이 사진을 찾을 때 필요한 속성인 entity와 relationship을 추출할거야.
