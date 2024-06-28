@@ -48,14 +48,6 @@ public class PersonViewModel extends AndroidViewModel implements WebServerPerson
 
     public void fetchPeopleFromLocalDatabase() {
         allPeople = databaseHelper.getUniquePersons();
-        for (Person person : allPeople) {
-            long totalDuration = databaseHelper.getTotalCallDuration(person.getPhone());
-            person.setTotalDuration(totalDuration);
-        }
-
-        // 테스트용 데이터 삽입
-//        databaseHelper.insertCallLog("1234567890", 300);
-//        databaseHelper.insertCallLog("0987654321", 150);
         fetchPersonFrequencies();
     }
     private void normalizeScores(List<Person> people) {
