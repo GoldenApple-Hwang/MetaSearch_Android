@@ -145,7 +145,6 @@ public class PersonFragment extends Fragment implements ImageAnalysisCompleteLis
                 viewModel.sortByPhotoCount();
                 break;
             case 2:
-//                viewModel.fetchPeopleFromLocalDatabase();
                 viewModel.filterHomeScreen();
                 break;
         }
@@ -157,6 +156,6 @@ public class PersonFragment extends Fragment implements ImageAnalysisCompleteLis
     @Override
     public void onImageAnalysisComplete() {
         // 이미지 분석 작업이 완료되면 호출되는 콜백
-        viewModel.fetchPeopleFromLocalDatabase(); // ViewModel에서 로컬 데이터베이스에서 데이터를 가져오는 메서드 호출
+        viewModel.fetchPeopleFromLocalDatabase();
     }
 }
