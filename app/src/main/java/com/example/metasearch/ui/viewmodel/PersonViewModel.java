@@ -1,17 +1,16 @@
 package com.example.metasearch.ui.viewmodel;
 
-import static androidx.core.content.ContentProviderCompat.requireContext;
-// 복구 상태
 import android.app.Application;
+
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+
 import com.example.metasearch.dao.DatabaseHelper;
-import com.example.metasearch.interfaces.WebServerDeleteEntityCallbacks;
+import com.example.metasearch.helper.DatabaseUtils;
 import com.example.metasearch.interfaces.WebServerPersonFrequencyUploadCallbacks;
 import com.example.metasearch.manager.WebRequestManager;
-import com.example.metasearch.helper.DatabaseUtils;
 import com.example.metasearch.model.Person;
 import com.example.metasearch.model.response.PersonFrequencyResponse;
 
@@ -77,6 +76,8 @@ public class PersonViewModel extends AndroidViewModel implements WebServerPerson
                         filteredList.add(person);
                     }
                 }
+                filteredList.sort((p1, p2) -> Integer.compare(p2.getPhotoCount(), p1.getPhotoCount())); 
+
                 homeDisplayPeopleLiveData.setValue(filteredList);
                 break;
         }
