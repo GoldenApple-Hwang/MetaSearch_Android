@@ -44,6 +44,8 @@ import com.example.metasearch.ui.viewmodel.PersonViewModel;
 
 import java.util.List;
 
+import io.github.muddz.styleabletoast.StyleableToast;
+
 public class HomeFragment extends Fragment
         implements ImageAdapter.OnImageClickListener, Update, ImageAnalysisCompleteListener,
         WebServerPersonFrequencyUploadCallbacks {
@@ -96,7 +98,7 @@ public class HomeFragment extends Fragment
             } else {
                 binding.personRecyclerViewHorizon.setVisibility(View.VISIBLE);
                 binding.btn.setImageResource(R.drawable.icon_up);
-                personViewModel.fetchPeopleFromLocalDatabase(); // 데이터를 업데이트
+                personViewModel.fetchPeopleFromLocalDatabase();
                 personViewModel.filterHomeScreen();
             }
             isRecyclerViewVisible = !isRecyclerViewVisible;
@@ -142,7 +144,7 @@ public class HomeFragment extends Fragment
     @Override
     public void onPersonFrequencyUploadFailure(String message) {
 //        Log.e("HomeFragment", "Data fetch failed: " + message);
-//        StyleableToast.makeText(getContext(), "데이터 불러오기 실패: " + message, R.style.customToast).show();
+        StyleableToast.makeText(getContext(), "데이터 불러오기 실패: " + message, R.style.customToast).show();
     }
     public void loadAllGalleryImages() {
         ImageAdapter adapter = new ImageAdapter(getAllGalleryImagesUri(requireContext()), requireContext(), this);
