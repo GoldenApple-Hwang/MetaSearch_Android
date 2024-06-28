@@ -64,11 +64,8 @@ public class PersonFragment extends Fragment implements ImageAnalysisCompleteLis
     public void onResume() {
         super.onResume();
 
-        int currentSpinnerPosition = binding.spinnerFilter.getSelectedItemPosition();
-        if (currentSpinnerPosition != spinnerSelectedPosition) {
-            viewModel.fetchPeopleFromLocalDatabase();
-            binding.spinnerFilter.setSelection(spinnerSelectedPosition);
-        }
+        viewModel.fetchPeopleFromLocalDatabase();
+        binding.spinnerFilter.setSelection(spinnerSelectedPosition);
     }
 
     private void setupRecyclerView() {
@@ -148,6 +145,7 @@ public class PersonFragment extends Fragment implements ImageAnalysisCompleteLis
                 viewModel.sortByPhotoCount();
                 break;
             case 2:
+//                viewModel.fetchPeopleFromLocalDatabase();
                 viewModel.filterHomeScreen();
                 break;
         }
