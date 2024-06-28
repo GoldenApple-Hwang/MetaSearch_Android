@@ -64,9 +64,11 @@ public class PersonFragment extends Fragment implements ImageAnalysisCompleteLis
     public void onResume() {
         super.onResume();
 
-        viewModel.fetchPeopleFromLocalDatabase();
-
-        binding.spinnerFilter.setSelection(spinnerSelectedPosition);
+        int currentSpinnerPosition = binding.spinnerFilter.getSelectedItemPosition();
+        if (currentSpinnerPosition != spinnerSelectedPosition) {
+            viewModel.fetchPeopleFromLocalDatabase();
+            binding.spinnerFilter.setSelection(spinnerSelectedPosition);
+        }
     }
 
     private void setupRecyclerView() {
@@ -121,19 +123,22 @@ public class PersonFragment extends Fragment implements ImageAnalysisCompleteLis
         binding.spinnerFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                spinnerSelectedPosition = position;
-                applySpinnerSelection(position);
+                if (spinnerSelectedPosition != position) {
+                    spinnerSelectedPosition = position;
+                    applySpinnerSelection(position);
+                }
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-
+                // 아무것도 선택되지 않았을 때의 동작
             }
         });
 
         // 스피너 상태 복원
         binding.spinnerFilter.setSelection(spinnerSelectedPosition);
     }
+
     private void applySpinnerSelection(int position) {
         switch (position) {
             case 0:
