@@ -1,6 +1,9 @@
 package com.example.metasearch.ui.viewmodel;
 
+import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
+
 import android.app.Application;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -45,9 +48,40 @@ public class PersonViewModel extends AndroidViewModel implements WebServerPerson
 
     public void fetchPeopleFromLocalDatabase() {
         allPeople = databaseHelper.getUniquePersons();
+        for (Person person : allPeople) {
+            long totalDuration = databaseHelper.getTotalCallDuration(person.getPhone());
+            person.setTotalDuration(totalDuration);
+        }
+
+        // 테스트용 데이터 삽입
+//        databaseHelper.insertCallLog("1234567890", 300);
+//        databaseHelper.insertCallLog("0987654321", 150);
         fetchPersonFrequencies();
     }
+    private void normalizeScores(List<Person> people) {
+        int maxPhotoCount = 1; // 최소값을 1로 설정하여 나눗셈에서 0을 방지
+        long maxTotalDuration = 1; // 최소값을 1로 설정하여 나눗셈에서 0을 방지
 
+        for (Person person : people) {
+            if (person.getPhotoCount() > maxPhotoCount) {
+                maxPhotoCount = person.getPhotoCount();
+            }
+            if (person.getTotalDuration() > maxTotalDuration) {
+                maxTotalDuration = person.getTotalDuration();
+            }
+        }
+
+        for (Person person : people) {
+            double normalizedPhotoCount = (double) person.getPhotoCount() / maxPhotoCount;
+            double normalizedTotalDuration = (double) person.getTotalDuration() / maxTotalDuration;
+            double normalizedScore = (normalizedPhotoCount + normalizedTotalDuration) / 2.0;
+            person.setNormalizedScore(normalizedScore);
+
+            // 정규화: 인물 친밀도 랭킹 테스트 로그
+            System.out.println(person.getInputName() + "의 친밀도 점수: " + person.getNormalizedScore()
+            +person.getPhotoCount() + ", " + person.getTotalDuration());
+        }
+    }
     private void applyCurrentFilterAndSort() {
         List<Person> filteredList = new ArrayList<>(allPeople);
 
@@ -70,21 +104,26 @@ public class PersonViewModel extends AndroidViewModel implements WebServerPerson
                 filteredList.sort((p1, p2) -> Integer.compare(p2.getPhotoCount(), p1.getPhotoCount()));
                 break;
             case 2:
-                filteredList = new ArrayList<>();
+                List<Person> homeDisplayList = new ArrayList<>();
                 for (Person person : allPeople) {
                     if (person.isHomeDisplay()) {
-                        filteredList.add(person);
+                        homeDisplayList.add(person);
                     }
                 }
-                filteredList.sort((p1, p2) -> Integer.compare(p2.getPhotoCount(), p1.getPhotoCount())); 
+                normalizeScores(homeDisplayList);
+                homeDisplayList.sort((p1, p2) -> Double.compare(p2.getNormalizedScore(), p1.getNormalizedScore()));
 
-                homeDisplayPeopleLiveData.setValue(filteredList);
-                break;
+                homeDisplayPeopleLiveData.setValue(homeDisplayList);
+                filteredPeopleLiveData.setValue(homeDisplayList);
+                // 홈 화면에 표시할 인물 로그
+                for (Person person : homeDisplayList) {
+                    Log.d(TAG, "홈 화면에 표시할 인물: " + person.getInputName());
+                }
+                return;
         }
 
         filteredPeopleLiveData.setValue(filteredList);
     }
-
     public void filterPeople(String query) {
         currentFilterQuery = query;
         applyCurrentFilterAndSort();
@@ -122,11 +161,12 @@ public class PersonViewModel extends AndroidViewModel implements WebServerPerson
         for (PersonFrequencyResponse.Frequency frequency : responses.getFrequencies()) {
             for (Person person : allPeople) {
                 if (person.getInputName().equals(frequency.getPersonName())) {
+                    Log.d("RANK", person.getInputName());
                     person.setPhotoCount(frequency.getFrequency());
                 }
             }
         }
-        applyCurrentFilterAndSort(); // 최신 데이터를 반영하여 필터링 및 정렬 적용
+        applyCurrentFilterAndSort();
     }
 
     @Override
