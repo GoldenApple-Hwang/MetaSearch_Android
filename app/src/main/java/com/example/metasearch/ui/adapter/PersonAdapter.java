@@ -46,7 +46,6 @@ public class PersonAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         this.people = people;
         notifyDataSetChanged();
     }
-
     @Override
     public int getItemViewType(int position) {
         return isHomeScreen ? VIEW_TYPE_HOME : VIEW_TYPE_PERSON;
