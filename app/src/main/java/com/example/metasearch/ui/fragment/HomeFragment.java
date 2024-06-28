@@ -96,6 +96,8 @@ public class HomeFragment extends Fragment
             } else {
                 binding.personRecyclerViewHorizon.setVisibility(View.VISIBLE);
                 binding.btn.setImageResource(R.drawable.icon_up);
+                personViewModel.fetchPeopleFromLocalDatabase(); // 데이터를 업데이트
+                personViewModel.filterHomeScreen();
             }
             isRecyclerViewVisible = !isRecyclerViewVisible;
         });
@@ -168,8 +170,8 @@ public class HomeFragment extends Fragment
     @Override
     public void onResume() {
         super.onResume();
-        personViewModel.fetchPeopleFromLocalDatabase();
-        personViewModel.filterHomeScreen();
+//        personViewModel.fetchPeopleFromLocalDatabase();
+//        personViewModel.filterHomeScreen();
         loadAllGalleryImages();
     }
 
