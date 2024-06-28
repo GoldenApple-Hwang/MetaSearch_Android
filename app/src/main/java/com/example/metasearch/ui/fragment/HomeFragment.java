@@ -3,14 +3,12 @@ package com.example.metasearch.ui.fragment;
 import static com.example.metasearch.manager.GalleryImageManager.getAllGalleryImagesUri;
 
 import android.annotation.SuppressLint;
-import android.app.Dialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -98,8 +96,9 @@ public class HomeFragment extends Fragment
             } else {
                 binding.personRecyclerViewHorizon.setVisibility(View.VISIBLE);
                 binding.btn.setImageResource(R.drawable.icon_up);
-                personViewModel.fetchPeopleFromLocalDatabase();
-                personViewModel.filterHomeScreen();
+
+//                personViewModel.fetchPeopleFromLocalDatabase();
+//                personViewModel.filterHomeScreen();
             }
             isRecyclerViewVisible = !isRecyclerViewVisible;
         });
@@ -172,8 +171,8 @@ public class HomeFragment extends Fragment
     @Override
     public void onResume() {
         super.onResume();
-//        personViewModel.fetchPeopleFromLocalDatabase();
-//        personViewModel.filterHomeScreen();
+        personViewModel.fetchPeopleFromLocalDatabase();
+        personViewModel.filterHomeScreen();
         loadAllGalleryImages();
     }
 
