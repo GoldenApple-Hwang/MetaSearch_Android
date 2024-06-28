@@ -9,6 +9,8 @@ public class Person {
     private long totalDuration; // 총 통화 시간
     private boolean homeDisplay; // 홈 화면에 표시할지 여부
 
+    private double normalizedScore; // 정규화 점수
+
     private int photoCount; // 사진 개수
     public Person(int id, String imageName, byte[] image) {
         this.id = id;
@@ -59,5 +61,12 @@ public class Person {
     }
     public void setPhotoCount(int photoCount) {
         this.photoCount = photoCount;
+    }
+    public double getNormalizedScore() {
+        return normalizedScore;
+    }
+
+    public void setNormalizedScore(double normalizedScore) {
+        this.normalizedScore = normalizedScore;
     }
 }
