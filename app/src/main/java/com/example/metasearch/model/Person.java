@@ -12,6 +12,7 @@ public class Person {
     private double normalizedScore; // 정규화 점수
 
     private int photoCount; // 사진 개수
+    private byte[] thumbnailImage;
     public Person(int id, String imageName, byte[] image) {
         this.id = id;
         this.imageName = imageName;
@@ -68,5 +69,11 @@ public class Person {
 
     public void setNormalizedScore(double normalizedScore) {
         this.normalizedScore = normalizedScore;
+    }
+    public  byte[] getThumbnailImage() {
+        return thumbnailImage;
+    }
+    public void setThumbnailImage(byte[] thumbnailImage) {
+        this.thumbnailImage = thumbnailImage;
     }
 }
