@@ -9,11 +9,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.GridView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.metasearch.R;
 import com.example.metasearch.dao.DatabaseHelper;
@@ -24,6 +27,7 @@ import com.example.metasearch.manager.GalleryImageManager;
 import com.example.metasearch.manager.WebRequestManager;
 import com.example.metasearch.model.Person;
 import com.example.metasearch.ui.adapter.ImageAdapter;
+import com.example.metasearch.ui.adapter.ImageSelectionAdapter;
 import com.example.metasearch.ui.viewmodel.ImageViewModel;
 
 import java.util.ArrayList;
@@ -34,15 +38,14 @@ import io.github.muddz.styleabletoast.StyleableToast;
 public class PersonPhotosActivity extends AppCompatActivity
         implements WebServerPersonDataUploadCallbacks,
         ImageAdapter.OnImageClickListener {
-
     private ImageViewModel imageViewModel;
     private WebRequestManager webRequestManager;
     private ActivityPersonPhotosBinding binding;
     private Integer id;
     private String inputName;
-    private byte[] imageData;
+    private byte[] imageData; // 인물 얼굴 사진
+    private byte[] thumbnailData;
     private DatabaseHelper databaseHelper;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,37 +57,8 @@ public class PersonPhotosActivity extends AppCompatActivity
         setupUI();
         setupListeners(); // 인물 정보 수정 버튼
         loadImages(); // 리사이클러뷰에 관련 인물 사진 모두 출력
-    }
 
-    private void loadImages() {
-        if (inputName != null) {
-            webRequestManager.sendPersonData(inputName, DatabaseUtils.getPersistentDeviceDatabaseName(this), this);
-        }
     }
-
-    private void setupRecyclerView() {
-        ImageAdapter adapter = new ImageAdapter(new ArrayList<>(), this, this);
-        binding.recyclerViewPerson.setLayoutManager(new GridLayoutManager(this, 5));
-        binding.recyclerViewPerson.setAdapter(adapter);
-    }
-
-    private void setupUI() {
-        // 화면 상단에 인물 이름 출력
-        binding.personName.setText(inputName);
-        // 바이트 배열을 Bitmap으로 변환하고 이미지 뷰에 설정
-        if (imageData != null && imageData.length > 0) {
-            Bitmap imageBitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
-            binding.face.setImageBitmap(imageBitmap);
-        } else {
-            binding.face.setImageResource(R.drawable.ic_launcher_foreground); // 기본 이미지 설정
-        }
-        setupRecyclerView();
-    }
-
-    private void setupListeners() {
-        binding.editbtn.setOnClickListener(v -> showEditPersonDialog());
-    }
-
     private void init() {
         webRequestManager = WebRequestManager.getWebImageUploader();
         databaseHelper = DatabaseHelper.getInstance(this);
@@ -95,9 +69,93 @@ public class PersonPhotosActivity extends AppCompatActivity
             if (person != null) {
                 inputName = person.getInputName();
                 imageData = person.getImage();
+                thumbnailData = person.getThumbnailImage();
             }
         }
-    }private void showEditPersonDialog() {
+    }
+    private void setupUI() {
+        // 화면 상단에 인물 이름 출력
+        binding.personName.setText(inputName);
+        // 썸네일 데이터가 있는 경우 썸네일을 사용, 그렇지 않으면 전체 이미지를 사용
+        byte[] displayImageData = (thumbnailData != null && thumbnailData.length > 0) ? thumbnailData : imageData;
+
+        if (displayImageData != null && displayImageData.length > 0) {
+            Bitmap imageBitmap = BitmapFactory.decodeByteArray(displayImageData, 0, displayImageData.length);
+            binding.face.setImageBitmap(imageBitmap);
+        } else {
+            binding.face.setImageResource(R.drawable.ic_launcher_foreground); // 기본 이미지 설정
+        }
+        setupRecyclerView();
+    }
+    private void loadImages() {
+        if (inputName != null) {
+            webRequestManager.sendPersonData(inputName, DatabaseUtils.getPersistentDeviceDatabaseName(this), this);
+        }
+    }
+    private void setupRecyclerView() {
+        ImageAdapter adapter = new ImageAdapter(new ArrayList<>(), this, this);
+        binding.recyclerViewPerson.setLayoutManager(new GridLayoutManager(this, 5));
+        binding.recyclerViewPerson.setAdapter(adapter);
+    }
+    private void setupListeners() {
+        // 인물 정보 수정 버튼
+        binding.editbtn.setOnClickListener(v -> showEditPersonDialog());
+        // 인물 얼굴 클릭 시 썸네일 변경
+        binding.face.setOnClickListener(v -> showImageSelectionDialog());
+    }
+    // 썸네일 변경하는 다이얼로그
+    private void showImageSelectionDialog() {
+        List<byte[]> images = databaseHelper.getImagesByName(inputName);
+        if (images.isEmpty()) {
+            StyleableToast.makeText(this, "해당 인물의 이미지가 없습니다.", R.style.customToast).show();
+            return;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomAlertDialogTheme);
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_image_selection, null);
+        RecyclerView recyclerView = dialogView.findViewById(R.id.recyclerView);
+
+        List<Bitmap> bitmaps = new ArrayList<>();
+        for (byte[] image : images) {
+            Bitmap bitmap = BitmapFactory.decodeByteArray(image, 0, image.length);
+            bitmaps.add(bitmap);
+        }
+
+        // AlertDialog 변수 선언
+        final AlertDialog dialog = builder.create();
+
+        ImageSelectionAdapter adapter = new ImageSelectionAdapter(this, bitmaps, bitmap -> {
+            updateThumbnailImage(bitmap);
+            dialog.dismiss(); // 다이얼로그 닫기
+        });
+
+        recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        recyclerView.setAdapter(adapter);
+
+        builder.setView(dialogView)
+//                .setTitle("이미지 선택")
+                .setNegativeButton("취소", (dialogInterface, which) -> dialog.dismiss());
+
+        dialog.setView(dialogView);
+        dialog.show();
+    }
+    // 이름이 같은 모든 사람의 썸네일 이미지를 업데이트 하는 메서드
+    private void updateThumbnailImage(Bitmap bitmap) {
+        if (bitmap != null) {
+            // 썸네일 이미지 변경 (기존 IMAGE 필드는 변경하지 않음)
+            binding.face.setImageBitmap(bitmap);
+
+            // 새로운 썸네일 이미지를 데이터베이스에 저장 (여기서는 이름을 기준으로 저장)
+            boolean updateSuccess = databaseHelper.updateThumbnailImageByName(inputName, DatabaseHelper.getBytes(bitmap));
+            if (updateSuccess) {
+                StyleableToast.makeText(this, "프로필 사진이 변경되었습니다.", R.style.customToast).show();
+            } else {
+                StyleableToast.makeText(this, "프로필 사진 변경 실패.", R.style.customToast).show();
+            }
+        }
+    }
+    private void showEditPersonDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomAlertDialogTheme);
         LayoutInflater inflater = getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_edit_person, null);

@@ -65,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
                 Manifest.permission.ACCESS_FINE_LOCATION, // 위치 정보 권한
                 Manifest.permission.ACCESS_COARSE_LOCATION, // 추가적으로 요청 가능
                 Manifest.permission.READ_CALL_LOG,
+                Manifest.permission.WRITE_CALL_LOG,
                 Manifest.permission.POST_NOTIFICATIONS // 알림 권한
         };
 

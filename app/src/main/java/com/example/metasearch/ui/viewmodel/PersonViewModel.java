@@ -2,11 +2,14 @@ package com.example.metasearch.ui.viewmodel;
 
 import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
+import android.Manifest;
 import android.app.Application;
 import android.content.ContentResolver;
+import android.content.pm.PackageManager;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -50,8 +53,22 @@ public class PersonViewModel extends AndroidViewModel implements WebServerPerson
     }
 
     public void fetchPeopleFromLocalDatabase() {
-        allPeople = databaseHelper.getUniquePersons();
-        fetchPersonFrequencies();
+        if (ContextCompat.checkSelfPermission(getApplication(), Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED) {
+            allPeople = databaseHelper.getUniquePersons();
+            if (allPeople.isEmpty()) {
+                Log.e("PersonViewModel", "No persons found in the local database.");
+                // 빈 목록 처리를 위한 추가 작업
+                filteredPeopleLiveData.setValue(new ArrayList<>());
+                homeDisplayPeopleLiveData.setValue(new ArrayList<>());
+            } else {
+                fetchPersonFrequencies();
+            }
+        } else {
+            Log.e("PersonViewModel", "READ_CALL_LOG permission is not granted.");
+            // 권한이 없을 때 빈 목록 설정
+            filteredPeopleLiveData.setValue(new ArrayList<>());
+            homeDisplayPeopleLiveData.setValue(new ArrayList<>());
+        }
     }
     private void normalizeScores(List<Person> people) {
         int maxPhotoCount = 1; // 최소값을 1로 설정하여 나눗셈에서 0을 방지

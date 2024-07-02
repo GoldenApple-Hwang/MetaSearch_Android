@@ -136,8 +136,15 @@ public class PersonAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
         public void bind(Person person) {
             nameView.setText(person.getInputName());
-            if (person.getImage() != null) {
-                Bitmap imageBitmap = BitmapFactory.decodeByteArray(person.getImage(), 0, person.getImage().length);
+//            if (person.getImage() != null) {
+//                Bitmap imageBitmap = BitmapFactory.decodeByteArray(person.getImage(), 0, person.getImage().length);
+//                imageView.setImageBitmap(imageBitmap);
+//            } else {
+//                imageView.setImageResource(R.drawable.ic_launcher_foreground);
+//            }
+            byte[] displayImageData = (person.getThumbnailImage() != null && person.getThumbnailImage().length > 0) ? person.getThumbnailImage() : person.getImage();
+            if (displayImageData != null) {
+                Bitmap imageBitmap = BitmapFactory.decodeByteArray(displayImageData, 0, displayImageData.length);
                 imageView.setImageBitmap(imageBitmap);
             } else {
                 imageView.setImageResource(R.drawable.ic_launcher_foreground);
@@ -178,8 +185,15 @@ public class PersonAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
         public void bind(Person person) {
             nameView.setText(person.getInputName());
-            if (person.getImage() != null) {
-                Bitmap imageBitmap = BitmapFactory.decodeByteArray(person.getImage(), 0, person.getImage().length);
+//            if (person.getImage() != null) {
+//                Bitmap imageBitmap = BitmapFactory.decodeByteArray(person.getImage(), 0, person.getImage().length);
+//                imageView.setImageBitmap(imageBitmap);
+//            } else {
+//                imageView.setImageResource(R.drawable.ic_launcher_foreground);
+//            }
+            byte[] displayImageData = (person.getThumbnailImage() != null && person.getThumbnailImage().length > 0) ? person.getThumbnailImage() : person.getImage();
+            if (displayImageData != null) {
+                Bitmap imageBitmap = BitmapFactory.decodeByteArray(displayImageData, 0, displayImageData.length);
                 imageView.setImageBitmap(imageBitmap);
             } else {
                 imageView.setImageResource(R.drawable.ic_launcher_foreground);
