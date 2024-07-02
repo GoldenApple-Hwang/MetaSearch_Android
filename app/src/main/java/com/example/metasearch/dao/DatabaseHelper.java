@@ -3,6 +3,7 @@ package com.example.metasearch.dao;
 import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
 import android.annotation.SuppressLint;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.res.Resources;
@@ -55,15 +56,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Log.d(TAG, "DataBaseHelper 생성자 호출");
     }
     @Override
-    public void onCreate(SQLiteDatabase sqLiteDatabase){
+    public void onCreate(SQLiteDatabase sqLiteDatabase) {
         Log.d(TAG,"Table create");
         String createQuery = "CREATE TABLE " + TABLE_NAME +
                 "( ID INTEGER PRIMARY KEY AUTOINCREMENT, " // 프라이머리 키 추가
-                + "NAME TEXT NOT NULL, "
+                + "NAME TEXT NOT NULL, " // 사진 이름(예: person1.png, person2.jpg, ...)
                 + "INPUTNAME TEXT, " // 인물 이름(기본 값은 인물1, 인물2, ...)
-                + "PHONENUMBER TEXT, "
-                + "IMAGE BLOB," // 이미지 컬럼 추가
-                + "HOMEDISPLAY INTEGER DEFAULT 0);";
+                + "PHONENUMBER TEXT, " // 인물 전화번호
+                + "IMAGE BLOB," // 사진 데이터(바이트 배열)
+                + "HOMEDISPLAY INTEGER DEFAULT 0);"; // 홈 화면 표시 여부(= 내가 좋아하는 사람 리스트)
         sqLiteDatabase.execSQL(createQuery);
     }
 
@@ -259,10 +260,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Collections.sort(persons, (p1, p2) -> Long.compare(p2.getTotalDuration(), p1.getTotalDuration()));
         return persons;
     }
-    public String normalizePhoneNumber(String phoneNumber) {
-        return phoneNumber.replaceAll("[^0-9]", "");
-    }
-
     @SuppressLint("Range")
     private long getTotalCallDurationForNumber(String phoneNumber) {
         long totalDuration = 0;
@@ -408,9 +405,33 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return people;
     }
+    // 전화 기록을 가져오는 메서드
+    @SuppressLint("Range")
+    private Map<String, Long> getCallDurations() {
+        Map<String, Long> callLogDuration = new HashMap<>();
+        Cursor cursor = context.getContentResolver().query(CallLog.Calls.CONTENT_URI, null, null, null, null);
+
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                String number = cursor.getString(cursor.getColumnIndex(CallLog.Calls.NUMBER));
+                long duration = cursor.getLong(cursor.getColumnIndex(CallLog.Calls.DURATION));
+                number = normalizePhoneNumber(number);
+                callLogDuration.put(number, callLogDuration.getOrDefault(number, 0L) + duration);
+            }
+            cursor.close();
+        }
+        return callLogDuration;
+    }
+
+    // 전화번호 정규화 메서드
+    private String normalizePhoneNumber(String phoneNumber) {
+        return phoneNumber.replaceAll("[^0-9]", "");
+    }
     public List<Person> getUniquePersons() {
         List<Person> people = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
+        Map<String, Long> callDurations = getCallDurations(); // 전화 기록 가져오기
+
         Cursor cursor = db.rawQuery("SELECT ID, NAME, INPUTNAME, PHONENUMBER, IMAGE, HOMEDISPLAY FROM " + TABLE_NAME, null);
 
         if (cursor.moveToFirst()) {
@@ -429,6 +450,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     person.setInputName(inputName);
                     person.setPhone(phoneNumber);
                     person.setHomeDisplay(homeDisplay);
+
+                    // 통화량 설정
+                    long totalDuration = callDurations.getOrDefault(phoneNumber, 0L);
+                    person.setTotalDuration(totalDuration);
 
                     people.add(person);
                 }
