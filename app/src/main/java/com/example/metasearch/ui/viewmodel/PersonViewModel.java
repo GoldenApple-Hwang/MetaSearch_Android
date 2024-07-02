@@ -3,6 +3,7 @@ package com.example.metasearch.ui.viewmodel;
 import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
 import android.app.Application;
+import android.content.ContentResolver;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -18,7 +19,9 @@ import com.example.metasearch.model.Person;
 import com.example.metasearch.model.response.PersonFrequencyResponse;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PersonViewModel extends AndroidViewModel implements WebServerPersonFrequencyUploadCallbacks {
 
@@ -64,6 +67,7 @@ public class PersonViewModel extends AndroidViewModel implements WebServerPerson
         }
 
         for (Person person : people) {
+            System.out.println(person.getInputName() + "의 총 통화량: " + person.getTotalDuration());
             double normalizedPhotoCount = (double) person.getPhotoCount() / maxPhotoCount;
             double normalizedTotalDuration = (double) person.getTotalDuration() / maxTotalDuration;
             double normalizedScore = (normalizedPhotoCount + normalizedTotalDuration) / 2.0;
