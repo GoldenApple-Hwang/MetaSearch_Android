@@ -4,7 +4,6 @@ import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
 import android.Manifest;
 import android.app.Application;
-import android.content.ContentResolver;
 import android.content.pm.PackageManager;
 import android.util.Log;
 
@@ -22,9 +21,7 @@ import com.example.metasearch.model.Person;
 import com.example.metasearch.model.response.PersonFrequencyResponse;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class PersonViewModel extends AndroidViewModel implements WebServerPersonFrequencyUploadCallbacks {
 
@@ -84,15 +81,19 @@ public class PersonViewModel extends AndroidViewModel implements WebServerPerson
         }
 
         for (Person person : people) {
-            System.out.println(person.getInputName() + "의 총 통화량: " + person.getTotalDuration());
+            Log.d("RANK", person.getInputName() + "의 총 통화량: " + person.getTotalDuration()
+                    + "초 = " + person.getTotalDuration() / 60 + "분");
+//            System.out.println(person.getInputName() + "의 총 통화량: " + person.getTotalDuration() + "초");
             double normalizedPhotoCount = (double) person.getPhotoCount() / maxPhotoCount;
             double normalizedTotalDuration = (double) person.getTotalDuration() / maxTotalDuration;
             double normalizedScore = (normalizedPhotoCount + normalizedTotalDuration) / 2.0;
             person.setNormalizedScore(normalizedScore);
 
             // 정규화: 인물 친밀도 랭킹 테스트 로그
-            System.out.println(person.getInputName() + "의 친밀도 점수: " + person.getNormalizedScore()
-            +person.getPhotoCount() + ", " + person.getTotalDuration());
+            Log.d("RANK"," 친밀도 점수: " + person.getNormalizedScore() + ", 사진 개수: "
+                    +person.getPhotoCount());
+//            System.out.println(" 친밀도 점수: " + person.getNormalizedScore() + ", 사진 개수: "
+//            +person.getPhotoCount());
         }
     }
     private void applyCurrentFilterAndSort() {
@@ -130,7 +131,7 @@ public class PersonViewModel extends AndroidViewModel implements WebServerPerson
                 filteredPeopleLiveData.setValue(homeDisplayList);
                 // 홈 화면에 표시할 인물 로그
                 for (Person person : homeDisplayList) {
-                    Log.d(TAG, "홈 화면에 표시할 인물: " + person.getInputName());
+                    Log.d("RANK", "홈 화면에 표시할 인물: " + person.getInputName());
                 }
                 return;
         }
