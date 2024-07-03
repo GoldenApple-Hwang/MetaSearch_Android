@@ -6,17 +6,22 @@ public class Person {
     private String inputName; // 사용자가 입력한(수정한) 인물 이름
     private byte[] image; // 홈 화면 상단에 작게 표시되는 얼굴 이미지를 위한 데이터
     private String phone; // 인물의 전화번호. 기본값은 "".
-    private Integer isDelete; // 삭제된 인물인지 나타냄. 기본값은 1, 삭제되면 0
     private long totalDuration; // 총 통화 시간
-    private double rank;
+    private boolean homeDisplay; // 홈 화면에 표시할지 여부
+
+    private double normalizedScore; // 정규화 점수
+
+    private int photoCount; // 사진 개수
+    private byte[] thumbnailImage;
     public Person(int id, String imageName, byte[] image) {
         this.id = id;
         this.imageName = imageName;
         this.image = image;
         this.inputName = "";
         this.phone = "";
-        this.isDelete = 0;
-        this.totalDuration = 0;
+        this.homeDisplay = false; // 기본값은 false로 설정
+
+        this.photoCount = 0; // 기본값 설정
     }
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
@@ -31,7 +36,6 @@ public class Person {
         return image;
     }
     public String getPhone() { return phone; }
-    public Integer getIsDelete() { return isDelete; }
     public void setImageName(String imageName) {
         this.imageName = imageName;
     }
@@ -41,20 +45,36 @@ public class Person {
     public void setPhone(String phone) {
         this.phone = phone != null ? phone : "";
     }
-    public void setIsDelete(Integer isDelete) {
-        this.isDelete = isDelete;
-    }
     public long getTotalDuration() {
         return totalDuration;
     }
     public void setTotalDuration(long totalDuration) {
         this.totalDuration = totalDuration;
     }
-    public void setRank(double rank) {
-        this.rank = rank;
+
+    public boolean isHomeDisplay() {
+        return homeDisplay;
+    }
+    public void setHomeDisplay(boolean homeDisplay) {
+        this.homeDisplay = homeDisplay;
+    }
+    public int getPhotoCount() {
+        return photoCount;
+    }
+    public void setPhotoCount(int photoCount) {
+        this.photoCount = photoCount;
+    }
+    public double getNormalizedScore() {
+        return normalizedScore;
     }
 
-    public double getRank() {
-        return rank;
+    public void setNormalizedScore(double normalizedScore) {
+        this.normalizedScore = normalizedScore;
+    }
+    public  byte[] getThumbnailImage() {
+        return thumbnailImage;
+    }
+    public void setThumbnailImage(byte[] thumbnailImage) {
+        this.thumbnailImage = thumbnailImage;
     }
 }

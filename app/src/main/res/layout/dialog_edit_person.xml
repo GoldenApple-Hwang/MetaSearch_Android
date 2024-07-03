@@ -6,16 +6,6 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-<!--    <TextView-->
-<!--        android:id="@+id/dialogTitle"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:text="인물 정보를 입력해주세요."-->
-<!--        android:textColor="@color/orange"-->
-<!--        android:paddingStart="6dp"-->
-<!--        android:textSize="15sp"-->
-<!--        android:paddingBottom="8dp"/>-->
-
     <EditText
         android:id="@+id/editPersonName"
         android:layout_width="match_parent"
@@ -28,5 +18,11 @@
         android:layout_height="wrap_content"
         android:hint="전화번호"
         android:inputType="phone"/>
+
+    <CheckBox
+        android:id="@+id/checkBoxHomeDisplay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="내가 좋아하는 사람"/>
 
 </LinearLayout>

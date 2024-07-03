@@ -1,18 +1,25 @@
 <resources>
     <string name="app_name">Visualize Me By Photo</string>
     <string name="title_refresh"> </string>
-
+    <string name="menu_title_person">인물</string>
     <string name="menu_title_home">홈</string>
     <string name="menu_title_search">검색</string>
     <string name="menu_title_graph">그래프</string>
     <string name="title_like">좋아요</string>
 
-    <string name="title_search">Natural Language Search</string>
-    <string name="title_graph">Knowledge Graph</string>
-    <string name="title_focusing">Focusing Search</string>
+    <string name="title_person">내가 아는 사람들</string>
+    <string name="title_search">검색</string>
+    <string name="title_graph">지식 그래프</string>
+    <string name="title_focusing">포커싱 검색</string>
 
     <string name="title_comment">설명</string>
     <string name="title_share">공유</string>
+
+    <string-array name="filter_options">
+        <item>가나다 순</item>
+        <item>사진 많은 순</item>
+        <item>내가 좋아하는 사람</item>
+    </string-array>
 
     <string name="user_input_eng">. 이 사진을 찾을 때 필요한 속성인 entity와 relationship을 추출할거야.
         entity는 사람이나 사물의 이름 또는 감정, 인종, 성별을 나타내는 단어이고,
