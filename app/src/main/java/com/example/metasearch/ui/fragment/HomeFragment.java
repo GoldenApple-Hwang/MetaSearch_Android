@@ -86,6 +86,8 @@ public class HomeFragment extends Fragment
         LinearLayoutManager layoutManager = new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false);
         binding.personRecyclerViewHorizon.setLayoutManager(layoutManager);
         binding.personRecyclerViewHorizon.setAdapter(personAdapter);
+
+        binding.personRecyclerViewHorizon.setVisibility(View.GONE); // 초기 상태를 GONE으로 설정
     }
 
     private void setupRecyclerViewToggle() {
