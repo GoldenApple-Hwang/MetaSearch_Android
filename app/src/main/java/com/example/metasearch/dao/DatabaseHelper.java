@@ -223,24 +223,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         int result = db.delete(TABLE_NAME, "INPUTNAME = ?", new String[]{inputName});
         db.close(); // 데이터베이스 사용 후 닫기
     }
-    public String getPhoneNumberByName(String name) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        String phoneNumber = "";
-
-        // 쿼리에서 이름을 기준으로 전화번호를 조회합니다.
-        String query = "SELECT " + COLUMN_PHONENUMBER + " FROM " + TABLE_NAME + " WHERE " + COLUMN_INPUTNAME + " = ?";
-        Cursor cursor = db.rawQuery(query, new String[]{name});
-
-        if (cursor.moveToFirst()) {
-            phoneNumber = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PHONENUMBER));
-        }
-
-        cursor.close();
-        db.close();
-
-        return phoneNumber;
-    }
-
     public String getPhoneNumberById(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
         String phoneNumber = "";
