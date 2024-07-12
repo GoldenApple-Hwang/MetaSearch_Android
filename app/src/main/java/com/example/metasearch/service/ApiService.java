@@ -64,6 +64,11 @@ public interface ApiService {
     // Web 서버에 노드 삭제 요청
     @POST("neo4j/deleteEntity/")
     Call<DeleteEntityResponse> deleteEntity(@Body DeleteEntityRequest request);
+    // 이미지 분석 서버에 인물 삭제 요청
+    @Multipart
+    @POST("android/delete_person")
+//    Call<Void> deletePerson(@Part DeleteEntityRequest request);
+    Call<Void> deletePerson(@Part("dbName")RequestBody dbName, @Part("deletePerson")RequestBody deletePerson);
 
 
     //AI서버에 추가 이미지 분석 요청

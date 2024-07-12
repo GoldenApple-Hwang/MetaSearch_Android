@@ -365,7 +365,23 @@ public class AIRequestManager {
         return CompletableFuture.allOf(futuresList.toArray(new CompletableFuture[0]));
     }
 
-
+    public void deletePerson(String dbName, String imageName) {
+//        DeleteEntityRequest request = new DeleteEntityRequest(dbName, imageName);
+//        Call<Void> call = aiService.deletePerson(request);
+        RequestBody db = RequestBody.create(MediaType.parse("text/plain"),dbName);
+        RequestBody name = RequestBody.create(MediaType.parse("text/plain"),imageName);
+        Call<Void> call = aiService.deletePerson(db, name);
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                Log.d("DEL_PERSON", response.message());
+            }
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Log.d("DEL_PERSON", "DELETE PERSON FAILED");
+            }
+        });
+    }
 
 
     // AI Server로 이미지와 원 리스트 전송
