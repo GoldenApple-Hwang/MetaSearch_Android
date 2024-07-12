@@ -159,19 +159,15 @@ public class ImageServiceRequestManager {
             //ArrayList<String> safeDeletePaths = deletePaths != null ? deletePaths : new ArrayList<>();
             //ArrayList<String> safeAddImagePaths = addImagePaths != null ? addImagePaths : new ArrayList<>();
             if(dbBytes!=null){
-
+                request_image_AIServer(addImagePaths,deletePaths,DBName);
                 //이미지 분석이 시작된다는 첫 번째 요청 실행 ( db의 faces 삭제)
-                aiRequestManager.firstUploadImage(DBName).thenRun(()->{
-                    //db의 faces에 얼굴 업로드
-                    aiRequestManager.uploadDBImage(dbBytes, DBName).thenRun(() -> { //콜백 설정함 //db 요청 끝나고 사진 분석 요청 보냄
-                        try {
-                            //추가나 삭제 이미지를 서버에 전송
-                            request_image_AIServer(addImagePaths,deletePaths,DBName);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
-                });
+//                aiRequestManager.firstUploadImage(DBName).thenRun(()->{
+//                    //db의 faces에 얼굴 업로드
+//                    aiRequestManager.uploadDBImage(dbBytes, DBName).thenRun(() -> { //콜백 설정함 //db 요청 끝나고 사진 분석 요청 보냄
+//                        //추가나 삭제 이미지를 서버에 전송
+////                            request_image_AIServer(addImagePaths,deletePaths,DBName);
+//                    });
+//                });
             }
             else{ //데이터베이스에 이미지가 없는 경우,
                 request_image_AIServer(addImagePaths,deletePaths,DBName);
