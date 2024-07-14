@@ -7,14 +7,15 @@ import android.net.Uri;
 import android.util.Base64;
 import android.util.Log;
 
-import com.example.metasearch.dao.AnalyzedImageListDatabaseHelper;
-import com.example.metasearch.dao.DatabaseHelper;
-import com.example.metasearch.helper.HttpHelper;
-import com.example.metasearch.interfaces.CircleDataUploadCallbacks;
-import com.example.metasearch.model.Circle;
-import com.example.metasearch.model.response.CircleDetectionResponse;
-import com.example.metasearch.model.response.UploadResponse;
-import com.example.metasearch.service.ApiService;
+import com.example.metasearch.data.dao.AnalyzedImageListDatabaseHelper;
+import com.example.metasearch.data.dao.DatabaseHelper;
+import com.example.metasearch.utils.HttpHelper;
+import com.example.metasearch.network.interfaces.CircleDataUploadCallbacks;
+import com.example.metasearch.data.model.Circle;
+import com.example.metasearch.network.response.CircleDetectionResponse;
+import com.example.metasearch.network.response.UploadResponse;
+import com.example.metasearch.network.api.ApiService;
+import com.example.metasearch.utils.UriToFileConverter;
 import com.google.gson.Gson;
 
 import java.io.File;
@@ -30,7 +31,6 @@ import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
 
 public class AIRequestManager {
     private static final String AIserver_BASE_URL = "http://113.198.85.5"; // ai 서버의 기본 url

@@ -23,16 +23,16 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.metasearch.R;
-import com.example.metasearch.dao.DatabaseHelper;
+import com.example.metasearch.data.dao.DatabaseHelper;
 import com.example.metasearch.databinding.ActivityCircleToSearchBinding;
-import com.example.metasearch.helper.DatabaseUtils;
-import com.example.metasearch.interfaces.CircleDataUploadCallbacks;
-import com.example.metasearch.interfaces.WebServerUploadCallbacks;
+import com.example.metasearch.utils.DatabaseUtils;
+import com.example.metasearch.network.interfaces.CircleDataUploadCallbacks;
+import com.example.metasearch.network.interfaces.WebServerUploadCallbacks;
 import com.example.metasearch.manager.AIRequestManager;
-import com.example.metasearch.manager.GalleryImageManager;
+import com.example.metasearch.utils.GalleryImageManager;
 import com.example.metasearch.manager.WebRequestManager;
-import com.example.metasearch.model.Circle;
-import com.example.metasearch.model.response.PhotoResponse;
+import com.example.metasearch.data.model.Circle;
+import com.example.metasearch.network.response.PhotoResponse;
 import com.example.metasearch.ui.adapter.ImageAdapter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 

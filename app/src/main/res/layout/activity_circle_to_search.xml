@@ -29,7 +29,7 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="MissingConstraints">
 
-        <com.example.metasearch.ui.CustomImageView
+        <com.example.metasearch.ui.custom.CustomImageView
             android:id="@+id/customImageView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

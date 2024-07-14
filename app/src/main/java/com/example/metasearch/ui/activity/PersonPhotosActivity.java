@@ -9,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.GridView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,13 +18,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.metasearch.R;
-import com.example.metasearch.dao.DatabaseHelper;
+import com.example.metasearch.data.dao.DatabaseHelper;
 import com.example.metasearch.databinding.ActivityPersonPhotosBinding;
-import com.example.metasearch.helper.DatabaseUtils;
-import com.example.metasearch.interfaces.WebServerPersonDataUploadCallbacks;
-import com.example.metasearch.manager.GalleryImageManager;
+import com.example.metasearch.utils.DatabaseUtils;
+import com.example.metasearch.network.interfaces.WebServerPersonDataUploadCallbacks;
+import com.example.metasearch.utils.GalleryImageManager;
 import com.example.metasearch.manager.WebRequestManager;
-import com.example.metasearch.model.Person;
+import com.example.metasearch.data.model.Person;
 import com.example.metasearch.ui.adapter.ImageAdapter;
 import com.example.metasearch.ui.adapter.ImageSelectionAdapter;
 import com.example.metasearch.ui.viewmodel.ImageViewModel;

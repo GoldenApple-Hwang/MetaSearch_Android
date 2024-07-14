@@ -23,7 +23,7 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.example.metasearch.databinding.ActivityMainBinding;
-import com.example.metasearch.interfaces.Update;
+import com.example.metasearch.network.interfaces.Update;
 import com.example.metasearch.ui.fragment.HomeFragment;
 
 public class MainActivity extends AppCompatActivity {

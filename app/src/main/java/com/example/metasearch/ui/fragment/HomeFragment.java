@@ -1,6 +1,6 @@
 package com.example.metasearch.ui.fragment;
 
-import static com.example.metasearch.manager.GalleryImageManager.getAllGalleryImagesUri;
+import static com.example.metasearch.utils.GalleryImageManager.getAllGalleryImagesUri;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -24,16 +24,16 @@ import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 
 import com.example.metasearch.R;
-import com.example.metasearch.dao.DatabaseHelper;
+import com.example.metasearch.data.dao.DatabaseHelper;
 import com.example.metasearch.databinding.FragmentHomeBinding;
-import com.example.metasearch.interfaces.ImageAnalysisCompleteListener;
-import com.example.metasearch.interfaces.Update;
-import com.example.metasearch.interfaces.WebServerPersonFrequencyUploadCallbacks;
+import com.example.metasearch.network.interfaces.ImageAnalysisCompleteListener;
+import com.example.metasearch.network.interfaces.Update;
+import com.example.metasearch.network.interfaces.WebServerPersonFrequencyUploadCallbacks;
 import com.example.metasearch.manager.ImageAnalysisWorker;
 import com.example.metasearch.manager.ImageServiceRequestManager;
 import com.example.metasearch.manager.WebRequestManager;
-import com.example.metasearch.model.Person;
-import com.example.metasearch.model.response.PersonFrequencyResponse;
+import com.example.metasearch.data.model.Person;
+import com.example.metasearch.network.response.PersonFrequencyResponse;
 import com.example.metasearch.ui.activity.ImageDisplayActivity;
 import com.example.metasearch.ui.activity.MainActivity;
 import com.example.metasearch.ui.adapter.ImageAdapter;
