@@ -146,7 +146,7 @@ public class PersonPhotosActivity extends AppCompatActivity
             binding.face.setImageBitmap(bitmap);
 
             // 새로운 썸네일 이미지를 데이터베이스에 저장 (여기서는 이름을 기준으로 저장)
-            boolean updateSuccess = databaseHelper.updateThumbnailImageByName(inputName, DatabaseHelper.getBytes(bitmap));
+            boolean updateSuccess = databaseHelper.updateThumbnailImageByName(inputName, GalleryImageManager.getBytes(bitmap));
             if (updateSuccess) {
                 StyleableToast.makeText(this, "프로필 사진이 변경되었습니다.", R.style.customToast).show();
             } else {

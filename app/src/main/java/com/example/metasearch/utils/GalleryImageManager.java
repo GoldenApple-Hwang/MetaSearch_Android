@@ -4,9 +4,11 @@ import android.annotation.SuppressLint;
 import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.provider.MediaStore;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -150,5 +152,11 @@ public class GalleryImageManager {
             e.printStackTrace();
         }
         return fileName;
+    }
+    public static byte[] getBytes(Bitmap bitmap) { // 이미지를 바이트 배열로 변환하는 예시 코드
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        // 압축 품질 변경
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+        return stream.toByteArray();
     }
 }
