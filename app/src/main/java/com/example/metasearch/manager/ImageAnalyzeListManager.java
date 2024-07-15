@@ -7,13 +7,10 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import com.example.metasearch.dao.AnalyzedImageListDatabaseHelper;
+import com.example.metasearch.data.dao.AnalyzedImageListDatabaseHelper;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 public class ImageAnalyzeListManager {
     private ArrayList<String> analyzed_image_list;    //분석된 이미지 리스트

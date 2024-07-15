@@ -4,23 +4,19 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.View;
-import android.widget.FrameLayout;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import com.example.metasearch.R;
 import com.example.metasearch.databinding.ActivityImageDisplayBinding;
-import com.example.metasearch.helper.DatabaseUtils;
+import com.example.metasearch.utils.DatabaseUtils;
 import com.example.metasearch.manager.ChatGPTManager;
-import com.example.metasearch.manager.GalleryImageManager;
+import com.example.metasearch.utils.GalleryImageManager;
 import com.example.metasearch.manager.WebRequestManager;
-import com.example.metasearch.model.Message;
-import com.example.metasearch.model.response.OpenAIResponse;
-import com.example.metasearch.model.response.TripleResponse;
+import com.example.metasearch.data.model.Message;
+import com.example.metasearch.network.response.OpenAIResponse;
+import com.example.metasearch.network.response.TripleResponse;
 
 import java.util.ArrayList;
 import java.util.List;

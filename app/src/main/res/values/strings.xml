@@ -20,15 +20,7 @@
         <item>사진 많은 순</item>
         <item>내가 좋아하는 사람</item>
     </string-array>
-
-    <string name="user_input_eng">. 이 사진을 찾을 때 필요한 속성인 entity와 relationship을 추출할거야.
-        entity는 사람이나 사물의 이름 또는 감정, 인종, 성별을 나타내는 단어이고,
-        relationship은 entity가 속하는 카테고리로 \"person, color, animal, furniture, fruit, food, beverage, dessert, ice cream, clothing, jewelry, electronic_equipment, footwear, flower, street,
-        building, cap, sports, glasses, sunset, sunrise, sky, toy, cup, car, 감정, 인종, 성별\" 중 하나야. 장소는 추출 하지 말고, 아이스크림은 ice cream으로 분류.
-        예를 들어, \'아기가 바다에서 바나나와 아이스크림을 먹는 사진\' 이라면, \'3,baby,person,banana,fruit,ice cream,ice cream\'처럼 공백 없이 총 한 줄로 리턴.
-        맨 앞의 숫자는 entity와 relationship을 한 쌍으로 봤을 때 총 개수를 의미. entity도 영어로 리턴.
-        추출된 속성 쌍의 개수가 0이면, \'0\'을 리턴.</string>
-
+    
     <string name="user_input_kor">지정된 카테고리에 해당하는 단어들을 모두 찾아.
         각 단어는 콤마(,)로 분리된 하나의 문자열로 리턴해. 만약 추출된 단어가 없다면 \'0\'을 리턴.
         카테고리:
@@ -103,34 +95,19 @@
         다음 문장을 분석해:
     </string>
 
-
     <string name="explain_text_delete"><font color="#8D9CB5">※ 갤러리에서 삭제된 항목이 확인되었습니다.</font></string>
     <string name="explain_text_add"><font color="#8D9CB5">※ 갤러리에서 새로운 항목이 확인되었습니다.</font></string>
     <string name="explain_text_no_image"><font color="#b50101">※ 갤러리에 새로운 항목이 없습니다.</font></string>
-
-
 
     <string name="formatted_text_add"><font color="#0060F9">이미지 분석이 완료될 시 </font></string>
     <string name="formatted_text_delete"><font color="#0060F9">이미지 업데이트가 완료될 시</font></string>
     <string name="formatted_text_no_image"><font color="#0060F9">이미지 분석을 원할 시</font></string>
 
-
     <string name="formatted_text1"><font color="#0060F9">앱 알림으로 </font>알려드리겠습니다.</string>
     <string name="formatted_text2"><font color="#0060F9">이미지를 추가</font>해주세요.</string>
-
 
     <string name="title_text_add"><font color="#374F76">이미지 분석 중...</font></string>
     <string name="title_text_delete"><font color="#374F76">이미지 업데이트 중...</font></string>
 
     <string name="title_text_no_image"><font color="#374F76">분석할 이미지 없음</font></string>
-
-    <string name="ranking_description_title">친밀도 랭킹</string>
-    <string name="ranking_description_text">본 랭킹은 \'인물 빈도\'와 \'전화 시간\' 두 가지 지표를 기반으로 합니다.
-        \'인물 빈도\'는 갤러리의 사진 속에서 해당 인물이 나타난 횟수를 기준으로 하며,
-        \'전화 시간\'은 해당 인물과의 총 통화 시간을 나타냅니다. 각 지표별로 독립적인 랭킹을 매긴 후,
-        이를 합산하여 최종 순위를 결정하였습니다.
-    </string>
-    <string name="ranking_description_text_simple">랭킹은 인물의 사진 빈도수와 통화 시간을 기준으로 계산됩니다.</string>
-
-
 </resources>

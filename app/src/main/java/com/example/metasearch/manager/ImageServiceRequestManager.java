@@ -12,17 +12,17 @@ import androidx.core.app.NotificationCompat;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
-import com.example.metasearch.dao.AnalyzedImageListDatabaseHelper;
-import com.example.metasearch.dao.DatabaseHelper;
-import com.example.metasearch.helper.DatabaseUtils;
-import com.example.metasearch.interfaces.ImageAnalysisCompleteListener;
-import com.example.metasearch.service.ApiService;
+import com.example.metasearch.data.dao.AnalyzedImageListDatabaseHelper;
+import com.example.metasearch.data.dao.DatabaseHelper;
+import com.example.metasearch.utils.DatabaseUtils;
+import com.example.metasearch.network.interfaces.ImageAnalysisCompleteListener;
+import com.example.metasearch.network.api.ApiService;
+import com.example.metasearch.utils.GalleryImageManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.logging.Handler;
 
 public class ImageServiceRequestManager {
     private ImageAnalysisCompleteListener listener;

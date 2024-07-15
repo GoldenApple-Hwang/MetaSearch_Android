@@ -5,7 +5,7 @@
     <data>
         <variable
             name="person"
-            type="com.example.metasearch.model.Person" />
+            type="com.example.metasearch.data.model.Person" />
     </data>
 
     <androidx.cardview.widget.CardView

@@ -6,7 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
-import com.example.metasearch.dao.DatabaseHelper;
+import com.example.metasearch.data.dao.DatabaseHelper;
 
 public class ImageAnalysisWorker extends Worker {
     private ImageServiceRequestManager imageServiceRequestManager;
