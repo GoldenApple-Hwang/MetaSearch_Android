@@ -1,7 +1,5 @@
 package com.example.metasearch.ui.viewmodel;
 
-import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
-
 import android.Manifest;
 import android.app.Application;
 import android.content.pm.PackageManager;
@@ -13,12 +11,12 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.example.metasearch.dao.DatabaseHelper;
-import com.example.metasearch.helper.DatabaseUtils;
-import com.example.metasearch.interfaces.WebServerPersonFrequencyUploadCallbacks;
+import com.example.metasearch.data.dao.DatabaseHelper;
+import com.example.metasearch.utils.DatabaseUtils;
+import com.example.metasearch.network.interfaces.WebServerPersonFrequencyUploadCallbacks;
 import com.example.metasearch.manager.WebRequestManager;
-import com.example.metasearch.model.Person;
-import com.example.metasearch.model.response.PersonFrequencyResponse;
+import com.example.metasearch.data.model.Person;
+import com.example.metasearch.network.response.PersonFrequencyResponse;
 
 import java.util.ArrayList;
 import java.util.List;

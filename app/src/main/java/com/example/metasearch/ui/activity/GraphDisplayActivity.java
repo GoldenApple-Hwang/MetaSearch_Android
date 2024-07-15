@@ -1,18 +1,15 @@
 package com.example.metasearch.ui.activity;
 
-import static com.example.metasearch.manager.GalleryImageManager.findMatchedUri;
-import static com.example.metasearch.manager.GalleryImageManager.getAllGalleryImagesUri;
+import static com.example.metasearch.utils.GalleryImageManager.findMatchedUri;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.Intent;
 import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
@@ -22,18 +19,12 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.metasearch.R;
 import com.example.metasearch.databinding.ActivityGraphDisplayBinding;
-import com.example.metasearch.helper.DatabaseUtils;
-import com.example.metasearch.manager.GalleryImageManager;
-import com.example.metasearch.ui.adapter.ImageAdapter;
-import com.example.metasearch.ui.fragment.GraphFragment;
+import com.example.metasearch.utils.DatabaseUtils;
+import com.example.metasearch.utils.GalleryImageManager;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 

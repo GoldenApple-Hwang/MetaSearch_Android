@@ -1,6 +1,6 @@
 package com.example.metasearch.ui.fragment;
 
-import static com.example.metasearch.manager.GalleryImageManager.findMatchedUris;
+import static com.example.metasearch.utils.GalleryImageManager.findMatchedUris;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -23,18 +23,18 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.metasearch.BuildConfig;
 import com.example.metasearch.R;
 import com.example.metasearch.databinding.FragmentSearchBinding;
-import com.example.metasearch.helper.DatabaseUtils;
-import com.example.metasearch.helper.HttpHelper;
-import com.example.metasearch.interfaces.Update;
-import com.example.metasearch.interfaces.WebServerQueryCallbacks;
-import com.example.metasearch.manager.Neo4jDatabaseManager;
+import com.example.metasearch.utils.DatabaseUtils;
+import com.example.metasearch.utils.HttpHelper;
+import com.example.metasearch.network.interfaces.Update;
+import com.example.metasearch.network.interfaces.WebServerQueryCallbacks;
+import com.example.metasearch.utils.Neo4jDatabaseManager;
 import com.example.metasearch.manager.WebRequestManager;
-import com.example.metasearch.model.Choice;
-import com.example.metasearch.model.Message;
-import com.example.metasearch.model.request.OpenAIRequest;
-import com.example.metasearch.model.response.OpenAIResponse;
-import com.example.metasearch.model.response.PhotoNameResponse;
-import com.example.metasearch.service.ApiService;
+import com.example.metasearch.data.model.Choice;
+import com.example.metasearch.data.model.Message;
+import com.example.metasearch.network.request.OpenAIRequest;
+import com.example.metasearch.network.response.OpenAIResponse;
+import com.example.metasearch.network.response.PhotoNameResponse;
+import com.example.metasearch.network.api.ApiService;
 import com.example.metasearch.ui.activity.ImageDisplayActivity;
 import com.example.metasearch.ui.activity.MainActivity;
 import com.example.metasearch.ui.adapter.CustomArrayAdapter;

@@ -13,10 +13,11 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.metasearch.R;
-import com.example.metasearch.helper.DatabaseUtils;
-import com.example.metasearch.interfaces.WebServerDeleteEntityCallbacks;
+import com.example.metasearch.utils.DatabaseUtils;
+import com.example.metasearch.network.interfaces.WebServerDeleteEntityCallbacks;
+import com.example.metasearch.manager.AIRequestManager;
 import com.example.metasearch.manager.WebRequestManager;
-import com.example.metasearch.model.Person;
+import com.example.metasearch.data.model.Person;
 import com.example.metasearch.ui.activity.PersonPhotosActivity;
 import com.example.metasearch.ui.viewmodel.PersonViewModel;
 import java.util.List;
@@ -34,12 +35,14 @@ public class PersonAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     private final boolean isHomeScreen;
 
     private final WebRequestManager webRequestManager;
+    private final AIRequestManager aiRequestManager;
 
     public PersonAdapter(Context context, PersonViewModel personViewModel, boolean isHomeScreen) {
         this.context = context;
         this.personViewModel = personViewModel;
         this.isHomeScreen = isHomeScreen;
         this.webRequestManager = WebRequestManager.getWebImageUploader();
+        this.aiRequestManager = AIRequestManager.getAiImageUploader(context);
     }
 
     public void setPeople(List<Person> people) {
@@ -83,6 +86,7 @@ public class PersonAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                 .setPositiveButton("삭제", (dialog, which) -> {
                     personViewModel.deletePerson(person);
                     webRequestManager.deleteEntity(DatabaseUtils.getPersistentDeviceDatabaseName(context), person.getInputName(), this);
+                    aiRequestManager.deletePerson(DatabaseUtils.getPersistentDeviceDatabaseName(context), person.getImageName());
                 })
                 .setNegativeButton("취소", null)
                 .show();

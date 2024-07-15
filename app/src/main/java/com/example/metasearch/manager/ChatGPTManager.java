@@ -1,11 +1,11 @@
 package com.example.metasearch.manager;
 
 import com.example.metasearch.BuildConfig;
-import com.example.metasearch.helper.HttpHelper;
-import com.example.metasearch.model.Message;
-import com.example.metasearch.model.request.OpenAIRequest;
-import com.example.metasearch.model.response.OpenAIResponse;
-import com.example.metasearch.service.ApiService;
+import com.example.metasearch.utils.HttpHelper;
+import com.example.metasearch.data.model.Message;
+import com.example.metasearch.network.request.OpenAIRequest;
+import com.example.metasearch.network.response.OpenAIResponse;
+import com.example.metasearch.network.api.ApiService;
 
 import java.util.List;
 

@@ -1,6 +1,6 @@
 package com.example.metasearch.ui.fragment;
 
-import static com.example.metasearch.manager.GalleryImageManager.findMatchedUri;
+import static com.example.metasearch.utils.GalleryImageManager.findMatchedUri;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -20,7 +20,6 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -28,7 +27,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.metasearch.databinding.FragmentGraphBinding;
-import com.example.metasearch.helper.DatabaseUtils;
+import com.example.metasearch.utils.DatabaseUtils;
 import com.example.metasearch.ui.activity.GraphDisplayActivity;
 import com.example.metasearch.ui.viewmodel.GraphViewModel;
 

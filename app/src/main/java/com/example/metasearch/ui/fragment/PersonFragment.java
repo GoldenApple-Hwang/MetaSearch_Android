@@ -17,8 +17,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.metasearch.R;
 import com.example.metasearch.databinding.FragmentPersonBinding;
-import com.example.metasearch.interfaces.ImageAnalysisCompleteListener;
-import com.example.metasearch.model.Person;
+import com.example.metasearch.network.interfaces.ImageAnalysisCompleteListener;
+import com.example.metasearch.data.model.Person;
 import com.example.metasearch.ui.activity.MainActivity;
 import com.example.metasearch.ui.adapter.PersonAdapter;
 import com.example.metasearch.ui.viewmodel.PersonViewModel;
